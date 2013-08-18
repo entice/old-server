@@ -1,4 +1,1 @@
-server
-======
-
-A server implementation handling authorization and game state.
+The server manages authorization and gamestate propagation.
