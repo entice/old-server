@@ -41,8 +41,8 @@ class LoginServiceSpec(_system: ActorSystem) extends TestKit(_system)
    
         "reply to login requests with login responses" in {
             val echo = system.actorOf(Props[LoginServiceActor])
-            echo ! LoginRequest("test@test.de", "password")
-            expectMsgClass(classOf[LoginResponse])
+            system.eventStream.publish(LoginRequest("test@test.de", "password"))
+            expectMsgClass(Duration(100, MILLISECONDS), classOf[LoginResponse])
         }
 
 
