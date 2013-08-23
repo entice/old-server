@@ -9,16 +9,23 @@ import entice.protocol.LoginResponse
 import entice.protocol.LoginResponse._
 
 import akka.actor.Actor
+import akka.event.EventStream
 
 
-class LoginServiceActor extends Actor{
+class LoginServiceActor(evtStream: EventStream) extends Actor{
+
 
     override def preStart = {
-        context.system.eventStream.subscribe(context.self, classOf[LoginRequest])
+        evtStream.subscribe(context.self, classOf[LoginRequestMsg])
     }
 
+
     def receive = {
-        case e@ LoginRequest("test", "test") => sender ! LoginResponse(Some(ErrorCode.INVALID_CREDENTIALS))
-        case e: LoginRequest => sender ! LoginResponse()
+
+        case m@ LoginRequestMsg(LoginRequest("test", "test")) => 
+            m.session map { _ ! LoginResponse(Some(ErrorCode.INVALID_CREDENTIALS)) }
+
+        case m: LoginRequestMsg => 
+            m.session map { _ ! LoginResponse() }
     }
 }

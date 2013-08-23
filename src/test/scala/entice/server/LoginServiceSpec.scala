@@ -5,8 +5,10 @@
 package entice.server
 
 import entice.protocol.LoginRequest
+import entice.server.login.LoginRequestMsg
 import entice.protocol.LoginResponse
 import entice.protocol.LoginResponse._
+
 import entice.server.login.LoginServiceActor
 
 import akka.actor.ActorSystem
@@ -22,7 +24,7 @@ import scala.concurrent.duration._
 
 
  
-class LoginServiceSpec(_system: ActorSystem) extends TestKit(_system)
+class LoginServerSpec(system: ActorSystem) extends TestKit(system)
     with WordSpec
     with MustMatchers 
     with BeforeAndAfterAll
@@ -30,6 +32,13 @@ class LoginServiceSpec(_system: ActorSystem) extends TestKit(_system)
  
 
     def this() = this(ActorSystem("LoginServiceSpec"))
+
+    // TODO dep inject all that shit
+    val evtStream = system.eventStream
+    val login = system.actorOf(Props(classOf[LoginServiceActor], evtStream))
+
+
+    def pub(obj: Object) { evtStream.publish(obj) }
  
 
     override def afterAll {
@@ -37,19 +46,20 @@ class LoginServiceSpec(_system: ActorSystem) extends TestKit(_system)
     }
  
 
-    "A login service actor" must {
+    // TODO account DAO shit must be mocked!
+    "A login server" must {
    
-        "reply to login requests with login responses" in {
-            val echo = system.actorOf(Props[LoginServiceActor])
-            system.eventStream.publish(LoginRequest("test@test.de", "password"))
+   
+        "reply to any login requests with messages of type login response" in {
+            pub(LoginRequestMsg(LoginRequest("test@test.de", "password"))(self))
             expectMsgClass(Duration(100, MILLISECONDS), classOf[LoginResponse])
         }
 
 
         "reply to invalid login requests with an error code" in {
-            val echo = system.actorOf(Props[LoginServiceActor])
-            echo ! LoginRequest("test", "test")
-            expectMsg(LoginResponse(Some(ErrorCode.INVALID_CREDENTIALS)))
+            // the account will not exists (we need to provide an email anyway!)
+            pub(LoginRequestMsg(LoginRequest("test", "test"))(self))
+            expectMsg(Duration(100, MILLISECONDS), LoginResponse(Some(ErrorCode.INVALID_CREDENTIALS)))
         }
    
     }
