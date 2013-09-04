@@ -1,13 +1,16 @@
 
 import sbt._
 import sbt.Keys._
-import scalabuff.ScalaBuffPlugin._
+
 
 object ProjectBuild extends Build {
     
     lazy val root = Project(
-        id = "main", 
-        base = file("."), 
-        settings = Defaults.defaultSettings ++ scalabuffSettings
-    ).configs(ScalaBuff)
+        id = "server", 
+        base = file(".")
+    ) dependsOn(protocol, jsonMacros)
+
+    lazy val protocol = RootProject(uri("https://github.com/entice/protocol.git"))
+
+    lazy val jsonMacros = RootProject(uri("https://github.com/ephe-meral/akmacros-json.git#fix-play-2.2-SNAPSHOT"))
 }

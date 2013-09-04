@@ -2,61 +2,116 @@
  * For copyright information see the LICENSE document.
  */
 
-package entice.server.login
+package entice.server
 
-import akka.actor.{ Actor, ActorRef, ActorSystem, ActorLogging, Props }
-import akka.io.{ IO, Tcp }
+import entice.protocol._
+import entice.protocol.utils._
+
+import akka.actor.{ Actor, ActorRef, ActorLogging, ActorSystem, Props, PoisonPill }
+import akka.io.{ IO, Tcp, TcpPipelineHandler }
+import akka.io.TcpPipelineHandler._
+import akka.pattern.gracefulStop
+import scala.concurrent.{ Await, Future }
+import scala.concurrent.duration._
 
 import java.net.InetSocketAddress
 
 
 /**
- * Should be implemented by concrete session actors in the servers
- */
-abstract class Session(connection: ActorRef, remote: InetSocketAddress) extends Actor
-
-
-/**
- * Mixes in an optional session (as actor ref)
- * and an additional apply method, ideally into a message case class.
+ * Accepts TCP sessions and creates the appropriate session actors
  *
- * Hint: use the apply method like a curried method
+ * Hint: Can be wired, if the reactor is provided explicitly.
  */
-trait SessionMixin {
+class SessionAcceptorActor(
+    localAddress: InetSocketAddress,
+    reactor: ActorRef) 
+        extends Actor with ActorLogging {
 
-    type T <: AnyRef
 
-    var session: Option[ActorRef] = None
+    import SessionActor._
+    import Tcp._
+    import context.system
 
-    def apply(sess: ActorRef): T = {
-        session = Some(sess)
-        this.asInstanceOf[T]
+    IO(Tcp) ! Bind(self, localAddress)
+
+
+    def receive = {
+
+        case CommandFailed(_: Bind) =>
+            context stop self
+
+        case c @ Connected(remote, local) =>
+            val init = PipelineFactory.getWithLog(log)
+            val connection = sender
+            val handler: ActorRef = context.actorOf(Props(classOf[SessionActor], init, connection))
+            val pipeline = context.actorOf(TcpPipelineHandler.props(init, connection, handler))
+
+            handler ! Reactor(reactor)
+            handler ! Pipeline(pipeline)
+            connection ! Register(pipeline)
+    }
+
+    override def postStop {
+        context.children map { 
+            a: ActorRef =>
+            try {
+                val stopped: Future[Boolean] = gracefulStop(a, Duration(5, SECONDS))
+                Await.result(stopped, Duration(6, SECONDS))
+            } catch {
+                case e: akka.pattern.AskTimeoutException => 
+                    log.error("Couldnt stop session actor. {}", e)
+                    a
+            }
+        }
     }
 }
 
 
-/**
- * Accepts sessions on a certain port.
- */
-class SessionAcceptor(
-    sessClazz: Class[_ <: Session],
-    bindTo: InetSocketAddress) extends Actor with ActorLogging {
- 
- 
-    import Tcp._
-    import context.system
+object SessionActor {
+    case class Pipeline(pipe: ActorRef)
+    case class Reactor(reactor: ActorRef)
+}
 
-    IO(Tcp) ! Bind(self, bindTo)
+
+/**
+ * Manages a TCP session and does the serialization via its pipeline
+ */
+class SessionActor(
+    pipeInit: Init[WithinActorContext, Message, Message],
+    connection: ActorRef)
+    extends Actor with ActorLogging {
+
+    import SessionActor._
+    import ReactorActor._
+    import Tcp.{ Close, PeerClosed }
+
+    var pipeline: Option[ActorRef] = None
+    var reactor: Option[ActorRef] = None
 
 
     def receive = {
-        // new client connected
-        case c @ Connected(remote, local) =>
-            val handler = context.actorOf(Props(sessClazz, sender, remote))
-            sender ! Register(handler)
+        // init with pipeline or reactor
+        case Pipeline(pipe) =>
+            pipeline = Some(pipe)
 
-        // bind on startup failed
-        case CommandFailed(_: Bind) => context stop self
+        case Reactor(react) =>
+            reactor = Some(react)
+
+        // handle new message
+        case pipeInit.Event(data) =>
+            log.info(s"Got: ${data.toString}")
+            reactor map { _ ! Publish(self, data) }
+
+        // handle outgoing message
+        case data: Message =>
+            log.info(s"Put: ${data.toString}")
+            pipeline map { _ ! pipeInit.Command(data) }
+
+        // client disconnected
+        case PeerClosed => context stop self
     }
- 
+
+    override def postStop {
+        connection ! Close
+    }
 }
