@@ -12,21 +12,15 @@ import entice.protocol._
 import entice.protocol.utils.MessageBus.MessageEvent
 
 
-class DispatchFactory(actorSystem: ActorSystem, reactor: ActorRef) {
+class DispatchHandler(val reactor: ActorRef) extends Actor with Subscriber {
 
-    import ReactorActor._
+    val subscriptions =
+        classOf[DispatchRequest] ::
+        Nil
 
-    // used to wire this class automatically and subscribe it with the reactor
-    case class createAndSubscribe {
-
-        lazy val dispatchService = actorSystem.actorOf(Props[DispatchHandler])
-
-        reactor ! Subscribe(dispatchService, classOf[DispatchRequest])
+    override def preStart {
+        register
     }
-}
-
-
-class DispatchHandler extends Actor {
 
     def receive = {
 

@@ -18,16 +18,18 @@ object ReactorActor {
 }
 
 
-// trait SubscribeFor[T <: Message] {
-//     this: Actor =>
+trait Subscriber {
+    this: Actor =>
 
-//     import ReactorActor._
+    import ReactorActor._
 
-//     def reactor: ActorRef
-//     implicit val ev: Manifest[T]
+    def reactor: ActorRef
+    def subscriptions: List[Class[_ <: Message]]
 
-//     reactor ! Subscribe(self, ev.erasure)
-// }
+    def register {
+        subscriptions map { reactor ! Subscribe(self, _) }
+    }
+}
 
 
 /**

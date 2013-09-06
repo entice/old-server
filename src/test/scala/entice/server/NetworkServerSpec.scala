@@ -13,14 +13,18 @@ import entice.server.login._
 import akka.actor._
 import akka.io.{ IO, Tcp, TcpPipelineHandler }
 import akka.io.TcpPipelineHandler._
+import akka.pattern.ask
 import akka.event._
 import akka.testkit._
+import akka.util.Timeout
+import com.typesafe.config.ConfigFactory
 
 import com.softwaremill.macwire.Macwire
 
 import org.scalatest._
 import org.scalatest.matchers._
 
+import scala.concurrent._
 import scala.concurrent.duration._
 
 import java.net.InetSocketAddress
@@ -46,30 +50,46 @@ trait TestApiSlice extends CoreSlice with ApiSlice {
 
     lazy val echo = actorSystem.actorOf(Props[EchoHandler])
     reactor ! Subscribe(echo, classOf[LoginRequest])
-}   
-
-
-/**
- * A testserver that we can communicate with
- */
-case class TestServer(port: Int) extends CoreSlice with TestApiSlice with NetSlice {
-    override lazy val localAddress = new InetSocketAddress(port)
-    start
 }
 
 
 class NetworkServerSpec(_system: ActorSystem) extends TestKit(_system)
+
+    // given component
+    with CoreSlice
+    with TestApiSlice
+    with NetSlice
+
     with WordSpec
     with MustMatchers 
     with BeforeAndAfterAll
     with ImplicitSender {
 
     import Tcp._
-    
 
-    def this() = this(ActorSystem("LoginServerSpec"))
+    val port = 9999
+
+    override lazy val actorSystem = system
+    override lazy val localAddress = new InetSocketAddress(port)
+    
+    
+    def this() = this(ActorSystem(
+        "network-server-spec", 
+        config = ConfigFactory.parseString("""
+            akka {
+              loglevel = WARNING
+            }
+        """)))
+
+
+    override def beforeAll {
+        // touch the aceptor to create the server...
+        acceptor
+    }
+
 
     override def afterAll {
+        system.stop(acceptor)
         TestKit.shutdownActorSystem(system)
     }
  
@@ -77,22 +97,21 @@ class NetworkServerSpec(_system: ActorSystem) extends TestKit(_system)
     "An entice network server" must {
 
         "be able to accept TCP clients" in {
-            // given
-            val server = TestServer(8111)
             val probe = TestProbe()
+
             // try to connect
-            probe.send(IO(Tcp), Connect(new InetSocketAddress("localhost", 8111)))
-            probe.expectMsgClass(Duration(100, MILLISECONDS), classOf[Connected])
+            probe.send(IO(Tcp), Connect(new InetSocketAddress("localhost", port)))
+            probe.expectMsgClass(Duration(1000, MILLISECONDS), classOf[Connected])
+            probe.expectNoMsg
         }
 
 
         "receive entice.protocol msgs and reply (echo them in this case)" in {
-            // given
-            val server = TestServer(8112)
             val probe = TestProbe()
+
             // try to connect
-            probe.send(IO(Tcp), Connect(new InetSocketAddress("localhost", 8112)))
-            probe.expectMsgClass(Duration(100, MILLISECONDS), classOf[Connected])
+            probe.send(IO(Tcp), Connect(new InetSocketAddress("localhost", port)))
+            probe.expectMsgClass(Duration(1000, MILLISECONDS), classOf[Connected])
             
             // create the serialization stuff
             val connection = probe.sender

@@ -30,11 +30,11 @@ class LoginServerSpec(system: ActorSystem) extends TestKit(system)
     with MustMatchers 
     with BeforeAndAfterAll
     with ImplicitSender {
- 
-    def this() = this(ActorSystem("LoginServerSpec"))
 
-    // override existing actorsystem
     override lazy val actorSystem = system
+
+ 
+    def this() = this(ActorSystem("login-server-spec"))
 
 
     def testPub(probe: ActorRef, msg: Message) { 

@@ -15,6 +15,7 @@ import scala.concurrent.{ Await, Future }
 import scala.concurrent.duration._
 
 import java.net.InetSocketAddress
+import java.util.UUID
 
 
 /**
@@ -34,8 +35,12 @@ class SessionAcceptorActor(
 
     IO(Tcp) ! Bind(self, localAddress)
 
+    var actualLocalAddress: Option[InetSocketAddress] = None 
+
 
     def receive = {
+        case b @ Bound(local) =>
+            actualLocalAddress = Some(local)
 
         case CommandFailed(_: Bind) =>
             context stop self
@@ -43,7 +48,7 @@ class SessionAcceptorActor(
         case c @ Connected(remote, local) =>
             val init = PipelineFactory.getWithLog(log)
             val connection = sender
-            val handler: ActorRef = context.actorOf(Props(classOf[SessionActor], init, connection))
+            val handler: ActorRef = context.actorOf(Props(classOf[SessionActor], init, connection), "session-" + UUID.randomUUID())
             val pipeline = context.actorOf(TcpPipelineHandler.props(init, connection, handler))
 
             handler ! Reactor(reactor)

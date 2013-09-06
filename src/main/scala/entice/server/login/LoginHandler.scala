@@ -12,21 +12,15 @@ import entice.protocol._
 import entice.protocol.utils.MessageBus.MessageEvent
 
 
-class LoginFactory(actorSystem: ActorSystem, reactor: ActorRef) {
+class LoginHandler(val reactor: ActorRef) extends Actor with Subscriber {
 
-    import ReactorActor._
+    val subscriptions =
+        classOf[LoginRequest] ::
+        Nil
 
-    // used to wire this class automatically and subscribe it with the reactor
-    case class createAndSubscribe {
-
-        lazy val loginService = actorSystem.actorOf(Props[LoginHandler])
-
-        reactor ! Subscribe(loginService, classOf[LoginRequest])
+    override def preStart {
+        register
     }
-}
-
-
-class LoginHandler extends Actor {
 
     def receive = {
 
