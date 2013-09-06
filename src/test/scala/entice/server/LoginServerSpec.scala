@@ -51,20 +51,19 @@ class LoginServerSpec(system: ActorSystem) extends TestKit(system)
     "A login server" must {
    
    
-        "reply to any login requests with a message of type login response" in {
+        "reply to any valid login requests with a login success" in {
             val probe = TestProbe()(system)
-            testPub(probe.ref, LoginRequest("test@test.de", "password"))
-            probe.expectMsgClass(classOf[LoginResponse])
+            testPub(probe.ref, LoginRequest("test@test.de", "password")) // TODO: until we mock the DAO, this will be good
+            probe.expectMsgClass(classOf[LoginSuccess])
             probe.expectNoMsg
         }
 
 
-        "reply to invalid login requests with an error code" in {
-            // the account will not exists (we need to provide an email anyway!)
+        "reply to any invalid login requests with an error code" in {
             val probe = TestProbe()(system)
             testPub(probe.ref, LoginRequest("test", "test"))
             probe.expectMsgPF() {
-                case LoginResponse(errorMsg) if errorMsg != "" => true
+                case LoginFail(errorMsg) if errorMsg != "" => true
             }
             probe.expectNoMsg
         }

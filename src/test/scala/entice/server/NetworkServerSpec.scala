@@ -84,6 +84,7 @@ class NetworkServerSpec(_system: ActorSystem) extends TestKit(_system)
 
     override def beforeAll {
         // touch the aceptor to create the server...
+        // TODO: ensure the server is actually running before testing it ;)
         acceptor
     }
 

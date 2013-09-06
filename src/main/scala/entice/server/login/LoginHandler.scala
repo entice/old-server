@@ -25,9 +25,9 @@ class LoginHandler(val reactor: ActorRef) extends Actor with Subscriber {
     def receive = {
 
         case MessageEvent(session, LoginRequest("test", "test")) => 
-            session ! LoginResponse("Wrong login credentials.")
+            session ! LoginFail("Wrong login credentials.")
 
         case MessageEvent(session, login: LoginRequest) => 
-            session ! LoginResponse()
+            session ! LoginSuccess()
     }
 }
