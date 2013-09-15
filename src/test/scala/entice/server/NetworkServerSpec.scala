@@ -8,8 +8,6 @@ import entice.protocol._
 import entice.protocol.utils._
 import entice.protocol.utils.MessageBus._
 
-import entice.server.login._
-
 import akka.actor._
 import akka.io.{ IO, Tcp, TcpPipelineHandler }
 import akka.io.TcpPipelineHandler._
@@ -18,8 +16,6 @@ import akka.event._
 import akka.testkit._
 import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
-
-import com.softwaremill.macwire.Macwire
 
 import org.scalatest._
 import org.scalatest.matchers._
@@ -35,7 +31,7 @@ import java.net.InetSocketAddress
  */
 class EchoHandler extends Actor with ActorLogging {
     def receive = {
-        case MessageEvent(session, data) => 
+        case MessageEvent(Sender(id, session), data) => 
             log.info("Got the expected data :)")
             session ! data
     }
@@ -49,7 +45,7 @@ trait TestApiSlice extends CoreSlice with ApiSlice {
     import ReactorActor._
 
     lazy val echo = actorSystem.actorOf(Props[EchoHandler])
-    reactor ! Subscribe(echo, classOf[LoginRequest])
+    reactor ! Subscribe(echo, classOf[DispatchRequest])
 }
 
 
@@ -67,10 +63,11 @@ class NetworkServerSpec(_system: ActorSystem) extends TestKit(_system)
 
     import Tcp._
 
-    val port = 9999
 
     override lazy val actorSystem = system
-    override lazy val localAddress = new InetSocketAddress(port)
+
+    // use the default, meaning bind to any free port ;)
+    var localAddr: Option[InetSocketAddress] = None
     
     
     def this() = this(ActorSystem(
@@ -83,9 +80,19 @@ class NetworkServerSpec(_system: ActorSystem) extends TestKit(_system)
 
 
     override def beforeAll {
+        import ReactorActor._
+        import MetaReactorActor._
+        import NetSlice._
+        // register a testprobe with the reactor to
+        val probe = TestProbe()
+        probe.send(reactor, Subscribe(probe.ref, classOf[BindSuccess]))
+        probe.send(reactor, Subscribe(probe.ref, classOf[BindFail]))
         // touch the aceptor to create the server...
         // TODO: ensure the server is actually running before testing it ;)
-        acceptor
+        acceptor ! AddReactor(reactor)
+        probe.expectMsgPF(Duration(1000, MILLISECONDS)) {
+            case MessageEvent(a, BindSuccess(addr)) => localAddr = Some(addr)
+        }
     }
 
 
@@ -97,21 +104,23 @@ class NetworkServerSpec(_system: ActorSystem) extends TestKit(_system)
 
     "An entice network server" must {
 
-        "be able to accept TCP clients" in {
+        "accept TCP clients" in {
+            localAddr must not be(None)
             val probe = TestProbe()
 
             // try to connect
-            probe.send(IO(Tcp), Connect(new InetSocketAddress("localhost", port)))
+            probe.send(IO(Tcp), Connect(new InetSocketAddress("localhost", localAddr.get.getPort)))
             probe.expectMsgClass(Duration(1000, MILLISECONDS), classOf[Connected])
             probe.expectNoMsg
         }
 
 
         "receive entice.protocol msgs and reply (echo them in this case)" in {
+            localAddr must not be(None)
             val probe = TestProbe()
 
             // try to connect
-            probe.send(IO(Tcp), Connect(new InetSocketAddress("localhost", port)))
+            probe.send(IO(Tcp), Connect(new InetSocketAddress("localhost", localAddr.get.getPort)))
             probe.expectMsgClass(Duration(1000, MILLISECONDS), classOf[Connected])
             
             // create the serialization stuff
@@ -121,9 +130,9 @@ class NetworkServerSpec(_system: ActorSystem) extends TestKit(_system)
             probe.send(connection, Register(pipeline))
 
             // deploy test message and wait for it to come back
-            probe.send(pipeline, init.Command(LoginRequest("test", "test")))
+            probe.send(pipeline, init.Command(DispatchRequest()))
             probe.expectMsgPF(Duration(1000, MILLISECONDS)) {
-                case init.Event(data: LoginRequest) => true
+                case init.Event(data: DispatchRequest) => true
             }
             expectNoMsg
         }

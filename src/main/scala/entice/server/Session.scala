@@ -6,68 +6,66 @@ package entice.server
 
 import entice.protocol._
 import entice.protocol.utils._
+import entice.protocol.utils.MessageBus._
 
 import akka.actor.{ Actor, ActorRef, ActorLogging, ActorSystem, Props, PoisonPill }
 import akka.io.{ IO, Tcp, TcpPipelineHandler }
 import akka.io.TcpPipelineHandler._
-import akka.pattern.gracefulStop
-import scala.concurrent.{ Await, Future }
-import scala.concurrent.duration._
 
 import java.net.InetSocketAddress
-import java.util.UUID
+
+
+private object SessionAcceptorFactory extends Multiton[(ActorSystem, InetSocketAddress), ActorRef] with Function2[ActorSystem, InetSocketAddress, ActorRef] {
+
+    override protected val create = (p: (ActorSystem, InetSocketAddress)) => {
+        val uuid = java.util.UUID.randomUUID()
+        p._1.actorOf(Props(classOf[SessionAcceptorActor], p._2), s"session-acceptor-${uuid.toString}")
+    }
+
+    override def apply(a: ActorSystem, i: InetSocketAddress) = apply((a, i))
+}
 
 
 /**
  * Accepts TCP sessions and creates the appropriate session actors
- *
- * Hint: Can be wired, if the reactor is provided explicitly.
  */
-class SessionAcceptorActor(
-    localAddress: InetSocketAddress,
-    reactor: ActorRef) 
-        extends Actor with ActorLogging {
-
+class SessionAcceptorActor(localAddress: InetSocketAddress) extends Actor with ActorLogging {
 
     import SessionActor._
+    import ReactorActor._
+    import MetaReactorActor._
+    import NetSlice._
     import Tcp._
     import context.system
 
     IO(Tcp) ! Bind(self, localAddress)
 
-    var actualLocalAddress: Option[InetSocketAddress] = None 
+    val metaReactor = context.actorOf(Props[MetaReactorActor])
 
 
     def receive = {
-        case b @ Bound(local) =>
-            actualLocalAddress = Some(local)
+
+        case a: AddReactor =>
+            metaReactor forward a
+
+        case Bound(localAddress) =>
+            metaReactor ! Publish(Sender(actor = self), BindSuccess(localAddress))
 
         case CommandFailed(_: Bind) =>
+            metaReactor ! Publish(Sender(actor = self), BindFail())
             context stop self
 
-        case c @ Connected(remote, local) =>
+        case Connected(remote, local) =>
             val init = PipelineFactory.getWithLog(log)
             val connection = sender
-            val handler: ActorRef = context.actorOf(Props(classOf[SessionActor], init, connection), "session-" + UUID.randomUUID())
+            val juuid = java.util.UUID.randomUUID()
+            val uuid = UUID(juuid)
+            val handler: ActorRef = context.actorOf(Props(classOf[SessionActor], init, connection, uuid), s"session-${juuid.toString}")
             val pipeline = context.actorOf(TcpPipelineHandler.props(init, connection, handler))
 
-            handler ! Reactor(reactor)
+            handler ! Reactor(metaReactor)
             handler ! Pipeline(pipeline)
             connection ! Register(pipeline)
-    }
-
-    override def postStop {
-        context.children map { 
-            a: ActorRef =>
-            try {
-                val stopped: Future[Boolean] = gracefulStop(a, Duration(5, SECONDS))
-                Await.result(stopped, Duration(6, SECONDS))
-            } catch {
-                case e: akka.pattern.AskTimeoutException => 
-                    log.error("Couldnt stop session actor. {}", e)
-                    a
-            }
-        }
     }
 }
 
@@ -75,45 +73,50 @@ class SessionAcceptorActor(
 object SessionActor {
     case class Pipeline(pipe: ActorRef)
     case class Reactor(reactor: ActorRef)
+    case class NewUUID(uuid: UUID)
 }
 
 
 /**
  * Manages a TCP session and does the serialization via its pipeline
+ * This will be initialized with a metareactor.
+ * If a server instance actually wants to have this session for its own,
+ * then needs to resend the Reactor message.
  */
 class SessionActor(
     pipeInit: Init[WithinActorContext, Message, Message],
-    connection: ActorRef)
-    extends Actor with ActorLogging {
+    connection: ActorRef,
+    var uuid: UUID) extends Actor with ActorLogging {
 
     import SessionActor._
     import ReactorActor._
-    import Tcp.{ Close, PeerClosed }
+    import Tcp.{ Close, Closed, PeerClosed }
 
     var pipeline: Option[ActorRef] = None
     var reactor: Option[ActorRef] = None
 
 
     def receive = {
-        // init with pipeline or reactor
+        // init or change stuff of this actor
         case Pipeline(pipe) =>
             pipeline = Some(pipe)
-
         case Reactor(react) =>
             reactor = Some(react)
+        case NewUUID(id) =>
+            uuid = id
 
-        // handle new message
+        // handle new or outgoing message
         case pipeInit.Event(data) =>
             log.info(s"Got: ${data.toString}")
-            reactor map { _ ! Publish(self, data) }
-
-        // handle outgoing message
+            reactor map { _ ! Publish(Sender(uuid, self), data) }
         case data: Message =>
             log.info(s"Put: ${data.toString}")
             pipeline map { _ ! pipeInit.Command(data) }
 
         // client disconnected
-        case PeerClosed => context stop self
+        case Closed | PeerClosed =>
+            log.info(s"Client disconnected. Terminating session...")
+            context stop self
     }
 
     override def postStop {

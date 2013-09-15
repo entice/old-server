@@ -1,4 +1,7 @@
-
+/**
+ * For copyright information see the LICENSE document.
+ */
+ 
 package entice.server.game
 
 import entice.protocol._
@@ -13,7 +16,7 @@ class EntityManagerSpec extends WordSpec with MustMatchers  {
     "An EntityManager" must {
 
 
-        "be able to register entities" in {
+        "register entities" in {
             // given
             val em = new EntityManager
             val et = Entity(UUID())
@@ -23,7 +26,7 @@ class EntityManagerSpec extends WordSpec with MustMatchers  {
         }
 
 
-        "be able to unregister regsitered entities" in {
+        "unregister registered entities" in {
             // given
             val em = new EntityManager
             val et = Entity(UUID())
@@ -34,7 +37,7 @@ class EntityManagerSpec extends WordSpec with MustMatchers  {
         }
 
 
-        "be able to get components by entity and type" in {
+        "get components by entity and type" in {
             // given
             val em = new EntityManager
             val et1, et2, et3 = Entity(UUID())
@@ -60,7 +63,7 @@ class EntityManagerSpec extends WordSpec with MustMatchers  {
         }
 
 
-        "be able to get all components of an entity" in {
+        "get all components of an entity" in {
             // given
             val em = new EntityManager
             val et1, et2, et3, et4 = Entity(UUID())
@@ -79,7 +82,7 @@ class EntityManagerSpec extends WordSpec with MustMatchers  {
         }
 
 
-        "be able to get the entity of a component" in {
+        "get the entity of a component" in {
             // given
             val em = new EntityManager
             val et1, et2 = Entity(UUID())
@@ -94,7 +97,7 @@ class EntityManagerSpec extends WordSpec with MustMatchers  {
         }
 
 
-        "be able to get all entities that have at least certain component types" in {
+        "get all entities that have certain component types" in {
             // given
             val em = new EntityManager
             val et1, et2 = Entity(UUID())
@@ -107,6 +110,35 @@ class EntityManagerSpec extends WordSpec with MustMatchers  {
             em.getEntitiesWith(classOf[Name])                                           must be(Set(et1, et2))
             em.getEntitiesWith(classOf[Name], classOf[Position])                        must be(Set(et1))
             em.getEntitiesWith(classOf[Name], classOf[Position], classOf[Movement])     must be(Set())
+        }
+
+
+        "capture the current state of all entities and comps" in {
+            // given
+            val em = new EntityManager
+            val et1, et2 = Entity(UUID())
+            val (name1, name2)  = (Name("1"), Name("2"))
+            em + (et1, name1) + (et2, name2)
+
+            // when
+            val expectedState1: Map[Entity, Set[Component]] = Map(
+                (et1 -> Set(Name("1"))),
+                (et2 -> Set(Name("2"))))
+            val curState1 = em.getAll
+            // must
+            curState1 must be(expectedState1)
+
+            // retrieve a component and change it
+            val name1dyn = em.getCompBy(et1, classOf[Name]).get
+            name1dyn.name = "blubb"
+            
+            // when
+            val expectedState2: Map[Entity, Set[Component]] = Map(
+                (et1 -> Set(Name("blubb"))),
+                (et2 -> Set(Name("2"))))
+            val curState2 = em.getAll
+            // must
+            curState2 must be(expectedState2)
         }
     }
 }

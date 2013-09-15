@@ -7,6 +7,9 @@ package entice.server.game
 import entice.protocol._
 
 
+/**
+ * TODO: Reduce the copying by using mutable maps and do the sync manually
+ */
 class EntityManager {
 
     private var compsOfEntity:      Map[Entity, Set[Component]]                        = Map()
@@ -16,29 +19,33 @@ class EntityManager {
 
     /**
      * Fluent method.
+     * All components that are regsitered together, will also be added together,
+     * like in a transaction. No system will see an intermediate state with only
+     * parts of the components being accessible.
      */
-    def register(entity: Entity, component: Component): EntityManager = {
+    def register(entity: Entity, components: Component*): EntityManager = {
 
-        var entityComps   = compsOfEntity.getOrElse(entity, Set())
-        var compTypeComps = compsOfCompType.getOrElse(component.getClass, Map())
+        var entityComps = compsOfEntity.getOrElse(entity, Set())
+        entityComps     = entityComps ++ components
+        compsOfEntity   = compsOfEntity + (entity -> entityComps)
 
-        entityComps   = entityComps + component
-        compTypeComps = compTypeComps + (entity -> component)
+        components map { c: Component =>
+            var compTypeComps = compsOfCompType.getOrElse(c.getClass, Map())
+            compTypeComps = compTypeComps + (entity -> c)
+            compsOfCompType = compsOfCompType + (c.getClass -> compTypeComps)
+        }
 
-        // update all hashmaps
-        compsOfEntity   = compsOfEntity     + (entity                -> entityComps)
-        entityOfComp    = entityOfComp      + (component             -> entity)
-        compsOfCompType = compsOfCompType   + (component.getClass    -> compTypeComps)
+        components map { c: Component => entityOfComp = entityOfComp + (c -> entity) }
 
         this
     }
 
 
     /**
-     * Convenience method.
+     * Fluent convenience method.
      */
-    def +(entity: Entity, component: Component): EntityManager = {
-        register(entity, component)
+    def +(entity: Entity, components: Component*): EntityManager = {
+        register(entity, components:_*)
 
         this
     }
@@ -61,8 +68,11 @@ class EntityManager {
     }
 
 
-    def getCompBy(entity: Entity, compClazz: Class[_ <: Component]) = {
-        compsOfCompType.getOrElse(compClazz, Map()).get(entity)
+    def getCompBy[T <: Component](entity: Entity, compClazz: Class[T]) = {
+        compsOfCompType
+            .getOrElse(compClazz, Map())
+            .get(entity)
+            .asInstanceOf[Option[T]]
     }
 
 
@@ -87,4 +97,7 @@ class EntityManager {
         // all the required components
         entitiesForComps.reduceRight { _ intersect _ }
     }
+
+
+    def getAll = compsOfEntity
 }
