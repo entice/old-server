@@ -23,6 +23,7 @@ trait GameApiSlice extends CoreSlice with ApiSlice {
     // handler actors
     val playHandler = actorSystem.actorOf(Props(classOf[PlayHandler], reactor, playerRegistry, entityManager), s"play-${java.util.UUID.randomUUID().toString}")
     val moveHandler = actorSystem.actorOf(Props(classOf[MoveHandler], reactor, playerRegistry, entityManager), s"move-${java.util.UUID.randomUUID().toString}")
+    val disconnectHandler = actorSystem.actorOf(Props(classOf[DisconnectHandler], reactor, playerRegistry, entityManager), s"disconnect-${java.util.UUID.randomUUID().toString}")
 
     // systems
     val worldDiff = actorSystem.actorOf(Props(classOf[WorldDiffSystem], reactor, playerRegistry, entityManager), s"worldDiff-${java.util.UUID.randomUUID().toString}")

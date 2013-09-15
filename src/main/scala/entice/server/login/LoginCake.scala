@@ -26,6 +26,7 @@ trait LoginApiSlice extends CoreSlice with ApiSlice {
     // handler actors
     val loginHandler = actorSystem.actorOf(Props(classOf[LoginHandler], reactor, clientRegistry), "login")
     val dispatchHandler = actorSystem.actorOf(Props(classOf[DispatchHandler], srvConfig, serverActor, reactor, clientRegistry), "dispatch")
+    val disconnectHandler = actorSystem.actorOf(Props(classOf[DisconnectHandler], reactor, clientRegistry), "disconnect")
 }
 
 

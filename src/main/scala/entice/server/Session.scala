@@ -77,6 +77,10 @@ object SessionActor {
 }
 
 
+// TODO: better place for this?
+case class SessionDisconnect extends Message
+
+
 /**
  * Manages a TCP session and does the serialization via its pipeline
  * This will be initialized with a metareactor.
@@ -120,6 +124,7 @@ class SessionActor(
     }
 
     override def postStop {
+        reactor map { _ ! Publish(Sender(uuid, self), SessionDisconnect()) }
         connection ! Close
     }
 }

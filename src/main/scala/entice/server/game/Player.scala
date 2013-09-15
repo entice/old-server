@@ -42,3 +42,4 @@ trait PlayState
 case object PrePlaying      extends PlayState
 case object Playing         extends PlayState
 case object Dispatching     extends PlayState
+case object Disconnecting   extends PlayState

@@ -19,6 +19,10 @@ class Registry[T <% { def uuid: UUID }] {
 
     def +=(entry: T) { add(entry) }
 
+    def remove(uuid: UUID) { entries = entries - uuid }
+
+    def remove(entry: T) { remove(entry.uuid) }
+
 
     def get(uuid: UUID) = entries.get(uuid)
 
