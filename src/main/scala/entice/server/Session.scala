@@ -94,7 +94,7 @@ class SessionActor(
 
     import SessionActor._
     import ReactorActor._
-    import Tcp.{ Close, Closed, PeerClosed }
+    import Tcp.{ Close, ConnectionClosed }
 
     var pipeline: Option[ActorRef] = None
     var reactor: Option[ActorRef] = None
@@ -118,7 +118,7 @@ class SessionActor(
             pipeline map { _ ! pipeInit.Command(data) }
 
         // client disconnected
-        case Closed | PeerClosed =>
+        case c: ConnectionClosed =>
             log.info(s"Client disconnected. Terminating session...")
             context stop self
     }
