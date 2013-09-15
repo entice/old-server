@@ -97,27 +97,39 @@ class WorldDiffSystem(
     }
 
 
-    def timeDelta = {
+    def peekTime = {
         val current = System.nanoTime()
-        val millisecondsDiff = (current - lastDiffTime) / 1000000
-        lastDiffTime = current
+        ((current - lastDiffTime) / 1000000) toInt
+    }
 
-        millisecondsDiff.toInt
+
+    def timeDelta = {
+        val diff = peekTime
+        lastDiffTime = System.nanoTime()
+        diff
     }
 
 
     def receive = {
         case MessageEvent(_, Tick()) | MessageEvent(_, Flush()) =>
-            // retrieve a deep copy of the world state
-            val newWorldState = worldCopy(entityMan.getAll)
+            update
+    }
 
-            val (added, removed, diffs) = worldDiff(lastWorldState, newWorldState)
-            val views = EntityView(diffs)
-            val curTimeDelta = timeDelta
-            
-            players.getAll 
-                .filter  { _.state == Playing }
-                .map     { _.session ! GameUpdate(curTimeDelta, views, added, removed)}
-            lastWorldState = newWorldState
+
+    def update {
+        // dont spam the packets!
+        if (peekTime < 5) return
+
+        // retrieve a deep copy of the world state
+        val newWorldState = worldCopy(entityMan.getAll)
+
+        val (added, removed, diffs) = worldDiff(lastWorldState, newWorldState)
+        val views = EntityView(diffs)
+        val curTimeDelta = timeDelta
+
+        players.getAll 
+            .filter  { _.state == Playing }
+            .map     { _.session ! GameUpdate(curTimeDelta, views, added, removed)}
+        lastWorldState = newWorldState
     }
 }
