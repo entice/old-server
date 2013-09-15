@@ -17,5 +17,6 @@ libraryDependencies ++= Seq(
     "org.scalatest" %% "scalatest" % "1.9.1" % "test",
     "play" %% "play-json" % "2.2-SNAPSHOT",
     "com.softwaremill.macwire" %% "core" % "0.4",
-    "com.softwaremill.macwire" %% "scopes" % "0.4"
+    "com.softwaremill.macwire" %% "scopes" % "0.4",
+    "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT"
 )

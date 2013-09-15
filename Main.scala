@@ -24,9 +24,11 @@ object Main extends App {
         }
     """)
 
+    val srvConfig = Config.getFromFile("config.json")
+
     val system = ActorSystem("server-sys", config = config)
 
-    val loginServer = system.actorOf(Props(new LoginServer(system, 8112) with AutoStart), "login-server")
+    val loginServer = system.actorOf(Props(new LoginServer(system, srvConfig, srvConfig.loginPort) with AutoStart), "login-server")
 
     // wait till shutdown
     while (readLine != "exit") {}
