@@ -113,9 +113,11 @@ class WorldDiffSystem(
 
             val (added, removed, diffs) = worldDiff(lastWorldState, newWorldState)
             val views = EntityView(diffs)
+            val curTimeDelta = timeDelta
+            
             players.getAll 
                 .filter  { _.state == Playing }
-                .map     { _.session ! GameUpdate(timeDelta, views, added, removed)}
+                .map     { _.session ! GameUpdate(curTimeDelta, views, added, removed)}
             lastWorldState = newWorldState
     }
 }
