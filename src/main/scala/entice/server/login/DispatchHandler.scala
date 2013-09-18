@@ -15,15 +15,15 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 
 
 class DispatchHandler(
-    val srvConfig: EnticeServer,
-    val server: ActorRef,
     val reactor: ActorRef,
-    val clients: Registry[Client]) extends Actor with Subscriber {
+    val clients: Registry[Client],
+    val server: ActorRef) extends Actor with Subscriber {
 
     import entice.server.ActorSlice._
 
     // TODO change me in other milestones...
     var gs: Option[ActorRef] = None
+    val config = Config(context.system)
 
     val subscriptions =
         classOf[DispatchRequest] ::
@@ -41,7 +41,7 @@ class DispatchHandler(
         // we require the client to be logged in (available in the registry)
         case MessageEvent(Sender(uuid, session), DispatchRequest()) if (clients.get(uuid) != None) =>
             clients.get(uuid) map { c: Client =>
-                val tempGs = gs.getOrElse(context.system.actorOf(Props(new GameServer(context.system, srvConfig.gamePort) with AutoStart)))
+                val tempGs = gs.getOrElse(context.system.actorOf(Props(new GameServer(context.system, config.gamePort) with AutoStart)))
                 server ! SendTo(tempGs, AddPlayer(uuid, c.gsKey))
                 gs = Some(tempGs)
             }
@@ -52,7 +52,7 @@ class DispatchHandler(
 
         case MessageEvent(gs, WaitingForPlayer(uuid)) =>
             clients.get(uuid) map { c: Client =>
-                c.session ! DispatchResponse(srvConfig.host, srvConfig.gamePort, c.gsKey)
+                c.session ! DispatchResponse(config.host, config.gamePort, c.gsKey)
             }
     }
 }

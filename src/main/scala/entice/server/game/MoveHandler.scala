@@ -13,8 +13,8 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 
 
 class MoveHandler(
-    val reactor: ActorRef,
-    val players: Registry[Player],
+    val messageBus: MessageBus,
+    val clients: Registry[Client],
     val entityMan: EntityManager) extends Actor with Subscriber {
 
     import ReactorActor._

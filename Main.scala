@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 
 
 object Main extends App {
-    import ActorSlice._   // holds server Start/Stop messages
+    import ServerActorSlice._   // holds server Start/Stop messages
 
     implicit val timeout = Timeout(5 seconds)
     lazy val config = ConfigFactory.parseString("""
@@ -24,11 +24,9 @@ object Main extends App {
         }
     """)
 
-    val srvConfig = Config.getFromFile("config.json")
-
     val system = ActorSystem("server-sys", config = config)
 
-    val loginServer = system.actorOf(Props(new LoginServer(system, srvConfig, srvConfig.loginPort) with AutoStart), "login-server")
+    val loginServer = system.actorOf(Props(new LoginServer(system) with AutoStart), "login-server")
 
     // wait till shutdown
     while (readLine != "exit") {}

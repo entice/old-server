@@ -22,10 +22,9 @@ import java.net.InetSocketAddress
  * Implements the most basic "core" functionality.
  */
 trait CoreSlice {
-
     // the actor system and server actor must always be given
     lazy val actorSystem = ActorSystem("default")
-    lazy val serverActor = actorSystem.actorOf(Props(new Actor { def receive = { case _ => } })) // do nothing actor
+    lazy val serverActor = actorSystem.actorOf(Props.empty) // do nothing actor
 
     final lazy val messageBus: MessageBus = new MessageBus()
 }
@@ -36,34 +35,16 @@ trait CoreSlice {
  * Holds the API components, needs to be completed by adding the handlers
  */
 trait ApiSlice extends CoreSlice {
+    // fill this list in your own environment with actor props of your API actors
+    def props: List[Props]
 
-    // standard actors
-    final lazy val reactor = actorSystem.actorOf(Props(classOf[ReactorActor], messageBus), s"reactor-${java.util.UUID.randomUUID().toString}")
+    def createApi {
+        props foreach { actorSystem.actorOf(_) }
+    }
 }
 
 
-object NetSlice {
-    case class BindSuccess(addr: InetSocketAddress) extends Message
-    case class BindFail extends Message
-}
-
-
-/**
- * Delicious cake slice ;)
- * Encapsulates network functionality.
- */
-trait NetSlice extends CoreSlice with ApiSlice {
-
-    lazy val localAddress = new InetSocketAddress(0)
-    // set when the acceptor suceeds in binding
-    var actualAddress: Option[InetSocketAddress] = None 
-    
-    // network stuff
-    lazy val acceptor = SessionAcceptorFactory(actorSystem, localAddress)
-}
-
-
-object ActorSlice {
+object ServerActorSlice {
     case object Start
     case object Stop
 
@@ -76,35 +57,32 @@ object ActorSlice {
  * Delicious cake slice ;) - Top of the cake
  * Add this layer to make a server actor out of your cake.
  */
-trait ActorSlice extends Actor with CoreSlice with ApiSlice with NetSlice {
+trait ServerActorSlice extends Actor with CoreSlice with ApiSlice with NetSlice {
 
-    import ReactorActor._
-    import MetaReactorActor._
-    import NetSlice._
-    import ActorSlice._
+    import Grid._
+    import ServerActorSlice._
 
-    // by using this slice the server will be actor based,
-    // and the serverActor obviously is this slice
+    override lazy val actorSystem = context
     override lazy val serverActor = self
 
-    // subscribe for acceptor events
-    reactor ! Subscribe(self, classOf[BindSuccess])
-    reactor ! Subscribe(self, classOf[BindFail])
+    override def preStart {
+        createApi        
+    }
 
     def receive = {
+        // external events
+        case Start          => IO(Grid) ! Bind()
+        case Stop           => context stop self
 
         // acceptor events
-        case MessageEvent(a, BindSuccess(addr)) => 
-            actualAddress = Some(addr)
-        case MessageEvent(a, BindFail()) => 
-            context stop self
+        case BindSuccess    => // do nothing atm 
+        case BindFailure    => context stop self
+        case NewSession     => // do nothing atm... (context watch session)
 
-        // external events
-        case Start => 
-            acceptor ! AddReactor(reactor)
-        case Stop => 
-            actorSystem.stop(acceptor)
-            sender ! true
+        // session events
+        case NewMessage(m)  => 
+            val session = sender;
+            messageBus.publish(MessageEvent(session, m))
 
         // internal events
         case SendTo(srv, msg) =>
@@ -117,12 +95,12 @@ trait ActorSlice extends Actor with CoreSlice with ApiSlice with NetSlice {
  * Delicious Cherry ontop of the cake.
  * Starts a server actor automatically.
  */
-trait AutoStart extends Actor {
+trait AutoStart extends Actor with ServerActorSlice {
 
-    import ActorSlice._
+    import ServerActorSlice._
 
-    // start the server automatically
     override def preStart {
+        super.preStart
         self ! Start
     }
 }

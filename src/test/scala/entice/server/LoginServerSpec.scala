@@ -117,7 +117,7 @@ class LoginServerSpec(_system: ActorSystem) extends TestKit(_system)
 
             // try to connect
             probe.send(IO(Tcp), Connect(gsAddr.get))
-            probe.expectMsgClass(Duration(1000, MILLISECONDS), classOf[Connected])
+            probe.expectMsgClass(classOf[Connected])
             probe.expectNoMsg
         }
     }

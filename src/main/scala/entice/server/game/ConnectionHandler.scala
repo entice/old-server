@@ -14,13 +14,12 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import scala.collection.mutable
 
 
-class PlayHandler(
-    val reactor: ActorRef,
-    val players: Registry[Player],
-    val entityMan: EntityManager) extends Actor with Subscriber {
+class ConnectionHandler(
+    val messageBus: MessageBus,
+    val clients: Registry[Client],
+    val entityMan: EntityManager,
+    val serverActor: ActorRef) extends Actor with Subscriber {
 
-
-    import SessionActor._
 
     var loginServer: Option[ActorRef] = None
     val waitingPlayers: mutable.Map[Long, UUID] = mutable.Map()
@@ -39,8 +38,8 @@ class PlayHandler(
     def receive = {
 
         // the LS wants us to accept a new player
-        case MessageEvent(s: Sender, AddPlayer(uuid, key)) =>
-            if (! loginServer.isDefined) { loginServer = Some(s.actor) }
+        case MessageEvent(ls, AddPlayer(uuid, key)) =>
+            if (! loginServer.isDefined) { loginServer = Some(ls) }
             // TODO: check if we can actually take more players
             waitingPlayers += (key -> uuid)
             loginServer map { _ ! WaitingForPlayer(uuid) }
@@ -52,12 +51,22 @@ class PlayHandler(
                 val player = Player(id, session, entityMan)
                 players += player
                 waitingPlayers -= key
-                session ! NewUUID(id)
-                session ! Reactor(reactor)
+
+                session ! OnlyReportTo(serverActor)
                 session ! PlaySuccess(player.entity, EntityView(entityMan.getAll))
+                context watch session
 
                 // enable the player
                 player.state = Playing
             }
+
+        // a session terminated
+        case Terminated(_) =>
+            val sess = sender
+            players.get(id) map { p: Player =>
+                p.state = Disconnecting
+                entityMan.unregister(p.entity)                
+            }
+            players.remove(id)
     }
 }

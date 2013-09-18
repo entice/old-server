@@ -12,9 +12,10 @@ import entice.protocol.utils.MessageBus._
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 
 
-class LoginHandler(
-    val reactor: ActorRef,
-    val clients: Registry[Client]) extends Actor with Subscriber {
+class ConnectionHandler(
+    val messageBus: MessageBus,
+    val clients: Registry[Client],
+    val serverActor: ActorRef) extends Actor with Subscriber {
 
     import SessionActor._
 
@@ -36,11 +37,17 @@ class LoginHandler(
         case MessageEvent(Sender(uuid, session), LoginRequest(email, pwd)) if (email matches emailPattern) =>
             // TODO: init account DAO, check creds, create client,
             clients.add(Client(uuid, session))
-            session ! Reactor(reactor)
+            session ! OnlyReportTo(serverActor)
             session ! LoginSuccess()
+            context watch session
 
         // invalid email
         case MessageEvent(Sender(uuid, session), l: LoginRequest) => 
             session ! LoginFail("Invalid email format.")
+
+        // a session terminated
+        case Terminated(_) =>
+            val sess = sender
+            clients.remove(id)
     }
 }

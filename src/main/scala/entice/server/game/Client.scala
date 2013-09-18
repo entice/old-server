@@ -10,14 +10,14 @@ import entice.protocol._
 import akka.actor.ActorRef
 
 
-object Player {
+object Client {
 
     def apply(
         uuid: UUID,
         session: ActorRef, 
-        entityMan: EntityManager): Player = {
+        entityMan: EntityManager): Client = {
 
-        val player = Player(uuid, session, Entity(uuid))
+        val player = Client(uuid, session, Entity(uuid))
 
         // register the player and its entity
         entityMan + (player.entity, Name("Standard"), Position(), Movement())
@@ -28,10 +28,10 @@ object Player {
 
 
 /**
- * Player data storage
+ * CLient data storage
  * TODO: add DAO stuff
  */
-case class Player(
+case class Client(
     uuid: UUID, 
     session: ActorRef,
     entity: Entity,

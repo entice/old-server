@@ -21,35 +21,32 @@ import java.net.InetSocketAddress
 trait LoginApiSlice extends CoreSlice with ApiSlice {
 
     lazy val clientRegistry = new Registry[Client]
-    lazy val srvConfig = Config.default
 
     // handler actors
-    val loginHandler = actorSystem.actorOf(Props(classOf[LoginHandler], reactor, clientRegistry), "login")
-    val dispatchHandler = actorSystem.actorOf(Props(classOf[DispatchHandler], srvConfig, serverActor, reactor, clientRegistry), "dispatch")
-    val disconnectHandler = actorSystem.actorOf(Props(classOf[DisconnectHandler], reactor, clientRegistry), "disconnect")
+    val props =
+        Props(classOf[LoginHandler],        messageBus, clientRegistry) ::
+        Props(classOf[DispatchHandler],     messageBus, clientRegistry, serverActor) ::
+        Props(classOf[DisconnectHandler],   messageBus, clientRegistry) ::
+        Nil
 }
 
 
 /**
  * Understands the LS2GS communication protocol.
  */
-case class LoginServer(system: ActorSystem, conf: EnticeServer, port: Int) extends Actor 
+case class LoginServer(system: ActorSystem) extends Actor 
     with CoreSlice 
-    with LoginApiSlice 
-    with NetSlice 
-    with ActorSlice {
+    with LoginApiSlice
+    with ServerActorSlice {
 
-    import entice.server.ReactorActor._
-
-
+    val port = Config(system).loginPort
     override lazy val actorSystem = system
     override lazy val localAddress = new InetSocketAddress(port)
-    override lazy val srvConfig = conf
 
 
     override def receive = super.receive orElse {
         case msg: GS2LS =>
             val gameSrv = sender
-            reactor ! Publish(Sender(actor = gameSrv), msg)
+            messageBus.publish(gameSrv, msg)
     }
 }

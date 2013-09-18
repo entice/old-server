@@ -4,15 +4,9 @@
 
 package entice.server.game.entitysystems
 
-import entice.server._
 import entice.server.game._
 import entice.server.utils._
-import entice.protocol._
-import entice.protocol.utils.MessageBus._
-
 import akka.actor.{ Actor, ActorRef, ActorLogging }
-
-import scala.concurrent.duration._
 
 
 /**
@@ -76,9 +70,9 @@ object WorldDiffSystem {
  * The actual system
  */
 class WorldDiffSystem(
-    val reactor: ActorRef,
-    players: Registry[Player],
-    entityMan: EntityManager) extends Actor with ActorLogging with Subscriber {
+    val messageBus: MessageBus,
+    val clients: Registry[Client],
+    val entityMan: EntityManager) extends Actor with ActorLogging with Subscriber {
 
     import WorldDiffSystem._
 
@@ -130,6 +124,7 @@ class WorldDiffSystem(
         players.getAll 
             .filter  { _.state == Playing }
             .map     { _.session ! GameUpdate(curTimeDelta, views, added, removed)}
+            
         lastWorldState = newWorldState
     }
 }
