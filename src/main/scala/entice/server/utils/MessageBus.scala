@@ -5,18 +5,17 @@
 
 package entice.server.utils
 
+import entice.protocol._
 import akka.event.ActorEventBus
 import akka.event.LookupClassification
-import akka.actor.ActorRef
-
-import entice.protocol._
+import akka.actor.{ ActorRef, Extension }
  
 
 /**
  * Encapsulates a single message. Messages must be classifyable by their
  * class name, given as a 'type' property.
  */
-case class MessageEvent(sender: ActorRef, message: Message)
+case class MessageEvent(sender: ActorRef, message: Typeable)
 
 
 /**
@@ -37,9 +36,7 @@ case class MessageEvent(sender: ActorRef, message: Message)
  * (Note that it needs to pass its identifier itself, so the sender is responsible for
  * any conflicts that might occur.)
  */
-case class MessageBus extends ActorEventBus with LookupClassification {
- 
-    import MessageBus._
+class MessageBus extends ActorEventBus with LookupClassification with Extension {
 
     type Event = MessageEvent
     type Classifier = String
@@ -51,7 +48,7 @@ case class MessageBus extends ActorEventBus with LookupClassification {
     protected def classify(event: Event): Classifier = event.message.`type`
 
 
-    def subscribe(subscriber: Subscriber, msgClazz: Class[_ <: Message]) {
+    def subscribe(subscriber: Subscriber, msgClazz: Class[_]) {
         super.subscribe(subscriber, msgClazz.getSimpleName)
     }
 
