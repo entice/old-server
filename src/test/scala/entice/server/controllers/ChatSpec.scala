@@ -27,6 +27,11 @@ class ChatSpec(_system: ActorSystem) extends TestKit(_system)
         MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
     }
 
+    override def beforeAll {
+        val preChat  = _system.actorOf(Props[PreChat])
+        val sys      = _system.actorOf(Props[ChatSystem])
+    }
+
     override def afterAll {
         TestKit.shutdownActorSystem(_system)
     }
@@ -34,8 +39,6 @@ class ChatSpec(_system: ActorSystem) extends TestKit(_system)
 
     "The chat system" must {
 
-        val preChat  = _system.actorOf(Props[PreChat])
-        val sys      = _system.actorOf(Props[ChatSystem])
         val clients  = ClientRegistryExtension(_system)
 
 

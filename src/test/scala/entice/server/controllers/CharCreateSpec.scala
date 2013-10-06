@@ -27,6 +27,10 @@ class CharCreateSpec(_system: ActorSystem) extends TestKit(_system)
         MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
     }
 
+    override def beforeAll {
+        val play = _system.actorOf(Props[CharCreate])
+    }
+
     override def afterAll {
         TestKit.shutdownActorSystem(_system)
     }
@@ -34,7 +38,6 @@ class CharCreateSpec(_system: ActorSystem) extends TestKit(_system)
 
     "A char-create controller" must {
 
-        val play = _system.actorOf(Props[CharCreate])
         val clients = ClientRegistryExtension(_system)
 
         // given our client

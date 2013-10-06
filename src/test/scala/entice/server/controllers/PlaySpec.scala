@@ -25,6 +25,10 @@ class PlaySpec(_system: ActorSystem) extends TestKit(_system)
         MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
     }
 
+    override def beforeAll {
+        val play = _system.actorOf(Props[Play])
+    }
+
     override def afterAll {
         TestKit.shutdownActorSystem(_system)
     }
@@ -32,7 +36,6 @@ class PlaySpec(_system: ActorSystem) extends TestKit(_system)
 
     "A play controller" must {
 
-        val play = _system.actorOf(Props[Play])
         val clients = ClientRegistryExtension(_system)
         
 

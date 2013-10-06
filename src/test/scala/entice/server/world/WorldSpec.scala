@@ -29,7 +29,8 @@ class WorldSpec extends WordSpec with MustMatchers  {
             val w = new World
             val c = new TypedSet[Component]() + Name() + Position() + Movement()
             val e = w.create(c)
-            w.get(e.entity) must be((e,c))
+            w.getRich(e.entity) must be(e)
+            w.getComps(e.entity) must be(c)
         }
 
 
@@ -39,7 +40,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
             val e = w.create(c)
             w.remove(e.entity)
             intercept[NoSuchElementException] {
-                w.get(e.entity)
+                w.getRich(e.entity)
             }
         }
 

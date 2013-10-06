@@ -28,8 +28,6 @@ class LoginSpec(_system: ActorSystem) extends TestKit(_system)
 
 
     // given
-    val login = _system.actorOf(Props[Login])
-
     val acc = Account(email = "loginspec@entice.org", password = "test")
     val noacc = Account(email = "nonexisting@entice.org", password = "test")
     val char1 = Character(accountId = acc.id, name = Name("login-spec-char1"))
@@ -37,6 +35,8 @@ class LoginSpec(_system: ActorSystem) extends TestKit(_system)
 
 
     override def beforeAll {
+        val login = _system.actorOf(Props[Login])
+        
         // given an existing acc
         Account.create(acc)
         Character.create(char1)

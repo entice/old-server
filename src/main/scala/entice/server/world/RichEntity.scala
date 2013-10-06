@@ -20,7 +20,7 @@ object RichEntity {
  */
 case class RichEntity private[world] (val entity: Entity, val world: World) {
     
-    def comps = world.get(entity)_2
+    def comps = world.getComps(entity)
     
     def get[T <: Component : TypeTag] = comps[T]
     

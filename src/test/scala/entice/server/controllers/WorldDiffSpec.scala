@@ -27,6 +27,10 @@ class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
         MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
     }
 
+    override def beforeAll {
+        val differ = _system.actorOf(Props[WorldDiff])
+    }
+
     override def afterAll {
         TestKit.shutdownActorSystem(_system)
     }
@@ -34,7 +38,6 @@ class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
 
     "A world-diff controller" must {
 
-        val differ = _system.actorOf(Props[WorldDiff])
         val clients = ClientRegistryExtension(_system)
         val worlds = WorldRegistryExtension(_system)
 
@@ -56,9 +59,10 @@ class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
             testPub(self, Tick())
 
             session.expectMsgPF() {
-                case UpdateCommand(_, l1, l2, _)
+                case UpdateCommand(t, l1, l2, _)
                     if (l1.contains(EntityView(entity.entity, AllCompsView(List(Name("world-diff-spec2")))))
-                    &&  l2.contains(entity.entity)) => true
+                    &&  l2.contains(entity.entity) 
+                    &&  t != 0) => true
             }
             session.expectNoMsg
 
@@ -70,8 +74,9 @@ class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
             testPub(self, Flush())
 
             session.expectMsgPF() {
-                case UpdateCommand(_, l1, _, _)
-                     if (l1.contains(EntityView(entity.entity, AllCompsView(List(Name("world-diff-spec3")))))) => true
+                case UpdateCommand(t, l1, _, _)
+                     if (l1.contains(EntityView(entity.entity, AllCompsView(List(Name("world-diff-spec3"))))) 
+                     &&  t != 0) => true
             }
         }
     }

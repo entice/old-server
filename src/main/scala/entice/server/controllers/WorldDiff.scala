@@ -50,10 +50,11 @@ class WorldDiff extends Actor with Subscriber with Clients with Worlds {
 
         worlds.getAll
             .foreach { w => 
-                val (changed, added, removed) = w.diff 
+                val (changed, added, removed) = w.diff
+                val timeDiff = timeDelta
                 clients.getAll // should be getAllOfThisWorld
                     .filter  {_.state == Playing}
-                    .foreach {_.session ! UpdateCommand(timeDelta, changed, added, removed)}
+                    .foreach {_.session ! UpdateCommand(timeDiff, changed, added, removed)}
             }
     }
 }

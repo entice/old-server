@@ -45,10 +45,13 @@ class World {
     }
 
 
-    def get(entity: Entity) = {
-        entities.get(entity).getOrElse(
-            throw new NoSuchElementException("You tried to access an entity that is not part of this world.")
-        )
+    def getRich(entity: Entity) = {
+        entities(entity)_1
+    }
+
+
+    def getComps(entity: Entity) = {
+        entities(entity)_2
     }
 
 
@@ -56,7 +59,7 @@ class World {
 
         if (!entities.contains(entity)) return
 
-        val rich = get(entity)_1
+        val rich = getRich(entity)
 
         // remove from the entities
         entities = entities - entity
