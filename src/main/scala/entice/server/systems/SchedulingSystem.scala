@@ -22,7 +22,7 @@ class SchedulingSystem extends System[HNil] with Actor with Subscriber {
 
 
     def receive = {
-        case Schedule(event, after) =>
+        case MessageEvent(_, Schedule(event, after)) =>
             context.system.scheduler
                 .scheduleOnce(after)(publish(event))
     }
