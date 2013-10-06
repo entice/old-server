@@ -24,7 +24,7 @@ class WorldDiff extends Actor with Subscriber with Clients with Worlds {
 
 
     private var lastDiffTime = System.nanoTime()
-    private val minDiffTime = 10 // milliseconds
+    private val minDiffTime = 30 // milliseconds
 
 
     private def peekTime = {
