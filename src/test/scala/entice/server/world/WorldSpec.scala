@@ -54,7 +54,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
             // step 1
             w.use(et1, new TypedSet[Component]() + Name("et1") + Position())
             w.use(et2, new TypedSet[Component]() + Position())
-            w.use(et3, new TypedSet[Component]()) // actually never happens
+            w.use(et3, new TypedSet[Component]() + Movement()) // actually never happens
             // create a diff that we dont want right now, just to flush the stuff out
             w.diff
 
@@ -62,12 +62,12 @@ class WorldSpec extends WordSpec with MustMatchers  {
             w.update(et1, new TypedSet[Component]() + Name("et1-new") + Position())
             w.update(et2, new TypedSet[Component]() + Position(Coord2D(1, 1)))
             w.remove(et3)
-            w.use   (et4, new TypedSet[Component]()) // replace et3 with et4
+            w.use   (et4, new TypedSet[Component]() + Position() + Movement()) // replace et3 with et4
 
             val expectedDiff = List(
                 EntityView(et1, AllCompsView(List(Name("et1-new")))),
                 EntityView(et2, AllCompsView(List(Position(Coord2D(1, 1))))),
-                EntityView(et4, AllCompsView(List()))) // also expect new entities
+                EntityView(et4, AllCompsView(List(Position(), Movement())))) // also expect new entities
 
             // when
             val (diffs, added, removed) = w.diff

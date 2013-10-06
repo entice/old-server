@@ -38,7 +38,7 @@ class World {
         entities = entities + (entity -> (rich, comps))
 
         // diffing
-        changed = changed + (entity -> comps.toList.map {_.clone} .foldLeft(new TypedSet[Component]) { _ + _ })
+        changed = changed + (entity -> comps.deepClone)
         added = entity :: added
 
         rich
@@ -87,9 +87,9 @@ class World {
             .foreach   {s: System[HList] => systems = systems + (s -> (systems(s) + rich))}
 
         // diffing
-        val c = comps.toList diff rich.comps.toList 
+        val newComps = comps diff rich.comps 
         changed = changed + 
-            (entity -> c.map {_.clone} .foldLeft(changed.get(entity).getOrElse(new TypedSet[Component])) { _ + _ })
+            (entity -> newComps.deepClone)
 
         // register
         entities = entities + (rich.entity -> (rich, comps))
