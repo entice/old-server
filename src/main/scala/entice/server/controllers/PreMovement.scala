@@ -24,6 +24,7 @@ class PreMovement extends Actor with Subscriber with Clients {
                     client.entity map {_.set(view.position)}
                     client.entity map {_.set(view.movement)}
                     publish(Move(client.entity.get))
+                    publish(Flush())
                 case _ =>
                     session ! Kick
             }
