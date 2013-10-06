@@ -28,9 +28,9 @@ class Command extends Actor with ActorLogging with Subscriber with Clients with 
             clients.get(session)  match {
                 case Some(client) if client.state == Playing =>
                     
-                    if (cmd == "help") {
+                    if (cmd == "helpme") {
                         session ! ServerMessage("Available commands:")
-                        session ! ServerMessage(" - (built-in) help")
+                        session ! ServerMessage(" - (built-in) helpme")
                         session ! ServerMessage(" - (built-in) info <command-name>")
                         session ! ServerMessage(" - (built-in) load <path/to/file>")
                         scripts.foreach { scr => session ! ServerMessage(s" - ${scr}") }
@@ -39,11 +39,11 @@ class Command extends Actor with ActorLogging with Subscriber with Clients with 
                     if (cmd == "info" && args.head != Nil) {
                         scripts.get(args.head) match {
                             case Some(script) =>
-                                session ! ServerMessage("Command '${cmd}' does:")
+                                session ! ServerMessage(s"Command '${cmd}' does:")
                                 session ! ServerMessage(script.info.generalInfo)
-                                session ! ServerMessage("Command '${cmd}' takes:")
+                                session ! ServerMessage(s"Command '${cmd}' takes:")
                                 script.info.argsHelp foreach { a => session ! ServerMessage(s" - ${a}") }
-                                session ! ServerMessage("Command '${cmd}' usage:")
+                                session ! ServerMessage(s"Command '${cmd}' usage:")
                                 session ! ServerMessage(script.info.usageInfo)
                             case None => session ! ServerMessage("No such command available.")
                         }
