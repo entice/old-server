@@ -10,21 +10,20 @@ import entice.server.database._
 import entice.protocol._
 import akka.actor._
 import akka.testkit._
+import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import org.scalatest.matchers._
 
 
 class LoginSpec(_system: ActorSystem) extends TestKit(_system)
+
+    // test based on the actual server slice
+    with ControllerSlice
+
     with WordSpec
     with MustMatchers 
     with BeforeAndAfterAll
     with ImplicitSender {
-
-    def this() = this(ActorSystem("login-spec"))
-
-    def testPub(probe: ActorRef, msg: Message) { 
-        MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
-    }
 
 
     // given
@@ -34,9 +33,17 @@ class LoginSpec(_system: ActorSystem) extends TestKit(_system)
     val char2 = Character(accountId = acc.id, name = Name("login-spec-char2"))
 
 
-    override def beforeAll {
-        val login = _system.actorOf(Props[Login])
-        
+    def this() = this(ActorSystem(
+        "login-spec", 
+        config = ConfigFactory.parseString("""
+            akka {
+              loglevel = WARNING
+            }
+        """)))
+
+    override def beforeAll { 
+        props foreach { _system.actorOf(_) } 
+
         // given an existing acc
         Account.create(acc)
         Character.create(char1)
@@ -47,13 +54,17 @@ class LoginSpec(_system: ActorSystem) extends TestKit(_system)
         Account.delete(noacc)
     }
 
-
     override def afterAll {
         Account.delete(acc)
         Character.delete(char1)
         Character.delete(char2)
 
         TestKit.shutdownActorSystem(_system)
+    }
+
+
+    def testPub(probe: ActorRef, msg: Typeable) { 
+        MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
     }
 
 

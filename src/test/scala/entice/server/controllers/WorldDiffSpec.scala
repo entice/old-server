@@ -10,36 +10,45 @@ import entice.server.world._
 import entice.protocol._
 import akka.actor._
 import akka.testkit._
+import com.typesafe.config.ConfigFactory
 import com.mongodb.casbah.commons.Imports._
 import org.scalatest._
 import org.scalatest.matchers._
 
 
 class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
+
+    // test based on the actual server slice
+    with ControllerSlice
+
     with WordSpec
     with MustMatchers 
     with BeforeAndAfterAll
     with ImplicitSender {
 
-    def this() = this(ActorSystem("world-diff-spec"))
+
+    val clients = ClientRegistryExtension(_system)
+    val worlds = WorldRegistryExtension(_system)
+
+
+    def this() = this(ActorSystem(
+        "world-diff-spec", 
+        config = ConfigFactory.parseString("""
+            akka {
+              loglevel = WARNING
+            }
+        """)))
+
+    override def beforeAll { props foreach { _system.actorOf(_) } }
+    override def afterAll  { TestKit.shutdownActorSystem(_system) }
+
 
     def testPub(probe: ActorRef, msg: Typeable) { 
         MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
     }
 
-    override def beforeAll {
-        val differ = _system.actorOf(Props[WorldDiff])
-    }
-
-    override def afterAll {
-        TestKit.shutdownActorSystem(_system)
-    }
-
 
     "A world-diff controller" must {
-
-        val clients = ClientRegistryExtension(_system)
-        val worlds = WorldRegistryExtension(_system)
 
 
         "capture components that changed, and send them to playing clients" in {

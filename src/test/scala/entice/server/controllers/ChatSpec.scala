@@ -11,35 +11,43 @@ import entice.server.systems._
 import entice.protocol._
 import akka.actor._
 import akka.testkit._
+import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import org.scalatest.matchers._
 
 
 class ChatSpec(_system: ActorSystem) extends TestKit(_system)
+
+    // test based on the actual server slice
+    with ControllerSlice
+
     with WordSpec
     with MustMatchers 
     with BeforeAndAfterAll
     with ImplicitSender {
 
-    def this() = this(ActorSystem("chat-spec"))
 
-    def testPub(probe: ActorRef, msg: Message) { 
+    val clients  = ClientRegistryExtension(_system)
+
+
+    def this() = this(ActorSystem(
+        "chat-spec", 
+        config = ConfigFactory.parseString("""
+            akka {
+              loglevel = WARNING
+            }
+        """)))
+
+    override def beforeAll { props foreach { _system.actorOf(_) } }
+    override def afterAll  { TestKit.shutdownActorSystem(_system) }
+
+
+    def testPub(probe: ActorRef, msg: Typeable) { 
         MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
-    }
-
-    override def beforeAll {
-        val preChat  = _system.actorOf(Props[PreChat])
-        val sys      = _system.actorOf(Props[ChatSystem])
-    }
-
-    override def afterAll {
-        TestKit.shutdownActorSystem(_system)
     }
 
 
     "The chat system" must {
-
-        val clients  = ClientRegistryExtension(_system)
 
 
         "propagate a chat messages (clients need to be playing)" in {

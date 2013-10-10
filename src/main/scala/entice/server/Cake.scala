@@ -35,7 +35,7 @@ trait CoreSlice {
  * Delicious cake slice ;)
  * Holds the API components, needs to be completed by adding the handlers
  */
-trait ControllerSlice extends CoreSlice {
+trait ControllerSlice {
     // fill this list in your own environment with actor props of your API actors
     def props: List[Props] =
         // handlers

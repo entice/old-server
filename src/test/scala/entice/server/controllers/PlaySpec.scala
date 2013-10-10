@@ -9,35 +9,44 @@ import entice.server.utils._
 import entice.protocol._
 import akka.actor._
 import akka.testkit._
+import com.typesafe.config.ConfigFactory
 import org.scalatest._
 import org.scalatest.matchers._
 
 
 class PlaySpec(_system: ActorSystem) extends TestKit(_system)
+
+    // test based on the actual server slice
+    with ControllerSlice
+
     with WordSpec
     with MustMatchers 
     with BeforeAndAfterAll
     with ImplicitSender {
 
-    def this() = this(ActorSystem("play-spec"))
 
-    def testPub(probe: ActorRef, msg: Message) { 
+    val clients = ClientRegistryExtension(_system)
+
+
+    def this() = this(ActorSystem(
+        "play-spec", 
+        config = ConfigFactory.parseString("""
+            akka {
+              loglevel = WARNING
+            }
+        """)))
+
+    override def beforeAll { props foreach { _system.actorOf(_) } }
+    override def afterAll  { TestKit.shutdownActorSystem(_system) }
+
+
+    def testPub(probe: ActorRef, msg: Typeable) { 
         MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
-    }
-
-    override def beforeAll {
-        val play = _system.actorOf(Props[Play])
-    }
-
-    override def afterAll {
-        TestKit.shutdownActorSystem(_system)
     }
 
 
     "A play controller" must {
 
-        val clients = ClientRegistryExtension(_system)
-        
 
         "propagate the world state when receiving a valid play request" in {
             // given our client with some chars
