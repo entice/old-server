@@ -21,7 +21,7 @@ import scala.reflect.runtime.universe._
  * class MovementSystem extends System[Position :: Movement :: HNil] { ... }
  * class SpawningSystem extends System[Position :: Name :: HNil] { ... }
  */
-abstract class System[+T <: HList : TypeTag] {
+abstract class System[T <: HList : TypeTag] {
 
     val types = htoTypes(typeOf[T])
 
@@ -30,6 +30,8 @@ abstract class System[+T <: HList : TypeTag] {
             .filterNot {comps.contains} 
             .isEmpty
     }
+
+    def entities(world: World) = world.process(this.asInstanceOf[System[HList]])
 
     def update(world: World) {}
 }

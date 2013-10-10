@@ -63,7 +63,7 @@ trait TickingSlice extends CoreSlice {
 
     import actorSystem.dispatcher
 
-    lazy val interval = 250
+    lazy val interval = ConfigExtension(actorSystem).maxTick
 
     // schedule tick a fixed rate
     actorSystem.scheduler.schedule(

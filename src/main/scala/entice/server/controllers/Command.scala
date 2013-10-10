@@ -68,7 +68,7 @@ class Command extends Actor with ActorLogging with Subscriber with Clients with 
 
 
     def retrieveScripts = {
-        val scriptFiles = new File(config.commandScripts).listFiles()
+        val scriptFiles = new File(config.commands).listFiles()
         var result = Map[String, scripting.Command]()
 
         for (scriptFile <- scriptFiles) {

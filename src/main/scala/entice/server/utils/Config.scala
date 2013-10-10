@@ -10,7 +10,7 @@ import scala.io._
 
 
 object Config {
-    val default = Config("127.0.0.1", 8112, "scripts/commands")
+    val default = Config("127.0.0.1", 8112, "scripts/commands", 30, 250)
 
     def fromFile(file: String): Option[Config] = {
         try {
@@ -22,6 +22,7 @@ object Config {
     }
 }
 
+
 /**
  * Encapsulates the complete config file.
  * (I'd rather not depend on typesafe's config stuff...)
@@ -29,5 +30,6 @@ object Config {
 case class Config(
     host: String, 
     port: Int,
-    commandScripts: String)
-    extends Extension
+    commands: String,
+    minTick: Int,
+    maxTick: Int) extends Extension
