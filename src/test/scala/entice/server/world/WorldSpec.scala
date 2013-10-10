@@ -17,7 +17,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
 
     case class TestSystem(world: World) extends System[Name :: Position :: HNil] {
         def testExpect(ents: Set[RichEntity]) {
-            world.process(this) must be(ents)
+            entities(world) must be(ents)
         }
     }
 

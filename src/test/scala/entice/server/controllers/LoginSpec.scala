@@ -42,7 +42,7 @@ class LoginSpec(_system: ActorSystem) extends TestKit(_system)
         """)))
 
     override def beforeAll { 
-        props foreach { _system.actorOf(_) } 
+        props foreach { system.actorOf(_) } 
 
         // given an existing acc
         Account.create(acc)
@@ -59,12 +59,12 @@ class LoginSpec(_system: ActorSystem) extends TestKit(_system)
         Character.delete(char1)
         Character.delete(char2)
 
-        TestKit.shutdownActorSystem(_system)
+        TestKit.shutdownActorSystem(system)
     }
 
 
     def testPub(probe: ActorRef, msg: Typeable) { 
-        MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
+        MessageBusExtension(system).publish(MessageEvent(probe, msg)) 
     }
 
 

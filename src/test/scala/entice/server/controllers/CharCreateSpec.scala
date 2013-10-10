@@ -27,7 +27,7 @@ class CharCreateSpec(_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender {
 
 
-    val clients = ClientRegistryExtension(_system)
+    val clients = ClientRegistryExtension(system)
 
     // given our client
     val session1 = TestProbe()
@@ -47,7 +47,7 @@ class CharCreateSpec(_system: ActorSystem) extends TestKit(_system)
         """)))
 
     override def beforeAll { 
-        props foreach { _system.actorOf(_) }
+        props foreach { system.actorOf(_) }
 
         // register the test clients
         clients.add(client1)
@@ -62,12 +62,12 @@ class CharCreateSpec(_system: ActorSystem) extends TestKit(_system)
         // db cleanup
         Character.delete(char)
 
-        TestKit.shutdownActorSystem(_system) 
+        TestKit.shutdownActorSystem(system) 
     }
 
 
     def testPub(probe: ActorRef, msg: Typeable) { 
-        MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
+        MessageBusExtension(system).publish(MessageEvent(probe, msg)) 
     }
 
 

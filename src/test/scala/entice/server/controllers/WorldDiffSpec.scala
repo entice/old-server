@@ -27,8 +27,8 @@ class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender {
 
 
-    val clients = ClientRegistryExtension(_system)
-    val worlds = WorldRegistryExtension(_system)
+    val clients = ClientRegistryExtension(system)
+    val worlds = WorldRegistryExtension(system)
 
 
     def this() = this(ActorSystem(
@@ -39,12 +39,18 @@ class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
             }
         """)))
 
-    override def beforeAll { props foreach { _system.actorOf(_) } }
-    override def afterAll  { TestKit.shutdownActorSystem(_system) }
+    override def beforeAll { 
+        props foreach { system.actorOf(_) }
+
+        // wait so we dont conflict with the min diff time
+        Thread.sleep(100)
+    }
+
+    override def afterAll  { TestKit.shutdownActorSystem(system) }
 
 
     def testPub(probe: ActorRef, msg: Typeable) { 
-        MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
+        MessageBusExtension(system).publish(MessageEvent(probe, msg)) 
     }
 
 
@@ -61,7 +67,7 @@ class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
             clients.add(client)
 
             // wait so we dont conflict with the min diff time
-            Thread.sleep(50)
+            Thread.sleep(100)
 
             // when changing and then ticking
             entity.set(Name("world-diff-spec2"))
@@ -76,7 +82,7 @@ class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
             session.expectNoMsg
 
             // wait so we dont conflict with the min diff time
-            Thread.sleep(50)
+            Thread.sleep(100)
 
             // when changing and then flushing
             entity.set(Name("world-diff-spec3"))

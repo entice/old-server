@@ -27,7 +27,7 @@ class ChatSpec(_system: ActorSystem) extends TestKit(_system)
     with ImplicitSender {
 
 
-    val clients  = ClientRegistryExtension(_system)
+    val clients  = ClientRegistryExtension(system)
 
 
     def this() = this(ActorSystem(
@@ -38,12 +38,12 @@ class ChatSpec(_system: ActorSystem) extends TestKit(_system)
             }
         """)))
 
-    override def beforeAll { props foreach { _system.actorOf(_) } }
-    override def afterAll  { TestKit.shutdownActorSystem(_system) }
+    override def beforeAll { props foreach { system.actorOf(_) } }
+    override def afterAll  { TestKit.shutdownActorSystem(system) }
 
 
     def testPub(probe: ActorRef, msg: Typeable) { 
-        MessageBusExtension(_system).publish(MessageEvent(probe, msg)) 
+        MessageBusExtension(system).publish(MessageEvent(probe, msg)) 
     }
 
 
@@ -60,7 +60,7 @@ class ChatSpec(_system: ActorSystem) extends TestKit(_system)
             val client2 = Client(session2.ref, null, null, state = Playing)
             val client3 = Client(session3.ref, null, null, state = Playing)
 
-            val world = WorldRegistryExtension(_system).get(client1)
+            val world = WorldRegistryExtension(system).get(client1)
 
             val ent1 = world.create(new TypedSet[Component]() + Name("chatspecname1")); client1.entity = Some(ent1)
             val ent2 = world.create(new TypedSet[Component]() + Name("chatspecname2")); client2.entity = Some(ent2)

@@ -1,5 +1,7 @@
 {
-    "host":                 "127.0.0.1",
-    "port":                 8112,
-    "commandScripts":       "scripts/commands"
+    "host":         "127.0.0.1",
+    "port":         8112,
+    "commands":     "scripts/commands",
+    "minTick":      30,
+    "maxTick":      250
 }
