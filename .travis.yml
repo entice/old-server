@@ -1,10 +1,11 @@
 language: scala
 scala:
-  - 2.10.2
+  - 2.10.3
 branches:
   only:
-    - milestone2
-    - milestone1
+    # tests unstable... - milestone2
+    # tests unstable... - milestone1
+    - develop
     - master
 notifications:
   irc: "irc.rizon.net#gwlpr"
