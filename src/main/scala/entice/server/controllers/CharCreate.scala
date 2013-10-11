@@ -39,10 +39,7 @@ class CharCreate extends Actor with Subscriber with Clients {
                             client.chars = client.chars + (entity -> charview)
                             session ! CharCreateSuccess(entity)
                     }
-
-                case Some(client) =>
-                    session ! Failure("Invalid client state. You can't create characters while playing or the like.")
-                    
+ 
                 case _ =>
                     session ! Failure("Ugly hacks detected! Muhahaha! Kicking session...")
                     session ! Kick
