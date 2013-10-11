@@ -5,6 +5,7 @@
 package entice.server.controllers
 
 import entice.server._
+import entice.server.test._
 import entice.server.utils._
 import entice.server.world._
 import entice.server.systems._
@@ -16,35 +17,30 @@ import org.scalatest._
 import org.scalatest.matchers._
 
 
-class ChatSpec(_system: ActorSystem) extends TestKit(_system)
-
-    // test based on the actual server slice
-    with ControllerSlice
+class ChatSpec extends TestKit(ActorSystem(
+    "chat-spec", 
+    config = ConfigFactory.parseString("""
+        akka {
+          loglevel = WARNING
+        }
+    """)))
 
     with WordSpec
     with MustMatchers 
     with BeforeAndAfterAll
+    with OneInstancePerTest
     with ImplicitSender {
 
 
+    // actors under test
+    val chat = TestActorRef[PreChat]
+    val chatSys = TestActorRef[ChatSystem]
+
+    // given
     val clients  = ClientRegistryExtension(system)
 
 
-    def this() = this(ActorSystem(
-        "chat-spec", 
-        config = ConfigFactory.parseString("""
-            akka {
-              loglevel = WARNING
-            }
-        """)))
-
-    override def beforeAll { props foreach { system.actorOf(_) } }
     override def afterAll  { TestKit.shutdownActorSystem(system) }
-
-
-    def testPub(probe: ActorRef, msg: Typeable) { 
-        MessageBusExtension(system).publish(MessageEvent(probe, msg)) 
-    }
 
 
     "The chat system" must {
@@ -71,17 +67,17 @@ class ChatSpec(_system: ActorSystem) extends TestKit(_system)
             clients.add(client3)
 
             // chat messages
-            testPub(session1.ref, ChatMessage(ent1, "hi"))
+            fakePub(chat, session1.ref, ChatMessage(ent1, "hi"))
             session1.expectMsg(ChatMessage(ent1, "hi"))
             session2.expectMsg(ChatMessage(ent1, "hi"))
             session3.expectMsg(ChatMessage(ent1, "hi"))
 
-            testPub(session2.ref, ChatMessage(ent2, "hi"))
+            fakePub(chat, session2.ref, ChatMessage(ent2, "hi"))
             session1.expectMsg(ChatMessage(ent2, "hi"))
             session2.expectMsg(ChatMessage(ent2, "hi"))
             session3.expectMsg(ChatMessage(ent2, "hi"))
 
-            testPub(session3.ref, ChatMessage(ent3, "hi"))
+            fakePub(chat, session3.ref, ChatMessage(ent3, "hi"))
             session1.expectMsg(ChatMessage(ent3, "hi"))
             session2.expectMsg(ChatMessage(ent3, "hi"))
             session3.expectMsg(ChatMessage(ent3, "hi"))

@@ -5,6 +5,7 @@
 package entice.server.controllers
 
 import entice.server._, Net._
+import entice.server.test._
 import entice.server.utils._
 import entice.server.world._
 import entice.protocol._
@@ -16,42 +17,35 @@ import org.scalatest._
 import org.scalatest.matchers._
 
 
-class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
-
-    // test based on the actual server slice
-    with ControllerSlice
+class WorldDiffSpec extends TestKit(ActorSystem(
+    "world-diff-spec", 
+    config = ConfigFactory.parseString("""
+        akka {
+          loglevel = WARNING
+        }
+    """)))
 
     with WordSpec
     with MustMatchers 
     with BeforeAndAfterAll
+    with OneInstancePerTest
     with ImplicitSender {
 
 
+    // actor under test
+    val worldDiff = TestActorRef[WorldDiff]
+
+    // given
     val clients = ClientRegistryExtension(system)
     val worlds = WorldRegistryExtension(system)
 
 
-    def this() = this(ActorSystem(
-        "world-diff-spec", 
-        config = ConfigFactory.parseString("""
-            akka {
-              loglevel = WARNING
-            }
-        """)))
-
     override def beforeAll { 
-        props foreach { system.actorOf(_) }
-
         // wait so we dont conflict with the min diff time
         Thread.sleep(100)
     }
 
     override def afterAll  { TestKit.shutdownActorSystem(system) }
-
-
-    def testPub(probe: ActorRef, msg: Typeable) { 
-        MessageBusExtension(system).publish(MessageEvent(probe, msg)) 
-    }
 
 
     "A world-diff controller" must {
@@ -71,7 +65,7 @@ class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
 
             // when changing and then ticking
             entity.set(Name("world-diff-spec2"))
-            testPub(self, Tick())
+            fakePub(worldDiff, self, Tick())
 
             session.expectMsgPF() {
                 case UpdateCommand(t, l1, l2, _)
@@ -86,7 +80,7 @@ class WorldDiffSpec(_system: ActorSystem) extends TestKit(_system)
 
             // when changing and then flushing
             entity.set(Name("world-diff-spec3"))
-            testPub(self, Flush())
+            fakePub(worldDiff, self, Flush())
 
             session.expectMsgPF() {
                 case UpdateCommand(t, l1, _, _)

@@ -2,7 +2,7 @@ name := "Entice Server"
 
 version := "0.1.0"
 
-scalaVersion := "2.10.2"
+scalaVersion := "2.10.3"
 
 scalacOptions ++= Seq(
     "-unchecked",
@@ -26,7 +26,7 @@ libraryDependencies ++= Seq(
     "org.slf4j" % "slf4j-simple" % "1.6.4",
     "org.scalatest" %% "scalatest" % "1.9.1" % "test",
     "com.novus" %% "salat" % "1.9.2",
-    "com.chuusai" % "shapeless" % "2.0.0-SNAPSHOT" cross CrossVersion.full,
+    "com.chuusai" % "shapeless_2.10.2" % "2.0.0-SNAPSHOT" changing(),
     "org.scala-lang" %% "scala-pickling" % "0.8.0-SNAPSHOT",
     "com.twitter" %% "util-eval" % "6.3.6"
 )

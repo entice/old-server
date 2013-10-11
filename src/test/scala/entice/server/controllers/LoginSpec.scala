@@ -5,6 +5,7 @@
 package entice.server.controllers
 
 import entice.server._
+import entice.server.test._
 import entice.server.utils._
 import entice.server.database._
 import entice.protocol._
@@ -15,16 +16,23 @@ import org.scalatest._
 import org.scalatest.matchers._
 
 
-class LoginSpec(_system: ActorSystem) extends TestKit(_system)
-
-    // test based on the actual server slice
-    with ControllerSlice
+class LoginSpec extends TestKit(ActorSystem(
+    "login-spec", 
+    config = ConfigFactory.parseString("""
+        akka {
+          loglevel = WARNING
+        }
+    """)))
 
     with WordSpec
     with MustMatchers 
     with BeforeAndAfterAll
+    with OneInstancePerTest
     with ImplicitSender {
 
+
+    // actor under test
+    val login = TestActorRef[Login]
 
     // given
     val acc = Account(email = "loginspec@entice.org", password = "test")
@@ -33,17 +41,7 @@ class LoginSpec(_system: ActorSystem) extends TestKit(_system)
     val char2 = Character(accountId = acc.id, name = Name("login-spec-char2"))
 
 
-    def this() = this(ActorSystem(
-        "login-spec", 
-        config = ConfigFactory.parseString("""
-            akka {
-              loglevel = WARNING
-            }
-        """)))
-
     override def beforeAll { 
-        props foreach { system.actorOf(_) } 
-
         // given an existing acc
         Account.create(acc)
         Character.create(char1)
@@ -63,17 +61,12 @@ class LoginSpec(_system: ActorSystem) extends TestKit(_system)
     }
 
 
-    def testPub(probe: ActorRef, msg: Typeable) { 
-        MessageBusExtension(system).publish(MessageEvent(probe, msg)) 
-    }
-
-
     "A login controller" must {       
 
 
         "accept clients with a valid login request, and reply with a login success" in {
             val probe = TestProbe()
-            testPub(probe.ref, LoginRequest("loginspec@entice.org", "test"))
+            fakePub(login, probe.ref, LoginRequest("loginspec@entice.org", "test"))
             probe.expectMsgClass(classOf[LoginSuccess])
             probe.expectNoMsg
         }
@@ -81,7 +74,7 @@ class LoginSpec(_system: ActorSystem) extends TestKit(_system)
 
         "reply to any invalid login requests with an error code" in {
             val probe = TestProbe()
-            testPub(probe.ref, LoginRequest("nonexisting@entice.org", "test"))
+            fakePub(login, probe.ref, LoginRequest("nonexisting@entice.org", "test"))
             probe.expectMsgPF() {
                 case LoginFail(errorMsg) if errorMsg != "" => true
             }
