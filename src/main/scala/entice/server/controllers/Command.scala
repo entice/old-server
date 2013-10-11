@@ -33,10 +33,11 @@ class Command extends Actor with ActorLogging with Subscriber with Clients with 
                         session ! ServerMessage(" - (built-in) helpme")
                         session ! ServerMessage(" - (built-in) info <command-name>")
                         session ! ServerMessage(" - (built-in) load <path/to/file>")
+                        session ! ServerMessage(" - (built-in) reload")
                         scripts.keySet.foreach { scr => session ! ServerMessage(s" - ${scr}") }
                     }
                     
-                    if (cmd == "info" && args.head != Nil) {
+                    else if (cmd == "info" && !args.isEmpty) {
                         scripts.get(args.head) match {
                             case Some(script) =>
                                 session ! ServerMessage(s"Command '${cmd}' does:")
@@ -52,6 +53,11 @@ class Command extends Actor with ActorLogging with Subscriber with Clients with 
                     else if (cmd == "load") {
                         // TODO: load smth on the fly
                         session ! ServerMessage("Not yet implemented.")
+                    }
+
+                    else if (cmd == "reload") {
+                        scripts = retrieveScripts
+                        session ! ServerMessage("All command scripts reloaded.")
                     }
                     
                     else if (scripts.contains(cmd)) {
