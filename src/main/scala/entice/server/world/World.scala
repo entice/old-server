@@ -13,7 +13,7 @@ import scala.language.postfixOps
 /**
  * Manages all available systems and entities.
  */
-class World {
+class World(val name: String) {
 
     private var entities: Map[Entity, (RichEntity, TypedSet[Component])] = Map()
     private var systems:  Map[System[HList], Set[RichEntity]] = Map()
@@ -53,6 +53,9 @@ class World {
     def getComps(entity: Entity) = {
         entities(entity)_2
     }
+
+
+    def remove(rich: RichEntity) { remove(rich.entity) }
 
 
     def remove(entity: Entity) {

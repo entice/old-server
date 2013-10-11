@@ -35,7 +35,7 @@ class DisconnectSpec extends TestKit(ActorSystem(
     with ImplicitSender {
 
 
-    // actors under test
+    // actor under test
     val disc = TestActorRef[Disconnect]
 
     // given
@@ -52,8 +52,8 @@ class DisconnectSpec extends TestKit(ActorSystem(
         "check if sessions have been terminated and remove leftover data" in {
             //given
             val session = TestProbe()
-            val client = Client(session.ref, null, null)
-            val entity = worlds.get(client).create(new TypedSet[Component]() + Name("world-diff-spec1"))
+            val client = Client(session.ref, null, null, worlds.default)
+            val entity = client.world.create(new TypedSet[Component]() + Name("world-diff-spec1"))
             client.entity = Some(entity)
             clients.add(client)
 
@@ -63,7 +63,7 @@ class DisconnectSpec extends TestKit(ActorSystem(
             within(3 seconds) {
                 clients.get(session.ref) must be(None)
                 intercept[NoSuchElementException] {
-                    worlds.get(client).getRich(entity)
+                    client.world.getRich(entity.entity)
                 }
             }
         }

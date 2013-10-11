@@ -13,7 +13,8 @@ import scala.collection._
  */
 class TypedSet[E <: mutable.Cloneable[E] : TypeTag] private (var map: Map[Type, E] = Map()) {
     def this    ()                           = this(Map())
-    def +       [T <: E : TypeTag](value: T) = new TypedSet[E](map + (typeOf[T] -> value))
+    def add     [T <: E : TypeTag](value: T) = new TypedSet[E](map + (typeOf[T] -> value))
+    def +       [T <: E : TypeTag](value: T) = add(value)
     def remove  [T <: E : TypeTag]           = new TypedSet[E](map - typeOf[T])
     def apply   [T <: E : TypeTag]           = this.get[T].get
     def get     [T <: E : TypeTag]           = map.get(typeOf[T]).asInstanceOf[Option[T]]

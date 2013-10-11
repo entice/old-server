@@ -15,7 +15,7 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 /**
  * TODO: refactor me!
  */
-class Login extends Actor with Subscriber with Clients {
+class Login extends Actor with Subscriber with Clients with Worlds {
 
     val subscriptions = classOf[LoginRequest] :: Nil
     override def preStart { register }
@@ -31,9 +31,9 @@ class Login extends Actor with Subscriber with Clients {
             acc match {
 
                 case None =>
-                    session ! LoginFail("Invalid login credentials.")
+                    session ! Failure("Invalid login credentials.")
                 case Some(_) if (acc.get.password != pwd)=>
-                    session ! LoginFail("Invalid login credentials.")
+                    session ! Failure("Invalid login credentials.")
 
                 case Some(_) =>
                     val chars = Character.findByAccount(acc.get) 
@@ -42,7 +42,7 @@ class Login extends Actor with Subscriber with Clients {
                         }
                     val entityviews = (for ((e, charview) <- chars) yield EntityView(e,charview)).toList
 
-                    val client = Client(session, acc.get, chars, state = IdleInLobby)
+                    val client = Client(session, acc.get, chars, worlds.default, state = IdleInLobby)
                     
                     clients.add(client)
                     session ! LoginSuccess(entityviews)
@@ -50,6 +50,6 @@ class Login extends Actor with Subscriber with Clients {
 
         // invalid email
         case MessageEvent(session, _) => 
-            session ! LoginFail("Invalid email format.")
+            session ! Failure("Invalid email format.")
     }
 }

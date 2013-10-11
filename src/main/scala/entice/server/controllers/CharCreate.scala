@@ -26,7 +26,7 @@ class CharCreate extends Actor with Subscriber with Clients {
                 
                     Character.findByName(charview.name) match {
                         case Some(_) => 
-                            session ! CharCreateFail("Name invalid or taken.")
+                            session ! Failure("Name invalid or taken.")
 
                         case None =>
                             Character.create(
@@ -41,10 +41,10 @@ class CharCreate extends Actor with Subscriber with Clients {
                     }
 
                 case Some(client) =>
-                    session ! CharCreateFail("Invalid client state. You can't create characters while playing or the like.")
+                    session ! Failure("Invalid client state. You can't create characters while playing or the like.")
                     
                 case _ =>
-                    session ! CharCreateFail("Ugly hacks detected! Muhahaha! Kicking session...")
+                    session ! Failure("Ugly hacks detected! Muhahaha! Kicking session...")
                     session ! Kick
             }
     }

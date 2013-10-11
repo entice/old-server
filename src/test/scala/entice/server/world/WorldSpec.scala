@@ -26,7 +26,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
 
 
         "create entities out of their components and retrieve these" in {
-            val w = new World
+            val w = new World("testworld1")
             val c = new TypedSet[Component]() + Name() + Position() + Movement()
             val e = w.create(c)
             w.getRich(e.entity) must be(e)
@@ -35,7 +35,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
 
 
         "remove entities" in {
-            val w = new World
+            val w = new World("testworld2")
             val c = new TypedSet[Component]() + Name() + Position() + Movement()
             val e = w.create(c)
             w.remove(e.entity)
@@ -48,7 +48,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
         "create correct world diffs" in {
             // (does not involve the actorsystem)
             // given
-            val w = new World()
+            val w = new World("testworld3")
             val et1, et2, et3, et4 = Entity(UUID())
             
             // step 1
@@ -80,7 +80,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
 
 
         "register systems and check if they want to accept any entities" in {
-            val w = new World
+            val w = new World("testworld4")
             val s = TestSystem(w)
             val c1 = new TypedSet[Component]() + Name() + Position() + Movement()
             val c2 = new TypedSet[Component]() + Name() + Movement()

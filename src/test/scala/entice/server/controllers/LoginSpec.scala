@@ -76,7 +76,7 @@ class LoginSpec extends TestKit(ActorSystem(
             val probe = TestProbe()
             fakePub(login, probe.ref, LoginRequest("nonexisting@entice.org", "test"))
             probe.expectMsgPF() {
-                case LoginFail(errorMsg) if errorMsg != "" => true
+                case Failure(errorMsg) if errorMsg != "" => true
             }
             probe.expectNoMsg
         }

@@ -38,6 +38,7 @@ class ChatSpec extends TestKit(ActorSystem(
 
     // given
     val clients  = ClientRegistryExtension(system)
+    val worlds = WorldRegistryExtension(system)
 
 
     override def afterAll  { TestKit.shutdownActorSystem(system) }
@@ -52,11 +53,11 @@ class ChatSpec extends TestKit(ActorSystem(
             val session2 = TestProbe(); 
             val session3 = TestProbe(); 
 
-            val client1 = Client(session1.ref, null, null, state = Playing)
-            val client2 = Client(session2.ref, null, null, state = Playing)
-            val client3 = Client(session3.ref, null, null, state = Playing)
+            val client1 = Client(session1.ref, null, null, worlds.default, state = Playing)
+            val client2 = Client(session2.ref, null, null, worlds.default, state = Playing)
+            val client3 = Client(session3.ref, null, null, worlds.default, state = Playing)
 
-            val world = WorldRegistryExtension(system).get(client1)
+            val world = worlds.default
 
             val ent1 = world.create(new TypedSet[Component]() + Name("chatspecname1")); client1.entity = Some(ent1)
             val ent2 = world.create(new TypedSet[Component]() + Name("chatspecname2")); client2.entity = Some(ent2)

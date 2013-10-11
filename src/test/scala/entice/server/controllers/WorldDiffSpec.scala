@@ -55,8 +55,8 @@ class WorldDiffSpec extends TestKit(ActorSystem(
 
             // given
             val session = TestProbe()
-            val client = Client(session.ref, null, Map(), None, state = Playing)
-            val entity = worlds.get(client).create(new TypedSet[Component]() + Name("world-diff-spec1"))
+            val client = Client(session.ref, null, Map(), worlds.default, None, state = Playing)
+            val entity = client.world.create(new TypedSet[Component]() + Name("world-diff-spec1"))
             client.entity = Some(entity)
             clients.add(client)
 

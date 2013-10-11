@@ -37,10 +37,12 @@ class CharCreateSpec extends TestKit(ActorSystem(
 
     // given
     val clients = ClientRegistryExtension(system)
+    val worlds  = WorldRegistryExtension(system)
+
     val session1 = TestProbe()
     val session2 = TestProbe()
-    val client1 = Client(session1.ref, Account(email = "charcreatespec1@entice.org", password = "test"), Map())
-    val client2 = Client(session2.ref, Account(email = "charcreatespec2@entice.org", password = "test"), Map())
+    val client1 = Client(session1.ref, Account(email = "charcreatespec1@entice.org", password = "test"), Map(), worlds.default)
+    val client2 = Client(session2.ref, Account(email = "charcreatespec2@entice.org", password = "test"), Map(), worlds.default)
     val char = Character(accountId = new ObjectId(), name = Name("char-create-spec-test2"))
 
 
@@ -79,7 +81,7 @@ class CharCreateSpec extends TestKit(ActorSystem(
         "reply with an error message when the name is already taken" in {
             // given an existing char
             fakePub(charCreate, session2.ref, CharCreateRequest(CharacterView(Name("char-create-spec-test2"), Appearance())))
-            session2.expectMsgClass(classOf[CharCreateFail])
+            session2.expectMsgClass(classOf[Failure])
             session2.expectNoMsg
         }
 
@@ -87,7 +89,7 @@ class CharCreateSpec extends TestKit(ActorSystem(
         "detect hacks" in {
             val noClient = TestProbe()
             fakePub(charCreate, noClient.ref, CharCreateRequest(CharacterView(Name("something"), Appearance())))
-            noClient.expectMsgClass(classOf[CharCreateFail])
+            noClient.expectMsgClass(classOf[Failure])
             noClient.expectMsg(Kick)
         }
     }
