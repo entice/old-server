@@ -106,8 +106,8 @@ class ServerActorSlice
         // acceptor events
         case BindSuccess    => // do nothing atm 
         case BindFailure    => context stop self
-        case n: NewSession  => MessageEvent(self, n)
-        case l: LostSession => MessageEvent(self, l)
+        case n: NewSession  => publish(n)
+        case l: LostSession => publish(l)
 
         // session events
         case NewMessage(m)  => 
