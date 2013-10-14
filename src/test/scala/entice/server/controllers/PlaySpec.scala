@@ -49,15 +49,15 @@ class PlaySpec extends TestKit(ActorSystem(
             val session = TestProbe()
             val e1, e2 = Entity(UUID())
             val chars = Map(
-                (e1 -> CharacterView(Name("test1"), Appearance())),
-                (e2 -> CharacterView(Name("test2"), Appearance()))
+                (e1 -> ((Name("test1"), Appearance()))),
+                (e2 -> ((Name("test1"), Appearance())))
             )
             val client = Client(session.ref, null, chars, worlds.default)
             clients.add(client)
 
             fakePub(play, session.ref, PlayRequest(e1))
             session.expectMsgPF() {
-                case PlaySuccess(_, List(EntityView(e1, AllCompsView(_)))) => true
+                case PlaySuccess(_, List(EntityView(e1, _, _, _))) => true
             }
             session.expectNoMsg
         }
@@ -68,8 +68,8 @@ class PlaySpec extends TestKit(ActorSystem(
             val session = TestProbe()
             val e1, e2 = Entity(UUID())
             val chars = Map(
-                (e1 -> CharacterView(Name("test1"), Appearance())),
-                (e2 -> CharacterView(Name("test2"), Appearance()))
+                (e1 -> ((Name("test1"), Appearance()))),
+                (e2 -> ((Name("test1"), Appearance())))
             )
             val client = Client(session.ref, null, chars, worlds.default, state = Playing)
             val rich = worlds.default.use(e1, new TypedSet[Component]() + Name("test1") + Appearance())
@@ -81,14 +81,12 @@ class PlaySpec extends TestKit(ActorSystem(
             // must accept a mapchange
             fakePub(play, session.ref, PlayChangeMap("RandomArenas"))
             session.expectMsgPF() {
-                case PlaySuccess("RandomArenas", List(EntityView(e1, AllCompsView(_)))) => true
+                case PlaySuccess("RandomArenas", List(EntityView(e1, _, _, _))) => true
             }
             session.expectNoMsg
 
             // must have removed the player from the map
-            intercept[NoSuchElementException] {
-                worlds.default.getRich(e1)
-            }
+            worlds.default.getRich(e1) must be(None)
         }
 
 
@@ -97,8 +95,8 @@ class PlaySpec extends TestKit(ActorSystem(
             val session = TestProbe()
             val e1, e2 = Entity(UUID())
             val chars = Map(
-                (e1 -> CharacterView(Name("test1"), Appearance())),
-                (e2 -> CharacterView(Name("test2"), Appearance()))
+                (e1 -> ((Name("test1"), Appearance()))),
+                (e2 -> ((Name("test1"), Appearance())))
             )
             val client = Client(session.ref, null, chars, worlds.default, state = Playing)
             val rich = worlds.default.use(e1, new TypedSet[Component]() + Name("test1") + Appearance())
@@ -110,9 +108,7 @@ class PlaySpec extends TestKit(ActorSystem(
             session.expectNoMsg
 
             // must have removed the player from the map
-            intercept[NoSuchElementException] {
-                worlds.default.getRich(e1)
-            }
+            worlds.default.getRich(e1) must be(None)
         }
 
 

@@ -67,7 +67,9 @@ class Command extends Actor with ActorLogging with Subscriber with Clients with 
                             case None =>
                         }
                     }
+
                 case _ =>
+                    session ! Failure("Not logged in, or not playing.")
                     session ! Kick
             }
     }

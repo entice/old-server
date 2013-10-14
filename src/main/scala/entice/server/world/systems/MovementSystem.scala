@@ -2,7 +2,7 @@
  * For copyright information see the LICENSE document.
  */
 
-package entice.server.systems
+package entice.server.world.systems
 
 import entice.server.world._
 import entice.protocol._

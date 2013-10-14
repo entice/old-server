@@ -21,7 +21,7 @@ import scala.util._
 case class Client(
     session: ActorRef,
     account: Account,
-    var chars: Map[Entity, CharacterView],
+    var chars: Map[Entity, (Name, Appearance)],
     var world: World,
     var entity: Option[RichEntity] = None,
     var state: PlayState = IdleInLobby)

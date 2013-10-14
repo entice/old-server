@@ -6,7 +6,7 @@ package entice.server
 
 import entice.server.controllers._
 import entice.server.world._
-import entice.server.systems._
+import entice.server.world.systems._
 import entice.server.utils._
 import entice.protocol._
 

@@ -29,8 +29,8 @@ class WorldSpec extends WordSpec with MustMatchers  {
             val w = new World("testworld1")
             val c = new TypedSet[Component]() + Name() + Position() + Movement()
             val e = w.create(c)
-            w.getRich(e.entity) must be(e)
-            w.getComps(e.entity) must be(c)
+            w.getRich(e.entity) must be(Some(e))
+            w.getComps(e.entity) must be(Some(c))
         }
 
 
@@ -39,9 +39,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
             val c = new TypedSet[Component]() + Name() + Position() + Movement()
             val e = w.create(c)
             w.remove(e.entity)
-            intercept[NoSuchElementException] {
-                w.getRich(e.entity)
-            }
+            w.getRich(e.entity) must be(None)
         }
 
 
@@ -52,30 +50,56 @@ class WorldSpec extends WordSpec with MustMatchers  {
             val et1, et2, et3, et4 = Entity(UUID())
             
             // step 1
-            w.use(et1, new TypedSet[Component]() + Name("et1") + Position())
-            w.use(et2, new TypedSet[Component]() + Position())
-            w.use(et3, new TypedSet[Component]() + Movement()) // actually never happens
+            w.use   (et1, new TypedSet[Component]() + Name("et1-1") + Position())
+            w.use   (et2, new TypedSet[Component]() + Movement())
+            w.use   (et3, new TypedSet[Component]() + Movement()) // actually never happens
             // create a diff that we dont want right now, just to flush the stuff out
             w.diff
 
             // step 2
-            w.update(et1, new TypedSet[Component]() + Name("et1-new") + Position())
+            w.update(et1, new TypedSet[Component]() + Name("et1-2") + Position() + Movement())
             w.update(et2, new TypedSet[Component]() + Position(Coord2D(1, 1)))
+            w.use   (et4, new TypedSet[Component]() + Position()) // replace et3 with et4
             w.remove(et3)
-            w.use   (et4, new TypedSet[Component]() + Position() + Movement()) // replace et3 with et4
 
-            val expectedDiff = List(
-                EntityView(et1, AllCompsView(List(Name("et1-new")))),
-                EntityView(et2, AllCompsView(List(Position(Coord2D(1, 1))))),
-                EntityView(et4, AllCompsView(List(Position(), Movement())))) // also expect new entities
+            var expectedDiff = List(
+                EntityView(et1, List(Name("et1-2")), List(Movement()),              Nil),
+                EntityView(et2, Nil,                 List(Position(Coord2D(1, 1))), List("Movement")),
+                EntityView(et4, Nil,                 List(Position()),              Nil))
 
             // when
-            val (diffs, added, removed) = w.diff
+            {
+                val (diffs, added, removed) = w.diff
 
-            // must
-            added must be(List(et4))
-            removed must be(List(et3))
-            diffs must be(expectedDiff)
+                // must
+                added must be(List(et4))
+                removed must be(List(et3))
+                diffs must be(expectedDiff)
+            }
+
+            // step 3 & 4
+            w.update(et1, new TypedSet[Component]() + Name("et1-3") + Position()) // removed movement
+            w.update(et2, new TypedSet[Component]() + Position(Coord2D(1, 1)) + Movement()) // added movement 
+            w.update(et4, new TypedSet[Component]() + Position(Coord2D(1, 1)) + Movement()) // changed 1
+
+            w.update(et1, new TypedSet[Component]() + Name("et1-4") + Position() + Movement()) // added movement
+            w.update(et2, new TypedSet[Component]() + Position(Coord2D(1, 1))) // removed movement
+            w.update(et4, new TypedSet[Component]() + Position() + Movement()) // reverted 1
+
+            expectedDiff = List(
+                EntityView(et1, List(Name("et1-4")),            Nil,                            Nil),
+                EntityView(et2, Nil,                            Nil,                            Nil),
+                EntityView(et4, Nil,                            List(Movement()),               Nil)) // also expect new entities
+
+            // when
+            {
+                val (diffs, added, removed) = w.diff
+
+                // must
+                added must be(Nil)
+                removed must be(Nil)
+                diffs must be(expectedDiff)
+            }
         }
 
 

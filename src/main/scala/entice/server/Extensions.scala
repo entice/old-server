@@ -17,6 +17,7 @@ trait Subscriber { self: Actor =>
     def messageBus = MessageBusExtension(context.system)
     def subscriptions: List[Class[_ <: Typeable]]
     def publish(msg: Typeable) = messageBus.publish(MessageEvent(this.self, msg))
+    def publish(sender: ActorRef, msg: Typeable) = messageBus.publish(MessageEvent(sender, msg))
     def register() { 
         subscriptions foreach { messageBus.subscribe(this.self, _) }
     }

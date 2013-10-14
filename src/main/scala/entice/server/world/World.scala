@@ -11,127 +11,69 @@ import scala.language.postfixOps
 
 
 /**
- * Manages all available systems and entities.
+ * Manages all entities registered to it, all systems registered to it, and can
+ * create diffs of its state transitions.
  */
-class World(val name: String) {
+class World(val name: String) extends WorldCore with SystemsManagement with DiffManagement
 
-    private var entities: Map[Entity, (RichEntity, TypedSet[Component])] = Map()
-    private var systems:  Map[System[HList], Set[RichEntity]] = Map()
 
-    private var changed:  Map[Entity, TypedSet[Component]] = Map()
-    private var added:    List[Entity] = Nil
-    private var removed:  List[Entity] = Nil
+/**
+ * Manages all entities registered to it.
+ */
+private[world] trait WorldCore {
+    self: World =>
+
+    protected var entities: Map[Entity, (RichEntity, TypedSet[Component])] = Map()
 
 
     def create(comps : TypedSet[Component]) = use(Entity(UUID()), comps)
 
-
     def use(entity: Entity, comps : TypedSet[Component]) = {
-        val rich = RichEntity(entity, this)
-
-        // ask the systems
-        systems.keys 
-            .filter {s: System[HList] => s.takes(comps)} 
-            .map    {s: System[HList] => systems = systems + (s -> (systems(s) + rich))}
-
-        // register
-        entities = entities + (entity -> (rich, comps))
-
-        // diffing
-        changed = changed + (entity -> comps.deepClone)
-        added = entity :: added
-
+        val rich = RichEntity(entity, self)
+        entities = entities + (entity -> ((rich, comps)))
         rich
     }
 
 
-    def getRich(entity: Entity) = {
-        entities(entity)_1
-    }
-
-
-    def getComps(entity: Entity) = {
-        entities(entity)_2
-    }
-
-
     def remove(rich: RichEntity) { remove(rich.entity) }
-
-
-    def remove(entity: Entity) {
-
-        if (!entities.contains(entity)) return
-
-        val rich = getRich(entity)
-
-        // remove from the entities
-        entities = entities - entity
-
-        // remove from the systems that had it before
-        systems.keys.foreach { s: System[HList] => systems = systems + (s -> (systems(s) - rich)) }
-
-        // diffing
-        removed = entity :: removed
-    }
-
-
-    def update(rich: RichEntity, comps: TypedSet[Component]) { update(rich.entity, comps) }
+    def remove(entity: Entity)   { entities = entities - entity }
 
 
     def update(entity: Entity, comps: TypedSet[Component]) {
-        val rich = entities.get(entity).get _1
+        if (!entities.contains(entity)) return
+        update(getRich(entity).get, comps)
+    }
 
-        // ask the systems (remove from those that had it before)
-        systems.keys
-            .filterNot {s: System[HList] => s.takes(comps)}
-            .foreach   {s: System[HList] => systems = systems + (s -> (systems(s) - rich))}
-        systems.keys
-            .filter    {s: System[HList] => s.takes(comps)}
-            .foreach   {s: System[HList] => systems = systems + (s -> (systems(s) + rich))}
-
-        // diffing
-        val newComps = comps diff rich.comps 
-        changed = changed + 
-            (entity -> newComps.deepClone)
-
-        // register
-        entities = entities + (rich.entity -> (rich, comps))
+    def update(rich: RichEntity, comps: TypedSet[Component]) {
+        if (rich.world != this) return
+        entities = entities + (rich.entity -> ((rich, comps)))
     }
 
 
-    def dump = {
-        (for ((entity, (rich, comps)) <- entities)
-         yield EntityView(entity, AllCompsView(comps.toList)))
-        .toList
-    }
+    def contains(entity: Entity) = entities.contains(entity)
 
 
-    def diff: (List[EntityView], List[Entity], List[Entity]) = {
-        val result = (
-            (for ((e, c) <- changed) yield EntityView(e, AllCompsView(c.toList))).toList,
-            added,
-            removed)
-
-        changed = Map()
-        added = Nil
-        removed = Nil
-
-        result
-    }
-
-
-    private[world] def process(me: System[HList]) = {
-        systems.get(me) match {
-            case Some(e) => e
-            case None =>
-                register(me)
-                systems.get(me).get
+    def getRich(entity: Entity): Option[RichEntity] = {
+        entities.get(entity) match {
+            case Some((rich, comps)) => Some(rich)
+            case None => None
         }
     }
 
 
-    private def register(sys: System[HList]) = {
-        val e = entities.keys filter {e: Entity => sys.takes(entities(e)_2)} map {entities(_)_1}
-        systems = systems + (sys -> e.toSet)
+    def getComps(entity: Entity): Option[TypedSet[Component]] = {
+        entities.get(entity) match {
+            case Some((rich, comps)) => Some(comps)
+            case None => None
+        }
     }
+
+
+    def dump: Map[Entity, TypedSet[Component]] = {
+        (for ((entity, (rich, comps)) <- entities) yield
+        (entity -> comps.deepClone))
+        .toMap
+    }    
 }
+
+

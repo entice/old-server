@@ -67,7 +67,7 @@ class CharCreateSpec extends TestKit(ActorSystem(
 
 
         "create chars when receiving a valid request" in {
-            fakePub(charCreate, session1.ref, CharCreateRequest(CharacterView(Name("char-create-spec-test1"), Appearance())))
+            fakePub(charCreate, session1.ref, CharCreateRequest(Name("char-create-spec-test1"), Appearance()))
             session1.expectMsgPF() {
                 case CharCreateSuccess(Entity(_)) => true
             }
@@ -80,7 +80,7 @@ class CharCreateSpec extends TestKit(ActorSystem(
 
         "reply with an error message when the name is already taken" in {
             // given an existing char
-            fakePub(charCreate, session2.ref, CharCreateRequest(CharacterView(Name("char-create-spec-test2"), Appearance())))
+            fakePub(charCreate, session2.ref, CharCreateRequest(Name("char-create-spec-test2"), Appearance()))
             session2.expectMsgClass(classOf[Failure])
             session2.expectNoMsg
         }
@@ -88,7 +88,7 @@ class CharCreateSpec extends TestKit(ActorSystem(
 
         "detect hacks" in {
             val noClient = TestProbe()
-            fakePub(charCreate, noClient.ref, CharCreateRequest(CharacterView(Name("something"), Appearance())))
+            fakePub(charCreate, noClient.ref, CharCreateRequest(Name("something"), Appearance()))
             noClient.expectMsgClass(classOf[Failure])
             noClient.expectMsg(Kick)
         }

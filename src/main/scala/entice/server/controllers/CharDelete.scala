@@ -9,7 +9,9 @@ import entice.server.world._
 import entice.server.utils._
 import entice.server.database._
 import entice.protocol._
+
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
+import scala.language.postfixOps
 
 
 class CharDelete extends Actor with Subscriber with Clients {
@@ -26,11 +28,11 @@ class CharDelete extends Actor with Subscriber with Clients {
                     if chars.contains(entity)
                     && client.state == IdleInLobby =>
                 
-                    Character.deleteByName(chars(entity).name)
+                    Character.deleteByName(chars(entity) _1)
                     client.chars = chars - entity
  
                 case _ =>
-                    session ! Failure("Ugly hacks detected! Muhahaha! Kicking session...")
+                    session ! Failure("Not logged in.")
                     session ! Kick
             }
     }

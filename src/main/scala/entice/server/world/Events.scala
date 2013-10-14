@@ -11,9 +11,11 @@ import scala.concurrent.duration._
 sealed trait Event extends Typeable
 
 
-case class Tick() extends Event                                       // from the system
-case class Flush() extends Event                                      // from single components
-case class Schedule(event: Event, after: FiniteDuration) extends Event // invokes the scheduling system
+case class Tick() extends Event                                        // from the system
+case class Flush() extends Event                                       // from single components
+case class Schedule(event: Event, after: FiniteDuration) extends Event
+
+case class ChangeSet(entity: RichEntity, changed: Map[String, Component], removed: List[String]) extends Event
 
 case class Move(entity: RichEntity) extends Event
 case class Chat(entity: RichEntity, text: String) extends Event

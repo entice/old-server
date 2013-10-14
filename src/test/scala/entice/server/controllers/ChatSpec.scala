@@ -8,7 +8,7 @@ import entice.server._
 import entice.server.test._
 import entice.server.utils._
 import entice.server.world._
-import entice.server.systems._
+import entice.server.world.systems._
 import entice.protocol._
 import akka.actor._
 import akka.testkit._

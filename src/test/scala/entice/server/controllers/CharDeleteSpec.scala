@@ -54,7 +54,7 @@ class CharDeleteSpec extends TestKit(ActorSystem(
             val client = Client(
                 session.ref, 
                 null, 
-                Map((entity -> CharacterView(char.name, Appearance()))), 
+                Map((entity -> ((char.name, Appearance())))), 
                 worlds.default)
 
             Character.create(char)

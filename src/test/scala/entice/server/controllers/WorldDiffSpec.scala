@@ -69,7 +69,7 @@ class WorldDiffSpec extends TestKit(ActorSystem(
 
             session.expectMsgPF() {
                 case UpdateCommand(t, l1, l2, _)
-                    if (l1.contains(EntityView(entity.entity, AllCompsView(List(Name("world-diff-spec2")))))
+                    if (l1.contains(EntityView(entity.entity, Nil, List(Name("world-diff-spec2")), Nil))
                     &&  l2.contains(entity.entity) 
                     &&  t != 0) => true
             }
@@ -84,7 +84,7 @@ class WorldDiffSpec extends TestKit(ActorSystem(
 
             session.expectMsgPF() {
                 case UpdateCommand(t, l1, _, _)
-                     if (l1.contains(EntityView(entity.entity, AllCompsView(List(Name("world-diff-spec3"))))) 
+                     if (l1.contains(EntityView(entity.entity, List(Name("world-diff-spec3")), Nil, Nil))
                      &&  t != 0) => true
             }
         }

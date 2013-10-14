@@ -13,22 +13,23 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 
 class PreMovement extends Actor with Subscriber with Clients {
 
-    val subscriptions = classOf[UpdateRequest] :: Nil
+    val subscriptions = classOf[MoveRequest] :: Nil
     override def preStart { register }
 
     def receive = {
 
-        case MessageEvent(session, UpdateRequest(EntityView(_, view: MovementView))) => 
+        case MessageEvent(session, MoveRequest(pos, move)) => 
             clients.get(session) match {
+
                 case Some(client) if client.state == Playing =>
-                    client.entity map {_.set(view.position)}
-                    client.entity map {_.set(view.movement)}
+                    client.entity map {_.set(pos)}
+                    client.entity map {_.set(move)}
                     publish(Move(client.entity.get))
                     publish(Flush())
+
                 case _ =>
+                    session ! Failure("Not logged in, or not playing.")
                     session ! Kick
             }
-
-        case MessageEvent(_, UpdateRequest(_)) => // we will get update requests that were not made for us...
     }
 }

@@ -8,7 +8,7 @@ import entice.server._, Net._
 import entice.server.test._
 import entice.server.utils._
 import entice.server.world._
-import entice.server.systems._
+import entice.server.world.systems._
 import entice.protocol._
 import akka.actor._
 import akka.testkit._
@@ -62,9 +62,7 @@ class DisconnectSpec extends TestKit(ActorSystem(
 
             within(3 seconds) {
                 clients.get(session.ref) must be(None)
-                intercept[NoSuchElementException] {
-                    client.world.getRich(entity.entity)
-                }
+                client.world.getRich(entity.entity) must be (None)
             }
         }
     }

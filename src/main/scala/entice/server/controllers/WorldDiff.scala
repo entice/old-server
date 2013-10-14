@@ -10,6 +10,7 @@ import entice.server.world._
 import entice.protocol._
 
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
+import scala.concurrent.duration._
 import scala.language.postfixOps
 
 
@@ -46,7 +47,10 @@ class WorldDiff extends Actor with Subscriber with Configurable with Clients wit
 
 
     def update() {
-        if (peekTime < minDiffTime) return
+        if (peekTime < minDiffTime) {
+            publish(Schedule(Flush(), Duration(minDiffTime - peekTime, MILLISECONDS)))
+            return
+        }
 
         worlds.getAll
             .foreach { w => 

@@ -8,6 +8,7 @@ import entice.server.utils._
 import entice.protocol._
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import scala.collection.mutable
+import scala.language.postfixOps
 
 
 class Play extends Actor with Subscriber with Clients with Worlds {
@@ -30,12 +31,12 @@ class Play extends Actor with Subscriber with Clients with Worlds {
                     if chars.contains(entity) 
                     && state == IdleInLobby =>
 
-                    client.entity = Some(world.use(entity, playerComps(chars(entity))))
-                    session ! PlaySuccess(world.name, world.dump)
+                    client.entity = Some(world.use(entity, playerComps(chars(entity), world.name)))
+                    session ! PlaySuccess(world.name, toEntityView(world.dump))
                     client.state = Playing
 
                 case _ =>
-                    session ! Failure("Ugly hacks detected! Muhahaha! Kicking session...")
+                    session ! Failure("Not logged in, or not idle in lobby.")
                     session ! Kick
             }
 
@@ -50,11 +51,11 @@ class Play extends Actor with Subscriber with Clients with Worlds {
                     val entity = rich.get.entity
                     world.remove(entity)
                     client.world = worlds.get(newMap)
-                    client.entity = Some(client.world.use(entity, playerComps(chars(entity))))
-                    session ! PlaySuccess(client.world.name, client.world.dump)
+                    client.entity = Some(client.world.use(entity, playerComps(chars(entity), client.world.name)))
+                    session ! PlaySuccess(client.world.name, toEntityView(client.world.dump))
 
                 case _ =>
-                    session ! Failure("Ugly hacks detected! Muhahaha! Kicking session...")
+                    session ! Failure("Not logged in, or not playing.")
                     session ! Kick
             }
 
@@ -70,18 +71,24 @@ class Play extends Actor with Subscriber with Clients with Worlds {
                     client.state = IdleInLobby
 
                 case _ =>
-                    session ! Failure("Ugly hacks detected! Muhahaha! Kicking session...")
+                    session ! Failure("Not logged in, or not playing.")
                     session ! Kick
             }
     }
 
 
-    def playerComps(char: CharacterView) = {
+    def playerComps(char: (Name, Appearance), map: String) = {
         new TypedSet[Component]() 
-            .add(char.name)
-            .add(char.appearance)
-            .add(Position())
+            .add(char _1)
+            .add(char _2)
+            .add(Position(Maps.withMapName(map).spawns(0)))
             .add(Movement())
             .add(Animation())
+    }
+
+    def toEntityView(dump: Map[Entity, TypedSet[Component]]): List[EntityView] = {
+        (for ((e, c) <- dump) yield
+         EntityView(e, Nil, c.toList, Nil))
+        .toList
     }
 }

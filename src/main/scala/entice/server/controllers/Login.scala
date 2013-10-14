@@ -10,6 +10,7 @@ import entice.server.database._
 import entice.protocol._
 
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
+import scala.language.postfixOps
 
 
 /**
@@ -36,11 +37,11 @@ class Login extends Actor with Subscriber with Clients with Worlds {
                     session ! Failure("Invalid login credentials.")
 
                 case Some(_) =>
-                    val chars = Character.findByAccount(acc.get) 
-                        .foldLeft(Map[Entity, CharacterView]()) { 
-                            (chars, char) => chars + (Entity(UUID()) -> CharacterView(char.name, char.appearance)) 
-                        }
-                    val entityviews = (for ((e, charview) <- chars) yield EntityView(e,charview)).toList
+                    val chars: Map[Entity, (Name, Appearance)] = 
+                        (for (char <- Character.findByAccount(acc.get)) yield
+                         (Entity(UUID()) -> ((char.name, char.appearance)))) 
+                        .toMap
+                    val entityviews = (for ((e, c) <- chars) yield EntityView(e, Nil, List(c _1, c _2), Nil)).toList
 
                     val client = Client(session, acc.get, chars, worlds.default, state = IdleInLobby)
                     
