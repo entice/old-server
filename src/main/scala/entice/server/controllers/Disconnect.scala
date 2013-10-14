@@ -23,11 +23,15 @@ class Disconnect extends Actor with Subscriber with Clients with Worlds {
 
     def receive = {
         case MessageEvent(_, LostSession(session)) =>
-            clients.get(session) foreach { 
-                c => (c).world.remove(c.entity.get)
-                // inform CES that the entity has been removed TODO: this should be at ONE location
-                publish(Despawned(c.entity.get)) 
+            clients.get(session)  match {
+                case Some(client) => 
+                    client.entity foreach { e => 
+                        e.world.remove(e.entity)
+                        // inform CES that the entity has been removed TODO: this should be at ONE location
+                        publish(Despawned(e))
+                    }
+                    clients.remove(session)
+                case _ =>
             }
-            clients.remove(session)
     }
 }
