@@ -48,17 +48,20 @@ class WorldDiff extends Actor with Subscriber with Configurable with Clients wit
 
     def update() {
         if (peekTime < minDiffTime) {
-            publish(Schedule(Flush(), Duration(minDiffTime - peekTime, MILLISECONDS)))
+            // TODO: unstable? publish(Schedule(Flush(), Duration(minDiffTime - peekTime, MILLISECONDS)))
             return
         }
+
+        val timeDiff = timeDelta
 
         worlds.getAll
             .foreach { w => 
                 val (changed, added, removed) = w.diff
-                val timeDiff = timeDelta
-                clients.getAll // should be getAllOfThisWorld
-                    .filter  {_.state == Playing}
-                    .foreach {_.session ! UpdateCommand(timeDiff, changed, added, removed)}
+                clients.getAll
+                    .filter  { _.state == Playing }
+                    .filter  { _.entity != None }
+                    .filter  { _.world == w }
+                    .foreach { _.session ! UpdateCommand(timeDiff, changed, added, removed) }
             }
     }
 }
