@@ -147,8 +147,11 @@ private[world] trait SystemsManagement extends WorldCore {
     }
 
 
-    private def register(sys: System[HList]) = {
+    private[world] def register(sys: System[HList]) {
         val e = entities.keys filter {e: Entity => sys.takes(entities(e)_2)} map {entities(_)_1}
         systems = systems + (sys -> e.toSet)
     }
+
+
+    private[world] def unregister(sys: System[HList]) { systems = systems - sys }
 }

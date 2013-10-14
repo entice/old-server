@@ -97,6 +97,8 @@ class GroupJoin extends Actor with Subscriber with Clients {
             if (!otherLeader.joinRequests.contains(me.entity)) {
                 other.set(otherLeader.copy(joinRequests = me.entity :: otherLeader.joinRequests))
             }
+
+            publish(GroupInvite(me, other))
         }
     }
 }

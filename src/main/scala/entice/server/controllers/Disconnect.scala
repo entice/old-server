@@ -6,6 +6,7 @@ package entice.server.controllers
 
 import entice.server._, Net._
 import entice.server.utils._
+import entice.server.world._
 import entice.protocol._
 
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
@@ -22,7 +23,11 @@ class Disconnect extends Actor with Subscriber with Clients with Worlds {
 
     def receive = {
         case MessageEvent(_, LostSession(session)) =>
-            clients.get(session) foreach { c => (c).world.remove(c.entity.get) }
+            clients.get(session) foreach { 
+                c => (c).world.remove(c.entity.get)
+                // inform CES that the entity has been removed TODO: this should be at ONE location
+                publish(Despawned(c.entity.get)) 
+            }
             clients.remove(session)
     }
 }

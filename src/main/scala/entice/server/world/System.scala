@@ -33,5 +33,7 @@ abstract class System[T <: HList : TypeTag] {
 
     def entities(world: World) = world.process(this.asInstanceOf[System[HList]])
 
+    def unloadFrom(world: World) = world.unregister(this.asInstanceOf[System[HList]])
+
     def update(world: World) {}
 }

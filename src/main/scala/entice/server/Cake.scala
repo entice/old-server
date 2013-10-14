@@ -4,7 +4,6 @@
 
 package entice.server
 
-import entice.server.controllers._
 import entice.server.world._
 import entice.server.world.systems._
 import entice.server.utils._
@@ -36,13 +35,18 @@ trait CoreSlice {
  * Holds the API components, needs to be completed by adding the handlers
  */
 trait ControllerSlice {
+    import entice.server.controllers._
+    
     // fill this list in your own environment with actor props of your API actors
     def props: List[Props] =
         // handlers
         Props(classOf[Login]) ::
         Props(classOf[Play]) ::
         Props(classOf[CharCreate]) ::
+        Props(classOf[CharDelete]) ::
         Props(classOf[WorldDiff]) ::
+        Props(classOf[GroupJoin]) ::
+        Props(classOf[GroupLeave]) ::
         Props(classOf[Command]) ::
         Props(classOf[Disconnect]) ::
         // systems

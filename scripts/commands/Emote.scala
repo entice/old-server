@@ -21,12 +21,12 @@ class Emote extends Command {
 
 
     def run(args: List[String], ctx: CommandContext): Option[String] = {
-        if (args.head == Nil) return Some("No emote given.")
+        if (args == Nil) return Some("No emote given.")
         Try(Animations.withName(args.head)) match {
-            case res: Success[_] => 
+            case res: scala.util.Success[_] => 
                 ctx.messageBus.publish(MessageEvent(ctx.sender.session, Animate(ctx.sender.entity.get, args.head)))
                 None
-            case res: Failure[_] =>
+            case res: scala.util.Failure[_] =>
                 Some("Emote does not exist.")
         }
     }
