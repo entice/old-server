@@ -30,7 +30,7 @@ class Buddy extends Command {
         if (args == Nil) return Some("No behaviour given.")
         args(0) match {
             case "grouping" => 
-                buddies = ctx.actorSystem.actorOf(Props(classOf[GroupingActor], ctx.sender, buddies.length)) :: buddies
+                buddies = ctx.actorSystem.actorOf(Props(classOf[GroupingActor], ctx.sender.entity.get, buddies.length)) :: buddies
                 None
             case "kill" => 
                 buddies.foreach { ctx.actorSystem.stop(_) }
