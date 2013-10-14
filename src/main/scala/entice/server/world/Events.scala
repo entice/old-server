@@ -22,5 +22,6 @@ case class Despawned(entity: RichEntity) extends Event
 
 case class Move(entity: RichEntity) extends Event
 case class Chat(entity: RichEntity, text: String) extends Event
+case class Announcement(text: String) extends Event
 case class Animate(entity: RichEntity, anim: String) extends Event
 case class GroupInvite(sender: RichEntity, recipient: RichEntity) extends Event // reply with entice.protocol stuff

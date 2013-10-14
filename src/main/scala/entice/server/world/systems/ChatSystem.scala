@@ -14,14 +14,20 @@ import shapeless._
 
 class ChatSystem extends System[HNil] with Actor with Subscriber with Clients {
 
-    val subscriptions = classOf[Chat] :: Nil
+    val subscriptions = classOf[Chat] :: classOf[Announcement] :: Nil
     override def preStart { register }
 
 
     def receive = {
         case MessageEvent(_, Chat(entity, msg)) =>
             clients.getAll
-                .filter  {_.state == Playing}
-                .foreach {_.session ! ChatMessage(entity, msg)}
+                .filter  { _.state == Playing }
+                .filter  { _.world == entity.world }
+                .foreach { _.session ! ChatMessage(entity, msg) }
+
+        case MessageEvent(_, Announcement(msg)) =>
+            clients.getAll
+                .filter  { _.state == Playing }
+                .foreach { _.session ! ServerMessage(msg) }
     }
 }
