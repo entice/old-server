@@ -124,5 +124,38 @@ class GroupLeaveSpec extends TestKit(ActorSystem(
                 r3[GroupMember].leader must be(e1)
             }
         }
+
+
+        "kick invited/joinRequests if the client is a leader" in {
+            // given
+            val session = TestProbe()
+            val e1, e2, e3 = Entity(UUID())
+            val r1 = worlds.default.use(e1, new TypedSet() + GroupLeader(invited = List(e2), joinRequests = List(e3)))
+            val r2 = worlds.default.use(e2, new TypedSet() + GroupLeader(joinRequests = List(e1)))
+            val r3 = worlds.default.use(e3, new TypedSet() + GroupLeader(invited = List(e1)))
+            val client = Client(session.ref, null, null, worlds.default, Some(r1), Playing)
+            clients.add(client)
+
+            // when
+            fakePub(groupLeave, session.ref, GroupKickRequest(e2))
+            session.expectNoMsg
+
+            // must
+            within(3 seconds) {
+                r1[GroupLeader].invited must be(Nil)
+                r1[GroupLeader].joinRequests must be(List(e3))
+                r2[GroupLeader].joinRequests must be(Nil)
+            }
+
+            // when
+            fakePub(groupLeave, session.ref, GroupKickRequest(e3))
+            session.expectNoMsg
+
+            // must
+            within(3 seconds) {
+                r1[GroupLeader].joinRequests must be(Nil)
+                r3[GroupLeader].invited must be(Nil)
+            }
+        }
     }
 }

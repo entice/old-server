@@ -49,6 +49,7 @@ class GroupLeave extends Actor with Subscriber with Clients {
 
                     leaveGroupAsLeader(entity.get)
 
+
                 // if the client is leader, and the target is NOT us, and the target is part of our group
                 case Some(client @ Client(_, _, _, world, entity, state))
                     if (state == Playing 
@@ -62,6 +63,22 @@ class GroupLeave extends Actor with Subscriber with Clients {
                     && world.getComps(target).get.contains[GroupMember]) =>
 
                     kickGroupMember(entity.get, world.getRich(target).get)
+
+
+                // if the client is leader, and the target is NOT us, and the target is NOT part of our group
+                // this is only valid if the target is in our invited or joinrequest lists
+                case Some(client @ Client(_, _, _, world, entity, state))
+                    if (state == Playing 
+                    && entity != None
+                    && entity.get.get[GroupMember] == None
+                    && entity.get.get[GroupLeader] != None
+                    && entity.get.entity != target
+                    && world.contains(target)
+                    && (entity.get[GroupLeader].invited.contains(target)
+                    ||  entity.get[GroupLeader].joinRequests.contains(target))
+                    && world.getComps(target).get.contains[GroupLeader]) =>
+
+                    discardInvite(entity.get, world.getRich(target).get)
 
                 case _ =>
                     session ! Failure("Not logged in, or not playing, or no groupmember or invalid target.")
@@ -113,5 +130,21 @@ class GroupLeave extends Actor with Subscriber with Clients {
         // remove it from our group
         val oldLeader = me[GroupLeader]
         me.set(oldLeader.copy(members = oldLeader.members filterNot { _ == other.entity }))
+    }
+
+
+    def discardInvite(me: RichEntity, other: RichEntity) {
+        val meLeader = me[GroupLeader]
+        val otherLeader = other[GroupLeader]
+
+        // remove the other from our invited or joinReq lists
+        me.set(meLeader.copy(
+            invited      = meLeader.invited      filterNot { _ == other.entity },
+            joinRequests = meLeader.joinRequests filterNot { _ == other.entity }))
+
+        // remove us from the other entities invited or joinReq lists
+        other.set(otherLeader.copy(
+            invited      = otherLeader.invited      filterNot { _ == me.entity },
+            joinRequests = otherLeader.joinRequests filterNot { _ == me.entity }))
     }
 }
