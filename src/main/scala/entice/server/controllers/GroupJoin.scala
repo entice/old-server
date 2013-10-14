@@ -81,6 +81,15 @@ class GroupJoin extends Actor with Subscriber with Clients {
                     inv.set(inv[GroupLeader].copy(
                         joinRequests = inv[GroupLeader].joinRequests filterNot { _ == me.entity })) 
                 }
+            // clean up my joinrequests
+            meLeader.joinRequests
+                .filter  { jn => me.world.contains(jn) }
+                .map     { jn => me.world.getRich(jn).get }
+                .filter  { jn => jn.get[GroupLeader] != None }
+                .foreach { jn => 
+                    jn.set(jn[GroupLeader].copy(
+                        invited = jn[GroupLeader].invited filterNot { _ == me.entity })) 
+                }
             // new leader for me (swap components)
             me.drop[GroupLeader]
             me.set(GroupMember(other.entity))
