@@ -93,6 +93,7 @@ class Play extends Actor with Subscriber with Clients with Worlds {
             .add(Position(Maps.withMapName(map).spawns(0)))
             .add(Movement())
             .add(Animation())
+            .add(GroupLeader())
     }
 
     def toEntityView(dump: Map[Entity, TypedSet[Component]]): List[EntityView] = {
