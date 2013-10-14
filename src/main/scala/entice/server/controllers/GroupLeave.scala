@@ -27,31 +27,31 @@ class GroupLeave extends Actor with Subscriber with Clients {
 
                 // if the client is a member, the target must be us
                 case Some(client @ Client(_, _, _, world, entity, state))
-                    if state == Playing 
+                    if (state == Playing 
                     && entity != None
                     && entity.get.get[GroupLeader] == None
                     && entity.get.get[GroupMember] != None
                     && entity.get.entity == target
                     && world.contains(entity.get[GroupMember].leader) 
-                    && world.getComps(entity.get[GroupMember].leader).get.contains[GroupLeader] =>
+                    && world.getComps(entity.get[GroupMember].leader).get.contains[GroupLeader]) =>
 
                     leaveGroupAsMember(entity.get)
                     
 
                 // if the client is leader, and the target is still us, and the group is not empty
                 case Some(client @ Client(_, _, _, world, entity, state))
-                    if state == Playing 
+                    if (state == Playing 
                     && entity != None
                     && entity.get.get[GroupMember] == None
                     && entity.get.get[GroupLeader] != None
                     && entity.get.entity == target
-                    && entity.get[GroupLeader].members != Nil =>
+                    && entity.get[GroupLeader].members != Nil) =>
 
                     leaveGroupAsLeader(entity.get)
 
                 // if the client is leader, and the target is NOT us, and the target is part of our group
                 case Some(client @ Client(_, _, _, world, entity, state))
-                    if state == Playing 
+                    if (state == Playing 
                     && entity != None
                     && entity.get.get[GroupMember] == None
                     && entity.get.get[GroupLeader] != None
@@ -59,7 +59,7 @@ class GroupLeave extends Actor with Subscriber with Clients {
                     && world.contains(target) 
                     && entity.get[GroupLeader].members != Nil 
                     && entity.get[GroupLeader].members.contains(target) 
-                    && world.getComps(target).get.contains[GroupMember]=>
+                    && world.getComps(target).get.contains[GroupMember]) =>
 
                     kickGroupMember(entity.get, world.getRich(target).get)
 

@@ -25,13 +25,13 @@ class GroupJoin extends Actor with Subscriber with Clients {
         case MessageEvent(session, GroupMergeRequest(target)) =>
             clients.get(session)  match {
                 case Some(client @ Client(_, _, _, world, entity, state))
-                    if state == Playing 
+                    if (state == Playing 
                     && entity != None
                     && entity.get.get[GroupLeader] != None
                     && entity.get.entity != target
                     && world.contains(target) 
                     && (world.getComps(target).get.contains[GroupLeader]
-                    ||  world.getComps(target).get.contains[GroupMember]) =>
+                    ||  world.getComps(target).get.contains[GroupMember])) =>
 
                     // get the maxsize of this map
                     val groupSize = Maps.withMapName(world.name).groupSize
