@@ -28,6 +28,7 @@ class GroupJoin extends Actor with Subscriber with Clients {
                     if state == Playing 
                     && entity != None
                     && entity.get.get[GroupLeader] != None
+                    && entity.get.entity != target
                     && world.contains(target) 
                     && (world.getComps(target).get.contains[GroupLeader]
                     ||  world.getComps(target).get.contains[GroupMember]) =>
@@ -50,7 +51,7 @@ class GroupJoin extends Actor with Subscriber with Clients {
  
                 case _ =>
                     session ! Failure("Not logged in, or not playing, or no groupleader or invalid target.")
-                    session ! Kick
+                    // TODO: Is this necessary: session ! Kick
             }
     }
 

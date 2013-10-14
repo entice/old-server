@@ -68,7 +68,7 @@ class GroupJoinSpec extends TestKit(ActorSystem(
         }
 
 
-        "update member/leader relationship of entities upon accepting a join request" in {
+        "update member/leader upon accepting a simple join request" in {
             // given
             val session = TestProbe()
             val e1, e2 = Entity(UUID())
@@ -89,6 +89,40 @@ class GroupJoinSpec extends TestKit(ActorSystem(
 
                 r2[GroupLeader].members must be(List(e1))
                 r2[GroupLeader].invited must be(Nil)
+            }
+        }
+
+
+        "update member-lists/leader upon accepting advanced join request" in {
+            // given
+            val session = TestProbe()
+            val e1, e2 = Entity(UUID())
+            val m11, m12, m21, m22 = Entity(UUID())
+             // e2 has invited us (e1) at some point... (but we already have two groups)
+            val r1 = worlds.default.use(e1, new TypedSet() + GroupLeader(members = List(m11, m12), joinRequests = List(e2)))
+            val r2 = worlds.default.use(e2, new TypedSet() + GroupLeader(members = List(m21, m22), invited = List(e1)))
+            val rm11 = worlds.default.use(m11, new TypedSet() + GroupMember(e1))
+            val rm12 = worlds.default.use(m12, new TypedSet() + GroupMember(e1))
+            val rm21 = worlds.default.use(m21, new TypedSet() + GroupMember(e2))
+            val rm22 = worlds.default.use(m22, new TypedSet() + GroupMember(e2))
+            val client = Client(session.ref, null, null, worlds.default, Some(r1), Playing)
+            clients.add(client)
+
+            // when
+            fakePub(groupJoin, session.ref, GroupMergeRequest(e2))
+            session.expectNoMsg
+
+            // must
+            within(3 seconds) {
+                // me is now a member
+                r1.get[GroupLeader] must be(None)
+                r1[GroupMember].leader must be(e2)
+                // the other leader now has me and my members as members
+                r2[GroupLeader].members must be(List(m21, m22, e1, m11, m12))
+                r2[GroupLeader].invited must be(Nil)
+                // new leader for my former members
+                rm11[GroupMember].leader must be(e2)
+                rm12[GroupMember].leader must be(e2)
             }
         }
     }
