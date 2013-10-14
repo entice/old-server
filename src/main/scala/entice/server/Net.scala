@@ -69,11 +69,6 @@ private class NetActor extends Actor with ActorLogging with Listeners {
             connection ! Register(pipeline)
 
             gossip(NewSession(handler))
-            context watch handler
-
-        case Terminated(_) =>
-            val handler = sender
-            gossip(LostSession(handler))
     }
 }
 
@@ -111,10 +106,12 @@ private class Session(
 
         case Kick =>
             log.info(s"Client kicked. Terminating session...")
+            gossip(LostSession(self))
             context stop self
 
         case c: ConnectionClosed =>
             log.info(s"Client disconnected. Terminating session...")
+            gossip(LostSession(self))
             context stop self
     }
 }
