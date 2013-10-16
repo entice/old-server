@@ -45,40 +45,38 @@ class Buddy extends Command {
      */
 
 
-    class GroupingActor(parent: RichEntity, num: Int) 
-        extends System[GroupLeader :: HNil] 
-        with Actor 
-        with Subscriber 
-        with Clients {
+    class GroupingActor(
+        parent: RichEntity, 
+        num: Int) extends Actor with Subscriber with Clients {
         
         val subscriptions = classOf[GroupInvite] :: Nil
         var entity: RichEntity = _
 
         override def preStart { 
             register
-            // set our entity & fake client
+            // set our entity
             entity = parent.world.create( 
                 new TypedSet[Component]()
                     .add(Name(s"Buddy ${num.toString}"))
                     .add(Appearance())
                     .add(parent[Position].copy())
                     .add(GroupLeader()))
-            val client = Client(self, null, null, parent.world, Some(entity), Playing)
-            clients.add(client)
-            // invite all other teamleaders (this is System functionality)
-            entities(parent.world) foreach { e => publish(GroupMergeRequest(e)) }
+            // invite all other teamleaders
+            parent.world.dump.keySet
+                .map     { e => parent.world.getRich(e).get }
+                .filter  { e => entity != e }
+                .filter  { e => entity.get[GroupLeader] != None }
+                .foreach { e => publish(GroupInvite(entity, e)) }
         }
 
         override def postStop {
             // clean up
-            parent.world.remove(entity) // remove my entity
-            unloadFrom(parent.world)    // remove my system
-            clients.remove(self)
+            parent.world.remove(entity)
         }
 
         def receive = {
             // if someone invites us, accept it instantly
-            case MessageEvent(_, GroupInvite(e, entity)) => publish(GroupMergeRequest(e))
+            case MessageEvent(_, GroupInvite(e, entity)) => publish(GroupAccept(entity, e))
             // ignore all other messages
             case _ => 
         }

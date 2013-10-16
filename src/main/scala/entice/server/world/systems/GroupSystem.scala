@@ -96,6 +96,7 @@ class GroupSystem extends System[HNil] with Actor with Subscriber {
         if (!meLeader.invited.contains(other.entity)) {
             me.set(meLeader.copy(invited = other.entity :: meLeader.invited))
         }
+        
         // update recipients join requests if needed
         if (!otherLeader.joinRequests.contains(me.entity)) {
             other.set(otherLeader.copy(joinRequests = me.entity :: otherLeader.joinRequests))
@@ -126,12 +127,14 @@ class GroupSystem extends System[HNil] with Actor with Subscriber {
         // make me and my members members of other
         otherLeader = otherLeader.copy(members = otherLeader.members ::: List(me.entity))
         otherLeader = otherLeader.copy(members = otherLeader.members ::: meLeader.members)
+        
         // new leader for my members
         meLeader.members
             .filter  { inv => me.world.contains(inv) }
             .map     { inv => me.world.getRich(inv).get }
             .filter  { inv => inv.get[GroupMember] != None }
             .foreach { inv => inv.set(GroupMember(other.entity)) }
+        
         // clean up my invites
         meLeader.invited
             .filter  { inv => me.world.contains(inv) }
@@ -141,6 +144,7 @@ class GroupSystem extends System[HNil] with Actor with Subscriber {
                 inv.set(inv[GroupLeader].copy(
                     joinRequests = inv[GroupLeader].joinRequests filterNot { _ == me.entity })) 
             }
+        
         // clean up my joinrequests
         meLeader.joinRequests
             .filter  { jn => me.world.contains(jn) }
@@ -150,9 +154,11 @@ class GroupSystem extends System[HNil] with Actor with Subscriber {
                 jn.set(jn[GroupLeader].copy(
                     invited = jn[GroupLeader].invited filterNot { _ == me.entity })) 
             }
+        
         // new leader for me (swap components)
         me.drop[GroupLeader]
         me.set(GroupMember(other.entity))
+        
         // update invitation of recipient
         other.set(otherLeader.copy(invited = otherLeader.invited filterNot { _ == me.entity }))
     }
@@ -203,18 +209,40 @@ class GroupSystem extends System[HNil] with Actor with Subscriber {
 
 
     def despawnAsLeader(meWorld: World, meEntity: Entity, meLeader: GroupLeader) {
-        val oldLeader = meLeader
-        val recipient = meWorld.getRich(oldLeader.members(0)).get
         
-        // make recipient the new leader...
-        recipient.drop[GroupMember]
-        recipient.set(oldLeader.copy(members = oldLeader.members filterNot { _ == recipient.entity }))
+        if (meLeader.members != Nil) {
+            val recipient = meWorld.getRich(meLeader.members(0)).get
+        
+            // make recipient the new leader...
+            recipient.drop[GroupMember]
+            recipient.set(meLeader.copy(members = meLeader.members filterNot { _ == recipient.entity }))
 
-        // update other team members to have a new leader
-        recipient[GroupLeader].members
-            .filter  { mem => meWorld.contains(mem) }
-            .map     { mem => meWorld.getRich(mem).get }
-            .foreach { mem => mem.set(GroupMember(recipient)) }      
+            // update other team members to have a new leader
+            recipient[GroupLeader].members
+                .filter  { mem => meWorld.contains(mem) }
+                .map     { mem => meWorld.getRich(mem).get }
+                .foreach { mem => mem.set(GroupMember(recipient)) } 
+        }
+
+        // clean up my invites
+        meLeader.invited
+            .filter  { inv => meWorld.contains(inv) }
+            .map     { inv => meWorld.getRich(inv).get }
+            .filter  { inv => inv.get[GroupLeader] != None }
+            .foreach { inv => 
+                inv.set(inv[GroupLeader].copy(
+                    joinRequests = inv[GroupLeader].joinRequests filterNot { _ == meEntity })) 
+            }
+
+        // clean up my joinrequests
+        meLeader.joinRequests
+            .filter  { jn => meWorld.contains(jn) }
+            .map     { jn => meWorld.getRich(jn).get }
+            .filter  { jn => jn.get[GroupLeader] != None }
+            .foreach { jn => 
+                jn.set(jn[GroupLeader].copy(
+                    invited = jn[GroupLeader].invited filterNot { _ == meEntity })) 
+            }     
     }
 
 
