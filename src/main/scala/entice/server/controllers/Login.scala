@@ -13,9 +13,6 @@ import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 import scala.language.postfixOps
 
 
-/**
- * TODO: refactor me!
- */
 class Login extends Actor with Subscriber with Clients with Worlds {
 
     val subscriptions = classOf[LoginRequest] :: Nil
@@ -25,32 +22,29 @@ class Login extends Actor with Subscriber with Clients with Worlds {
 
     def receive = {
 
-        // login with valid email (weak check)
-        case MessageEvent(session, LoginRequest(email, pwd)) if (email matches emailPattern) =>
+        case MessageEvent(session, LoginRequest(email, pwd)) 
+            if ((email matches emailPattern)
+            &&  (clients.getAll filter {_.account.email == email}) == Nil) =>
             // check account and password
-            val acc = Account.findByEmail(email) 
-            acc match {
-
-                case None =>
-                    session ! Failure("Invalid login credentials.")
-                case Some(_) if (acc.get.password != pwd)=>
-                    session ! Failure("Invalid login credentials.")
-
-                case Some(_) =>
+            Account.findByEmail(email) match {
+                case Some(acc) if (acc.password == pwd) =>
+                    // get the chars of the acc, transfrom them and create a new client
                     val chars: Map[Entity, (Name, Appearance)] = 
-                        (for (char <- Character.findByAccount(acc.get)) yield
-                         (Entity(UUID()) -> ((char.name, char.appearance)))) 
+                        (for (char <- Character.findByAccount(acc)) yield
+                            (Entity(UUID()) -> ((char.name, char.appearance)))) 
                         .toMap
                     val entityviews = (for ((e, c) <- chars) yield EntityView(e, Nil, List(c _1, c _2), Nil)).toList
-
-                    val client = Client(session, acc.get, chars, worlds.default, state = IdleInLobby)
+                    val client = Client(session, acc, chars, worlds.default, state = IdleInLobby)
                     
+                    // register and inform the actual client
                     clients.add(client)
                     session ! LoginSuccess(entityviews)
+
+                case _ =>
+                    session ! Failure("Invalid login credentials.")
             }
 
-        // invalid email
         case MessageEvent(session, _) => 
-            session ! Failure("Invalid email format.")
+            session ! Failure("Invalid email format, or account in use.")
     }
 }

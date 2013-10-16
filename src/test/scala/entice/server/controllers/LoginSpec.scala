@@ -35,17 +35,16 @@ class LoginSpec extends TestKit(ActorSystem(
     val login = TestActorRef[Login]
 
     // given
-    val acc = Account(email = "loginspec@entice.org", password = "test")
+    val clients = ClientRegistryExtension(system)
+    val acc1 = Account(email = "loginspec1@entice.org", password = "test")
+    val acc2 = Account(email = "loginspec2@entice.org", password = "test")
     val noacc = Account(email = "nonexisting@entice.org", password = "test")
-    val char1 = Character(accountId = acc.id, name = Name("login-spec-char1"))
-    val char2 = Character(accountId = acc.id, name = Name("login-spec-char2"))
 
 
     override def beforeAll { 
         // given an existing acc
-        Account.create(acc)
-        Character.create(char1)
-        Character.create(char2)
+        Account.create(acc1)
+        Account.create(acc2)
 
         // given a nonexisting acc
         Account.create(noacc)
@@ -53,9 +52,8 @@ class LoginSpec extends TestKit(ActorSystem(
     }
 
     override def afterAll {
-        Account.delete(acc)
-        Character.delete(char1)
-        Character.delete(char2)
+        Account.delete(acc1)
+        Account.delete(acc2)
 
         TestKit.shutdownActorSystem(system)
     }
@@ -66,18 +64,25 @@ class LoginSpec extends TestKit(ActorSystem(
 
         "accept clients with a valid login request, and reply with a login success" in {
             val probe = TestProbe()
-            fakePub(login, probe.ref, LoginRequest("loginspec@entice.org", "test"))
+            fakePub(login, probe.ref, LoginRequest("loginspec1@entice.org", "test"))
             probe.expectMsgClass(classOf[LoginSuccess])
             probe.expectNoMsg
         }
 
 
-        "reply to any invalid login requests with an error code" in {
+        "detect multi-account logins, and reply with an error" in {
+            val probe = TestProbe()
+            clients.add(Client(self, Account(email = "loginspec2@entice.org", password = "test"), null, null))
+            fakePub(login, probe.ref, LoginRequest("loginspec2@entice.org", "test"))
+            probe.expectMsgClass(classOf[Failure])
+            probe.expectNoMsg
+        }
+
+
+        "reply to any invalid login requests with an error" in {
             val probe = TestProbe()
             fakePub(login, probe.ref, LoginRequest("nonexisting@entice.org", "test"))
-            probe.expectMsgPF() {
-                case Failure(errorMsg) if errorMsg != "" => true
-            }
+            probe.expectMsgClass(classOf[Failure])
             probe.expectNoMsg
         }
 
