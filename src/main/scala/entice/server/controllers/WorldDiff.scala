@@ -24,19 +24,15 @@ class WorldDiff extends Actor with Subscriber with Configurable with Clients wit
     override def preStart { register }
 
 
-    private var lastDiffTime = System.nanoTime()
-    private val minDiffTime = config.minTick // milliseconds
+    private var lastDiffTime = System.currentTimeMillis()
+    private val minDiffTime = config.minTick
 
 
-    private def peekTime = {
-        val current = System.nanoTime()
-        ((current - lastDiffTime) / 1000000) toInt
-    }
-
+    private def peekTime = System.currentTimeMillis() - lastDiffTime
 
     private def timeDelta = {
         val diff = peekTime
-        lastDiffTime = System.nanoTime()
+        lastDiffTime = System.currentTimeMillis()
         diff
     }
 
@@ -61,7 +57,7 @@ class WorldDiff extends Actor with Subscriber with Configurable with Clients wit
                     .filter  { _.state == Playing }
                     .filter  { _.entity != None }
                     .filter  { _.world == w }
-                    .foreach { _.session ! UpdateCommand(timeDiff, changed, added, removed) }
+                    .foreach { _.session ! UpdateCommand(timeDiff.toInt, changed, added, removed) }
             }
     }
 }
