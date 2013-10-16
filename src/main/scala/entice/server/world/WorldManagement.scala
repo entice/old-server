@@ -155,3 +155,33 @@ private[world] trait SystemsManagement extends WorldCore {
 
     private[world] def unregister(sys: System[HList]) { systems = systems - sys }
 }
+
+
+/**
+ * Adds the ability to use systems in this world.
+ */
+private[world] trait EventManagement extends WorldCore {
+    self: World =>
+
+    val messageBus: MessageBus
+
+    /**
+     * When using a new entity, create a spawned entity event.
+     */
+    abstract override def use(entity: Entity, comps : TypedSet[Component]) = {
+        val rich = super.use(entity, comps)
+        messageBus.publish(MessageEvent(null, Spawned(rich)))
+        rich
+    }
+
+
+    /**
+     * When removing an entity, create a despawned entity event.
+     */
+    abstract override def remove(entity: Entity) {
+        if (!super.contains(entity)) { super.remove(entity); return }
+        val rich = getRich(entity).get
+        messageBus.publish(MessageEvent(null, Despawned(rich)))
+        super.remove(entity)
+    }
+}

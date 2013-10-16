@@ -14,7 +14,11 @@ import scala.language.postfixOps
  * Manages all entities registered to it, all systems registered to it, and can
  * create diffs of its state transitions.
  */
-class World(val name: String) extends WorldCore with SystemsManagement with DiffManagement
+class World(val name: String, val messageBus: MessageBus) 
+    extends WorldCore 
+    with SystemsManagement 
+    with DiffManagement
+    with EventManagement
 
 
 /**

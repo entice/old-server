@@ -6,6 +6,8 @@ package entice.server.world
 
 import entice.server.utils._
 import entice.protocol._
+import akka.actor._
+import akka.testkit._
 
 import shapeless._
 
@@ -13,7 +15,10 @@ import org.scalatest._
 import org.scalatest.matchers._
 
 
-class WorldSpec extends WordSpec with MustMatchers  {
+class WorldSpec 
+    extends WordSpec 
+    with MustMatchers
+    with OneInstancePerTest  {
 
     case class TestSystem(world: World) extends System[Name :: Position :: HNil] {
         def testExpect(ents: Set[RichEntity]) {
@@ -26,7 +31,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
 
 
         "create entities out of their components and retrieve these" in {
-            val w = new World("testworld1")
+            val w = new World("testworld1", new MessageBus)
             val c = new TypedSet[Component]() + Name() + Position() + Movement()
             val e = w.create(c)
             w.getRich(e.entity) must be(Some(e))
@@ -35,7 +40,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
 
 
         "remove entities" in {
-            val w = new World("testworld2")
+            val w = new World("testworld2", new MessageBus)
             val c = new TypedSet[Component]() + Name() + Position() + Movement()
             val e = w.create(c)
             w.remove(e.entity)
@@ -46,7 +51,7 @@ class WorldSpec extends WordSpec with MustMatchers  {
         "create correct world diffs" in {
             // (does not involve the actorsystem)
             // given
-            val w = new World("testworld3")
+            val w = new World("testworld3", new MessageBus)
             val et1, et2, et3, et4 = Entity(UUID())
             
             // step 1
@@ -104,13 +109,39 @@ class WorldSpec extends WordSpec with MustMatchers  {
 
 
         "register systems and check if they want to accept any entities" in {
-            val w = new World("testworld4")
+            val w = new World("testworld4", new MessageBus)
             val s = TestSystem(w)
             val c1 = new TypedSet[Component]() + Name() + Position() + Movement()
             val c2 = new TypedSet[Component]() + Name() + Movement()
             val e1 = w.create(c1)
             val e2 = w.create(c2)
             s.testExpect(Set(e1))
+        }
+
+
+        "produce spawn and despawn messages" in {
+            // given
+            val m = new MessageBus
+            val p = new TestProbe(ActorSystem("world-spec-sys"))
+            m.subscribe(p.ref, classOf[Spawned])
+            m.subscribe(p.ref, classOf[Despawned])
+
+            val w = new World("testworld2", m)
+            val c = new TypedSet[Component]() + Name() + Position() + Movement()
+            
+            // when 
+            val e = w.create(c)
+            // must
+            p.expectMsgPF() {
+                case MessageEvent(_, Spawned(e)) => true
+            }
+
+            // when 
+            w.remove(e.entity)
+            // must
+            p.expectMsgPF() {
+                case MessageEvent(_, Despawned(e)) => true
+            }
         }
     }
 }
