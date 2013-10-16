@@ -36,8 +36,6 @@ class Play extends Actor with Subscriber with Clients with Worlds {
                     session ! PlaySuccess(world.name, toEntityView(world.dump))
                     client.state = Playing
 
-                    publish(Spawned(client.entity.get))
-
                 case _ =>
                     session ! Failure("Not logged in, or not idle in lobby.")
                     session ! Kick
@@ -53,13 +51,10 @@ class Play extends Actor with Subscriber with Clients with Worlds {
 
                     val entity = rich.get.entity
                     world.remove(entity)
-                    publish(Despawned(rich.get)) 
 
                     client.world = worlds.get(newMap)
                     client.entity = Some(client.world.use(entity, playerComps(chars(entity), client.world.name)))
                     session ! PlaySuccess(client.world.name, toEntityView(client.world.dump))
-
-                    publish(Spawned(client.entity.get))
 
                 case _ =>
                     session ! Failure("Not logged in, or not playing.")
@@ -74,7 +69,6 @@ class Play extends Actor with Subscriber with Clients with Worlds {
                     if state == Playing =>
 
                     world.remove(entity.get)
-                    publish(Despawned(entity.get)) 
 
                     client.entity = None
                     client.state = IdleInLobby
@@ -95,6 +89,7 @@ class Play extends Actor with Subscriber with Clients with Worlds {
             .add(Animation())
             .add(GroupLeader())
     }
+
 
     def toEntityView(dump: Map[Entity, TypedSet[Component]]): List[EntityView] = {
         (for ((e, c) <- dump) yield

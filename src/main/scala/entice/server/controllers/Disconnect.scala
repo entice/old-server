@@ -27,8 +27,6 @@ class Disconnect extends Actor with Subscriber with Clients with Worlds {
                 case Some(client) => 
                     client.entity foreach { e => 
                         e.world.remove(e.entity)
-                        // inform CES that the entity has been removed TODO: this should be at ONE location
-                        publish(Despawned(e))
                     }
                     clients.remove(session)
                 case _ =>

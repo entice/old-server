@@ -39,21 +39,20 @@ trait ControllerSlice {
     
     // fill this list in your own environment with actor props of your API actors
     def props: List[Props] =
-        // handlers
-        Props(classOf[Login]) ::
-        Props(classOf[Play]) ::
-        Props(classOf[CharCreate]) ::
-        Props(classOf[CharDelete]) ::
-        Props(classOf[WorldDiff]) ::
-        Props(classOf[GroupJoin]) ::
-        Props(classOf[GroupLeave]) ::
-        Props(classOf[Command]) ::
-        Props(classOf[Disconnect]) ::
-        // systems
-        Props(classOf[ChatSystem]) :: Props(classOf[PreChat]) :: 
-        Props(classOf[MovementSystem]) :: Props(classOf[PreMovement]) ::
-        Props(classOf[AnimationSystem]) ::
-        Props(classOf[SchedulingSystem]) ::
+        // controllers
+        Props[Login] ::
+        Props[Play] ::
+        Props[CharCreate] ::
+        Props[CharDelete] ::
+        Props[WorldDiff] ::
+        Props[Command] ::
+        Props[Disconnect] ::
+        // systems              +   front controllers
+        Props[ChatSystem]       ::  Props[PreChat] :: 
+        Props[MovementSystem]   ::  Props[PreMovement] ::
+        Props[AnimationSystem]  ::  // scripted front controller
+        Props[GroupSystem]      ::  Props[PreGroup] ::
+        Props[SchedulingSystem] ::
         Nil
 }
 
@@ -79,7 +78,7 @@ trait TickingSlice extends CoreSlice {
 
 
 /**
- * Delicious cake slice ;) - Top of the cake
+ * Delicious cake slice ; - Top of the cake
  * Add this layer to make a server actor out of your cake.
  */
 class ServerActorSlice 

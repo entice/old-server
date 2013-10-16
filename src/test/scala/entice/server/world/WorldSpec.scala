@@ -121,8 +121,9 @@ class WorldSpec
 
         "produce spawn and despawn messages" in {
             // given
+            val system = ActorSystem("world-spec-sys")
             val m = new MessageBus
-            val p = new TestProbe(ActorSystem("world-spec-sys"))
+            val p = new TestProbe(system)
             m.subscribe(p.ref, classOf[Spawned])
             m.subscribe(p.ref, classOf[Despawned])
 
@@ -142,6 +143,8 @@ class WorldSpec
             p.expectMsgPF() {
                 case MessageEvent(_, Despawned(e)) => true
             }
+
+            system.shutdown
         }
     }
 }
