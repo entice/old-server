@@ -181,7 +181,8 @@ private[world] trait EventManagement extends WorldCore {
     abstract override def remove(entity: Entity) {
         if (!super.contains(entity)) { super.remove(entity); return }
         val rich = getRich(entity).get
-        messageBus.publish(MessageEvent(null, Despawned(rich)))
+        val comps = rich.comps
+        messageBus.publish(MessageEvent(null, Despawned(this, entity, comps)))
         super.remove(entity)
     }
 }

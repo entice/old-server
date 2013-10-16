@@ -146,7 +146,7 @@ class GroupSystemSpec extends TestKit(ActorSystem(
             }
 
             // when
-            fakePub(groupSys, self, Despawned(r3))
+            fakePub(groupSys, self, Despawned(worlds.default, e3, new TypedSet() + GroupMember(e1)))
             expectNoMsg
 
             // must
@@ -179,7 +179,7 @@ class GroupSystemSpec extends TestKit(ActorSystem(
             }
 
             // when
-            fakePub(groupSys, self, Despawned(r2))
+            fakePub(groupSys, self, Despawned(worlds.default, e2, new TypedSet() + GroupLeader(members = List(e3))))
             expectNoMsg
 
             // must

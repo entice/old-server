@@ -141,7 +141,7 @@ class WorldSpec
             w.remove(e.entity)
             // must
             p.expectMsgPF() {
-                case MessageEvent(_, Despawned(e)) => true
+                case MessageEvent(_, Despawned(w, e.entity, c)) => true
             }
 
             system.shutdown

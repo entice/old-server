@@ -4,6 +4,7 @@
 
 package entice.server.world
 
+import entice.server.utils._
 import entice.protocol._
 import scala.concurrent.duration._
 
@@ -17,7 +18,9 @@ case class Schedule         (event: Event, after: FiniteDuration)       extends 
 
 // by the world:
 case class Spawned          (entity: RichEntity)                        extends Event
-case class Despawned        (entity: RichEntity)                        extends Event
+case class Despawned        (world: World,
+                            entity: Entity, 
+                            components: TypedSet[Component])            extends Event
 
 // grouping only:
 case class GroupInvite      (sender: RichEntity, recipient: RichEntity) extends Event

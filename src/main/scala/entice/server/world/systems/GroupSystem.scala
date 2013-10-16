@@ -40,19 +40,22 @@ class GroupSystem extends System[HNil] with Actor with Subscriber {
 
         // invite
         case MessageEvent(_, GroupInvite(me, other)) 
-            if (me   .get[GroupLeader] != None
+            if (me != other
+            &&  me   .get[GroupLeader] != None
             &&  other.get[GroupLeader] != None) =>
             invite(me, other)
 
         // decline (either invited or join-request, doesnt matter)
         case MessageEvent(_, GroupDecline(me, other))
-            if (me   .get[GroupLeader] != None
+            if (me != other
+            &&  me   .get[GroupLeader] != None
             &&  other.get[GroupLeader] != None) =>
             decline(me, other)
 
         // accept
         case MessageEvent(_, GroupAccept(me, other))
-            if (me   .get[GroupLeader] != None
+            if (me != other
+            &&  me   .get[GroupLeader] != None
             &&  other.get[GroupLeader] != None) =>
             accept(me, other)
 
@@ -62,9 +65,9 @@ class GroupSystem extends System[HNil] with Actor with Subscriber {
             leaveAsMember(me)
 
         // leave (1.2: Member + Despawn)
-        case MessageEvent(_, Despawned(me))
-            if me.get[GroupMember] != None =>
-            leaveAsMember(me)
+        case MessageEvent(_, Despawned(world, me, comps))
+            if comps.contains[GroupMember] =>
+            despawnAsMember(world, me, comps[GroupMember])
 
         // leave (2.1: Leader)
         case MessageEvent(_, GroupLeave(me))
@@ -72,13 +75,14 @@ class GroupSystem extends System[HNil] with Actor with Subscriber {
             leaveAsLeader(me)
 
         // leave (2.2: Leader + Despawn)
-        case MessageEvent(_, Despawned(me))
-            if me.get[GroupLeader] != None =>
-            leaveAsLeader(me)
+        case MessageEvent(_, Despawned(world, me, comps))
+            if comps.contains[GroupLeader] =>
+            despawnAsLeader(world, me, comps[GroupLeader])
 
         // kick
         case MessageEvent(_, GroupKick(me, other))
-            if (me   .get[GroupLeader] != None
+            if (me != other
+            &&  me   .get[GroupLeader] != None
             &&  other.get[GroupMember] != None) =>
             kick(me, other)
     }
@@ -168,6 +172,16 @@ class GroupSystem extends System[HNil] with Actor with Subscriber {
     }
 
 
+    def despawnAsMember(meWorld: World, meEntity: Entity, meMember: GroupMember) {
+        // we will need to clean up the old group later on...
+        val recipient = meWorld.getRich(meMember.leader).get
+        val recLeader = recipient[GroupLeader]
+
+        // remove us from the old group
+        recipient.set(recLeader.copy(members = recLeader.members filterNot { _ == meEntity }))
+    }
+
+
     def leaveAsLeader(me: RichEntity) {
         val oldLeader = me[GroupLeader]
         val recipient = me.world.getRich(oldLeader.members(0)).get
@@ -185,6 +199,22 @@ class GroupSystem extends System[HNil] with Actor with Subscriber {
         // get us a new group
         me.drop[GroupMember]
         me.set(GroupLeader())        
+    }
+
+
+    def despawnAsLeader(meWorld: World, meEntity: Entity, meLeader: GroupLeader) {
+        val oldLeader = meLeader
+        val recipient = meWorld.getRich(oldLeader.members(0)).get
+        
+        // make recipient the new leader...
+        recipient.drop[GroupMember]
+        recipient.set(oldLeader.copy(members = oldLeader.members filterNot { _ == recipient.entity }))
+
+        // update other team members to have a new leader
+        recipient[GroupLeader].members
+            .filter  { mem => meWorld.contains(mem) }
+            .map     { mem => meWorld.getRich(mem).get }
+            .foreach { mem => mem.set(GroupMember(recipient)) }      
     }
 
 
