@@ -76,7 +76,8 @@ class Buddy extends Command {
 
         def receive = {
             // if someone invites us, accept it instantly
-            case MessageEvent(_, GroupInvite(e, entity)) => publish(GroupAccept(entity, e))
+            case MessageEvent(_, GroupInvite(e1, e2)) if e2 == entity =>
+                publish(GroupAccept(entity, e1))
             // ignore all other messages
             case _ => 
         }
