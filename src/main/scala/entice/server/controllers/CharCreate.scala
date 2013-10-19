@@ -20,31 +20,28 @@ class CharCreate extends Actor with Subscriber with Clients {
 
     def receive = {
 
-        case MessageEvent(session, CharCreateRequest(charview)) =>
+        case MessageEvent(session, CharCreateRequest(name, appearance)) =>
             clients.get(session)  match {
                 case Some(client) if client.state == IdleInLobby =>
                 
-                    Character.findByName(charview.name) match {
+                    Character.findByName(name) match {
                         case Some(_) => 
-                            session ! CharCreateFail("Name invalid or taken.")
+                            session ! Failure("Name invalid or taken.")
 
                         case None =>
                             Character.create(
                                 Character(
                                     accountId = client.account.id, 
-                                    name = charview.name, 
-                                    appearance = charview.appearance))
+                                    name = name, 
+                                    appearance = appearance))
 
                             val entity = Entity(UUID())
-                            client.chars = client.chars + (entity -> charview)
+                            client.chars = client.chars + (entity -> ((name, appearance)))
                             session ! CharCreateSuccess(entity)
                     }
-
-                case Some(client) =>
-                    session ! CharCreateFail("Invalid client state. You can't create characters while playing or the like.")
-                    
+ 
                 case _ =>
-                    session ! CharCreateFail("Ugly hacks detected! Muhahaha! Kicking session...")
+                    session ! Failure("Not logged in, or not playing.")
                     session ! Kick
             }
     }

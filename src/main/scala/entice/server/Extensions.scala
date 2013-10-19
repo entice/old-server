@@ -17,6 +17,7 @@ trait Subscriber { self: Actor =>
     def messageBus = MessageBusExtension(context.system)
     def subscriptions: List[Class[_ <: Typeable]]
     def publish(msg: Typeable) = messageBus.publish(MessageEvent(this.self, msg))
+    def publish(sender: ActorRef, msg: Typeable) = messageBus.publish(MessageEvent(sender, msg))
     def register() { 
         subscriptions foreach { messageBus.subscribe(this.self, _) }
     }
@@ -50,7 +51,8 @@ object ClientRegistryExtension
 
 
 /**
- * Add the client registry to your actor.
+ * Add the world registry to your actor.
+ * Interdepends on the MessageBus extension - all our worlds will use the same bus.
  */
 trait Worlds { self: Actor =>
     def worlds = WorldRegistryExtension(context.system)
@@ -61,7 +63,7 @@ object WorldRegistryExtension
     with ExtensionIdProvider {
 
     override def lookup = WorldRegistryExtension
-    override def createExtension(system: ExtendedActorSystem) = new WorldRegistry
+    override def createExtension(system: ExtendedActorSystem) = new WorldRegistry(MessageBusExtension(system))
     override def get(system: ActorSystem): WorldRegistry = super.get(system)
 }
 

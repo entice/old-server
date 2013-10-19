@@ -10,12 +10,10 @@ import entice.server.database._
 import entice.protocol._
 
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
+import scala.language.postfixOps
 
 
-/**
- * TODO: refactor me!
- */
-class Login extends Actor with Subscriber with Clients {
+class Login extends Actor with Subscriber with Clients with Worlds {
 
     val subscriptions = classOf[LoginRequest] :: Nil
     override def preStart { register }
@@ -24,32 +22,29 @@ class Login extends Actor with Subscriber with Clients {
 
     def receive = {
 
-        // login with valid email (weak check)
-        case MessageEvent(session, LoginRequest(email, pwd)) if (email matches emailPattern) =>
+        case MessageEvent(session, LoginRequest(email, pwd)) 
+            if ((email matches emailPattern)
+            &&  (clients.getAll filter {_.account.email == email}) == Nil) =>
             // check account and password
-            val acc = Account.findByEmail(email) 
-            acc match {
-
-                case None =>
-                    session ! LoginFail("Invalid login credentials.")
-                case Some(_) if (acc.get.password != pwd)=>
-                    session ! LoginFail("Invalid login credentials.")
-
-                case Some(_) =>
-                    val chars = Character.findByAccount(acc.get) 
-                        .foldLeft(Map[Entity, CharacterView]()) { 
-                            (chars, char) => chars + (Entity(UUID()) -> CharacterView(char.name, char.appearance)) 
-                        }
-                    val entityviews = (for ((e, charview) <- chars) yield EntityView(e,charview)).toList
-
-                    val client = Client(session, acc.get, chars, state = IdleInLobby)
+            Account.findByEmail(email) match {
+                case Some(acc) if (acc.password == pwd) =>
+                    // get the chars of the acc, transfrom them and create a new client
+                    val chars: Map[Entity, (Name, Appearance)] = 
+                        (for (char <- Character.findByAccount(acc)) yield
+                            (Entity(UUID()) -> ((char.name, char.appearance)))) 
+                        .toMap
+                    val entityviews = (for ((e, c) <- chars) yield EntityView(e, Nil, List(c _1, c _2), Nil)).toList
+                    val client = Client(session, acc, chars, worlds.default, state = IdleInLobby)
                     
+                    // register and inform the actual client
                     clients.add(client)
                     session ! LoginSuccess(entityviews)
+
+                case _ =>
+                    session ! Failure("Invalid login credentials.")
             }
 
-        // invalid email
         case MessageEvent(session, _) => 
-            session ! LoginFail("Invalid email format.")
+            session ! Failure("Invalid email format, or account in use.")
     }
 }

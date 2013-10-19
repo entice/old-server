@@ -33,10 +33,11 @@ class Command extends Actor with ActorLogging with Subscriber with Clients with 
                         session ! ServerMessage(" - (built-in) helpme")
                         session ! ServerMessage(" - (built-in) info <command-name>")
                         session ! ServerMessage(" - (built-in) load <path/to/file>")
+                        session ! ServerMessage(" - (built-in) reload")
                         scripts.keySet.foreach { scr => session ! ServerMessage(s" - ${scr}") }
                     }
                     
-                    if (cmd == "info" && args.head != Nil) {
+                    else if (cmd == "info" && !args.isEmpty) {
                         scripts.get(args.head) match {
                             case Some(script) =>
                                 session ! ServerMessage(s"Command '${cmd}' does:")
@@ -53,6 +54,11 @@ class Command extends Actor with ActorLogging with Subscriber with Clients with 
                         // TODO: load smth on the fly
                         session ! ServerMessage("Not yet implemented.")
                     }
+
+                    else if (cmd == "reload") {
+                        scripts = retrieveScripts
+                        session ! ServerMessage("All command scripts reloaded.")
+                    }
                     
                     else if (scripts.contains(cmd)) {
                         log.debug(s"\nRunning script for command '${cmd}'...")
@@ -61,14 +67,16 @@ class Command extends Actor with ActorLogging with Subscriber with Clients with 
                             case None =>
                         }
                     }
+
                 case _ =>
+                    session ! Failure("Not logged in, or not playing.")
                     session ! Kick
             }
     }
 
 
     def retrieveScripts = {
-        val scriptFiles = new File(config.commandScripts).listFiles()
+        val scriptFiles = new File(config.commands).listFiles()
         var result = Map[String, scripting.Command]()
 
         for (scriptFile <- scriptFiles) {

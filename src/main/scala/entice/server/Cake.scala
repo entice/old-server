@@ -4,9 +4,8 @@
 
 package entice.server
 
-import entice.server.controllers._
 import entice.server.world._
-import entice.server.systems._
+import entice.server.world.systems._
 import entice.server.utils._
 import entice.protocol._
 
@@ -35,21 +34,25 @@ trait CoreSlice {
  * Delicious cake slice ;)
  * Holds the API components, needs to be completed by adding the handlers
  */
-trait ControllerSlice extends CoreSlice {
+trait ControllerSlice {
+    import entice.server.controllers._
+    
     // fill this list in your own environment with actor props of your API actors
     def props: List[Props] =
-        // handlers
-        Props(classOf[Login]) ::
-        Props(classOf[Play]) ::
-        Props(classOf[CharCreate]) ::
-        Props(classOf[WorldDiff]) ::
-        Props(classOf[Command]) ::
-        Props(classOf[Disconnect]) ::
-        // systems
-        Props(classOf[ChatSystem]) :: Props(classOf[PreChat]) :: 
-        Props(classOf[MovementSystem]) :: Props(classOf[PreMovement]) ::
-        Props(classOf[AnimationSystem]) ::
-        Props(classOf[SchedulingSystem]) ::
+        // controllers
+        Props[Login] ::
+        Props[Play] ::
+        Props[CharCreate] ::
+        Props[CharDelete] ::
+        Props[WorldDiff] ::
+        Props[Command] ::
+        Props[Disconnect] ::
+        // systems              +   front controllers
+        Props[ChatSystem]       ::  Props[PreChat] :: 
+        Props[MovementSystem]   ::  Props[PreMovement] ::
+        Props[AnimationSystem]  ::  // scripted front controller
+        Props[GroupSystem]      ::  Props[PreGroup] ::
+        Props[SchedulingSystem] ::
         Nil
 }
 
@@ -63,7 +66,7 @@ trait TickingSlice extends CoreSlice {
 
     import actorSystem.dispatcher
 
-    lazy val interval = 250
+    lazy val interval = ConfigExtension(actorSystem).maxTick
 
     // schedule tick a fixed rate
     actorSystem.scheduler.schedule(
@@ -75,7 +78,7 @@ trait TickingSlice extends CoreSlice {
 
 
 /**
- * Delicious cake slice ;) - Top of the cake
+ * Delicious cake slice ; - Top of the cake
  * Add this layer to make a server actor out of your cake.
  */
 class ServerActorSlice 
@@ -102,8 +105,8 @@ class ServerActorSlice
         // acceptor events
         case BindSuccess    => // do nothing atm 
         case BindFailure    => context stop self
-        case n: NewSession  => MessageEvent(self, n)
-        case l: LostSession => MessageEvent(self, l)
+        case n: NewSession  => publish(n)
+        case l: LostSession => publish(l)
 
         // session events
         case NewMessage(m)  => 

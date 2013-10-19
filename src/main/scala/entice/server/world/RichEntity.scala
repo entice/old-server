@@ -20,9 +20,13 @@ object RichEntity {
  */
 case class RichEntity private[world] (val entity: Entity, val world: World) {
     
-    def comps = world.getComps(entity)
+    def comps = world.getComps(entity).get
     
-    def get[T <: Component : TypeTag] = comps[T]
+    def apply[T <: Component : TypeTag] = comps[T]
+
+    def get[T <: Component : TypeTag] = comps.get[T]
+
+    def drop[T <: Component : TypeTag] = world.update(this, comps.remove[T])
     
     def set[T <: Component : TypeTag](newVal: T) = {
         comps.get[T] match {

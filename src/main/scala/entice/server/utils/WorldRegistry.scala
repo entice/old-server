@@ -12,10 +12,19 @@ import akka.actor.{ ActorRef, Extension }
 /**
  * Associates a session with a client object.
  */
-class WorldRegistry extends Extension {
-    var world = new World
+class WorldRegistry(messageBus: MessageBus) extends Extension {
+    var worlds: Map[String, World] = Map(("TeamArenas" -> new World("TeamArenas", messageBus)))
 
-    def add(entry: Client) { /*TODO*/ }
-    def get(entry: Client) = world
-    def getAll() = List(world)
+    def default = worlds("TeamArenas")
+
+    def get(map: String) = { 
+        worlds.get(map) match {
+            case Some(world) => world
+            case None =>
+                worlds = worlds + (map -> new World(map, messageBus))
+                worlds(map)
+        }
+    }
+
+    def getAll() = worlds.values.toList
 }

@@ -17,28 +17,31 @@ import org.scalatest._
 import org.scalatest.matchers._
 
 
-class NetSpec(_system: ActorSystem) extends TestKit(_system) 
+class NetSpec extends TestKit(ActorSystem(
+    "net-spec-sys", 
+    config = ConfigFactory.parseString("""
+        akka {
+          loglevel = WARNING
+        }
+    """)))
+
     with WordSpec
     with MustMatchers 
     with BeforeAndAfterAll
+    with OneInstancePerTest
     with ImplicitSender {
 
     import Net._
     import Tcp.{ Connect, Connected, Register }
 
-    def this() = this(ActorSystem(
-        "net-spec-sys", 
-        config = ConfigFactory.parseString("""
-            akka {
-              loglevel = WARNING
-            }
-        """)))
 
-    implicit val actorSystem = _system
+    implicit val actorSystem = system
+
 
     override def afterAll {
-        TestKit.shutdownActorSystem(_system)
+        TestKit.shutdownActorSystem(system)
     }
+
 
     /**
      * A short hint on the following tests:
@@ -99,7 +102,7 @@ class NetSpec(_system: ActorSystem) extends TestKit(_system)
             // now given
             val connection = probe.sender
             val init = PipelineFactory.getWithLog(NoLogging)
-            val pipeline = _system.actorOf(TcpPipelineHandler.props(init, connection, probe.ref))
+            val pipeline = system.actorOf(TcpPipelineHandler.props(init, connection, probe.ref))
             probe.send(connection, Register(pipeline))
 
             // when deploying a test message

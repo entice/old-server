@@ -6,6 +6,7 @@ package entice.server.controllers
 
 import entice.server._, Net._
 import entice.server.utils._
+import entice.server.world._
 import entice.protocol._
 
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
@@ -22,7 +23,13 @@ class Disconnect extends Actor with Subscriber with Clients with Worlds {
 
     def receive = {
         case MessageEvent(_, LostSession(session)) =>
-            clients.get(session) foreach { c => worlds.get(c).remove(c.entity.get.entity) }
-            clients.remove(session)
+            clients.get(session)  match {
+                case Some(client) => 
+                    client.entity foreach { e => 
+                        e.world.remove(e.entity)
+                    }
+                    clients.remove(session)
+                case _ =>
+            }
     }
 }

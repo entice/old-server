@@ -20,9 +20,12 @@ class PreChat extends Actor with Subscriber with Clients {
     def receive = {
         case MessageEvent(session, ChatMessage(_, msg)) =>
             clients.get(session)  match {
+                
                 case Some(client) if client.state == Playing =>
                     publish(Chat(client.entity.get, msg))
+                
                 case _ =>
+                    session ! Failure("Not logged in, or not playing.")
                     session ! Kick
             }
     }

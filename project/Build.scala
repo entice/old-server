@@ -13,5 +13,5 @@ object ProjectBuild extends Build {
         base = file(".")
     ) dependsOn(protocol)
 
-    lazy val protocol = RootProject(uri("https://github.com/entice/protocol.git#milestone2"))
+    lazy val protocol = RootProject(uri("https://github.com/entice/protocol.git#milestone3"))
 }
