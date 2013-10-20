@@ -21,9 +21,10 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
+    "org.scala-lang" % "scala-reflect" % "2.10.3",
+    "org.slf4j" % "slf4j-simple" % "1.6.4",
     "com.typesafe.akka" %% "akka-actor" % "2.2.0",
     "com.typesafe.akka" %% "akka-testkit" % "2.2.0",
-    "org.slf4j" % "slf4j-simple" % "1.6.4",
     "org.scalatest" %% "scalatest" % "1.9.1" % "test",
     "com.novus" %% "salat" % "1.9.2",
     "com.chuusai" % "shapeless_2.10.2" % "2.0.0-SNAPSHOT" changing(),
