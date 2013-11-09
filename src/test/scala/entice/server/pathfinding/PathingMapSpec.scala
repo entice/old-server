@@ -60,3 +60,72 @@ class PathinMapSpec
         }
     }
 }
+
+object PathinMapSpec {
+    val sampleMap = """
+{
+    "trapezoids":
+    [
+        {
+            "id":0,
+            "north":
+            {
+                "west":-5,
+                "east":5,
+                "y":-10
+            },
+            "south":
+            {
+                "west":-10,
+                "east":10,
+                "y":10
+            },
+            "west":
+            {
+                "north":{"x":-5,"y":-10},
+                "south":{"x":-10,"y":10}
+            },
+            "east":
+            {
+                "north":{"x":5,"y":-10,
+                "south":{"x":10,"y":10}
+            }
+        }
+        {
+            "id":1,
+            "north":
+            {
+                "west":-10,
+                "east":10,
+                "y":10
+            },
+            "south":
+            {
+                "west":-5,
+                "east":5,
+                "y":20
+            },
+            "west":
+            {
+                "north":{"x":-10,"y":10},
+                "south":{"x":-5,"y":20}
+            },
+            "east":
+            {
+                "north":{"x":10,"y":10,
+                "south":{"x":5,"y":20}
+            }
+        }
+    ]
+    "connections":
+    [
+        {
+            "id":0,
+            "west":-10,
+            "east":10,
+            "y":10,
+            "north":0,
+            "south":1}
+    ]
+}"""
+}

@@ -10,6 +10,8 @@ import info.akshaal.json.jsonmacro._
 
 /**
  * Simplified non-associative version, for serialization purposes.
+ * TODO:
+ *  delete west/east
  */
 case class SimpleTrapezoid(
     id: Int,

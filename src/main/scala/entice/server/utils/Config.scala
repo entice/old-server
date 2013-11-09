@@ -9,10 +9,23 @@ import scala.pickling._, json._
 import scala.io._
 
 
+/**
+ * Singleton.
+ * This is not connected to the actor-framework in any way.
+ */
 object Config {
-    val default = Config("127.0.0.1", 8112, "scripts/commands", 30, 250)
+    def get = fromFile(defaultFile) getOrElse defaultData
 
-    def fromFile(file: String): Option[Config] = {
+    val defaultFile = "config/config.json"
+    val defaultData = Config(
+        "127.0.0.1", 
+        8112, 
+        "scripts/commands/",
+        "maps/",
+        30, 
+        250)
+
+    private def fromFile(file: String): Option[Config] = {
         try {
             val source = Source.fromFile(file).mkString.trim
             val result = toJSONPickle(source).unpickle[Config]
@@ -31,5 +44,6 @@ case class Config(
     host: String, 
     port: Int,
     commands: String,
+    pmaps: String,
     minTick: Int,
     maxTick: Int) extends Extension

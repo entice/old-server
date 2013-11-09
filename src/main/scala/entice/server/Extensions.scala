@@ -68,21 +68,4 @@ object WorldRegistryExtension
 }
 
 
-/**
- * Adds the configuration to your actor.
- */
-trait Configurable { self: Actor =>
-    def config = ConfigExtension(context.system)
-}
-
-object ConfigExtension 
-    extends ExtensionId[Config]
-    with ExtensionIdProvider {
-
-    override def lookup = ConfigExtension
-    override def createExtension(system: ExtendedActorSystem) = Config.fromFile ("config/config.json") getOrElse (Config.default)
-    override def get(system: ActorSystem): Config = super.get(system)
-}
-
-
 

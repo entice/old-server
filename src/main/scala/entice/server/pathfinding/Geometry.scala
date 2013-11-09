@@ -89,7 +89,7 @@ object Geometry {
             val line = pos.alignWith(dir)
             intersect(line) match {
                 // if we walk a bit in the dir, do we get closer to the intersection point?
-                case Some(loc) if ((pos - loc).len >= ((pos + dir) - loc).len) =>
+                case Some(loc) if ((pos - loc).len >= ((pos + dir.unit) - loc).len) =>
                     Some(loc)
                 case _ => 
                     None

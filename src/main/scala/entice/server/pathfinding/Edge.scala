@@ -18,7 +18,7 @@ import Geometry._
 sealed trait Edge {
     def p1: Coord2D
     def p2: Coord2D
-    val segment = new Segment2D(p1, p2)
+    lazy val segment = new Segment2D(p1, p2)
 
     def location(pos: Coord2D) = segment.location(pos)
     def distance(pos: Coord2D) = segment.distance(pos)

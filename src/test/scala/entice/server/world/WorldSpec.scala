@@ -31,7 +31,7 @@ class WorldSpec
 
 
         "create entities out of their components and retrieve these" in {
-            val w = new World("testworld1", new MessageBus)
+            val w = new World("testworld1", new MessageBus, null)
             val c = new TypedSet[Component]() + Name() + Position() + Movement()
             val e = w.create(c)
             w.getRich(e.entity) must be(Some(e))
@@ -40,7 +40,7 @@ class WorldSpec
 
 
         "remove entities" in {
-            val w = new World("testworld2", new MessageBus)
+            val w = new World("testworld2", new MessageBus, null)
             val c = new TypedSet[Component]() + Name() + Position() + Movement()
             val e = w.create(c)
             w.remove(e.entity)
@@ -51,7 +51,7 @@ class WorldSpec
         "create correct world diffs" in {
             // (does not involve the actorsystem)
             // given
-            val w = new World("testworld3", new MessageBus)
+            val w = new World("testworld3", new MessageBus, null)
             val et1, et2, et3, et4 = Entity(UUID())
             
             // step 1
@@ -109,7 +109,7 @@ class WorldSpec
 
 
         "register systems and check if they want to accept any entities" in {
-            val w = new World("testworld4", new MessageBus)
+            val w = new World("testworld4", new MessageBus, null)
             val s = TestSystem(w)
             val c1 = new TypedSet[Component]() + Name() + Position() + Movement()
             val c2 = new TypedSet[Component]() + Name() + Movement()
@@ -127,7 +127,7 @@ class WorldSpec
             m.subscribe(p.ref, classOf[Spawned])
             m.subscribe(p.ref, classOf[Despawned])
 
-            val w = new World("testworld2", m)
+            val w = new World("testworld2", m, null)
             val c = new TypedSet[Component]() + Name() + Position() + Movement()
             
             // when 

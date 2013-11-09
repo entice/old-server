@@ -66,7 +66,7 @@ trait TickingSlice extends CoreSlice {
 
     import actorSystem.dispatcher
 
-    lazy val interval = ConfigExtension(actorSystem).maxTick
+    lazy val interval = Config.get.maxTick
 
     // schedule tick a fixed rate
     actorSystem.scheduler.schedule(
@@ -84,7 +84,6 @@ trait TickingSlice extends CoreSlice {
 class ServerActorSlice 
     extends Actor 
     with CoreSlice with ControllerSlice with TickingSlice 
-    with Configurable 
     with Subscriber {
 
     import Net._
@@ -98,7 +97,7 @@ class ServerActorSlice
         // create the handlers
         props foreach { context.actorOf(_) }
         // and the listening socket
-        IO(Net) ! Start(new InetSocketAddress(config.port))
+        IO(Net) ! Start(new InetSocketAddress(Config.get.port))
     }
 
     def receive = {

@@ -10,6 +10,8 @@ import info.akshaal.json.jsonmacro._
 import scala.io._
 import scala.util._
 
+import Geometry._
+
 
 /**
  * Simplified non-associative version, for serialization purposes.
@@ -59,7 +61,7 @@ class PathingMap(
     /**
      * If i would walk from my position onward in a direction, check where i would get to a border
      */
-    def farthestPoint(pos: Coord2D, dir: Coord2D, current: Option[Trapezoid] = None): Option[Coord2D] = {
+    def farthestPosition(pos: Coord2D, dir: Coord2D, current: Option[Trapezoid] = None): Option[Coord2D] = {
         val currentTrap = if (current.isDefined) current else trapezoidFor(pos)
         if (!currentTrap.isDefined) return None
         // get the trapezoid that will be the last one before we collide with a border
@@ -72,6 +74,23 @@ class PathingMap(
         val (newTrap, newPos) = lastTrap(pos, dir, currentTrap.get)
         newTrap.crossedBorder(newPos, dir)
     }
+
+
+    /**
+     * Is our next position valid?
+     */
+     def nextValidPosition(curPos: Coord2D, curDir: Coord2D, nextPos: Coord2D, curTrap: Option[Trapezoid] = None): Option[Coord2D] = {
+        val farPos = farthestPosition(curPos, curDir, curTrap)
+        if (!farPos.isDefined) return None
+        // our next pos must be between the current and the maximum possible pos to be valid
+        // else we return the max possible position
+        if (nextPos.x.within(curPos.x, farPos.get.x) && nextPos.y.within(curPos.y, farPos.get.y)) {
+            return Some(nextPos)
+        } else  {
+            return farPos
+        }
+
+     }
 }
 
 
