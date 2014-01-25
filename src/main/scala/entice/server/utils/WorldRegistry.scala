@@ -22,7 +22,7 @@ class WorldRegistry(messageBus: MessageBus) extends Extension {
         Map((defaultMap -> new World(
             defaultMap, 
             messageBus, 
-            PathingMap(defaultDir + Maps.withMapName(defaultMap).pmap).get)))
+            PathingMap.fromFile(defaultDir + Maps.withMapName(defaultMap).pmap).get)))
 
     def default = worlds(defaultMap)
 
@@ -33,7 +33,7 @@ class WorldRegistry(messageBus: MessageBus) extends Extension {
                 worlds = worlds + (map -> new World(
                     map, 
                     messageBus, 
-                    PathingMap(defaultDir + Maps.withMapName(defaultMap).pmap).get))
+                    PathingMap.fromFile(defaultDir + Maps.withMapName(defaultMap).pmap).get))
                 worlds(map)
         }
     }

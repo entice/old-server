@@ -33,10 +33,10 @@ class PathingMap(
      * Checks which trapezoid the position is in
      */
     def trapezoidFor(pos: Coord2D): Option[Trapezoid] = {
-        trapezoids filter { _.contains(pos) } match {
-            case head :: tail => Some(head)
-            case Nil          => None
+        for (trap <- trapezoids) {
+            if (trap.contains(pos)) return Some(trap)
         }
+        None
     }
 
 
@@ -47,7 +47,9 @@ class PathingMap(
     def hasDirectPath(pos: Coord2D, dir: Coord2D, goal: Trapezoid, current: Option[Trapezoid] = None): Boolean = {
         val currentTrap = if (current.isDefined) current else trapezoidFor(pos)
         if (!currentTrap.isDefined) return false
+        if (!currentTrap.get.contains(pos)) return false
         if (goal == currentTrap.get) return true
+
         currentTrap.get.crossedConnection(pos, dir) match {
             case Some((con, loc)) =>
                 // go to the border of the other trapezoid, then start the search anew
@@ -64,11 +66,12 @@ class PathingMap(
     def farthestPosition(pos: Coord2D, dir: Coord2D, current: Option[Trapezoid] = None): Option[Coord2D] = {
         val currentTrap = if (current.isDefined) current else trapezoidFor(pos)
         if (!currentTrap.isDefined) return None
+        if (!currentTrap.get.contains(pos)) return None
         // get the trapezoid that will be the last one before we collide with a border
-        def lastTrap(pos: Coord2D, dir: Coord2D, trap: Trapezoid): (Trapezoid, Coord2D) = {
-            trap.crossedConnection(pos, dir) match {
-                case Some((con, loc)) => lastTrap(loc, dir, con.adjacentOf(trap))
-                case None           => (trap, pos)
+        def lastTrap(curPos: Coord2D, curDir: Coord2D, curTrap: Trapezoid): (Trapezoid, Coord2D) = {
+            curTrap.crossedConnection(curPos, curDir) match {
+                case Some((con, loc)) => lastTrap(loc, curDir, con.adjacentOf(curTrap))
+                case None             => (curTrap, curPos)
             }
         }
         val (newTrap, newPos) = lastTrap(pos, dir, currentTrap.get)
@@ -79,12 +82,16 @@ class PathingMap(
     /**
      * Is our next position valid?
      */
-     def nextValidPosition(curPos: Coord2D, curDir: Coord2D, nextPos: Coord2D, curTrap: Option[Trapezoid] = None): Option[Coord2D] = {
-        val farPos = farthestPosition(curPos, curDir, curTrap)
+     def nextValidPosition(pos: Coord2D, nextPos: Coord2D, current: Option[Trapezoid] = None): Option[Coord2D] = {
+        val currentTrap = if (current.isDefined) current else trapezoidFor(pos)
+        if (!currentTrap.isDefined) return None
+        if (!currentTrap.get.contains(pos)) return None
+
+        val farPos = farthestPosition(pos, (nextPos - pos), currentTrap)
         if (!farPos.isDefined) return None
         // our next pos must be between the current and the maximum possible pos to be valid
         // else we return the max possible position
-        if (nextPos.x.within(curPos.x, farPos.get.x) && nextPos.y.within(curPos.y, farPos.get.y)) {
+        if (nextPos.x.within(pos.x, farPos.get.x) && nextPos.y.within(pos.y, farPos.get.y)) {
             return Some(nextPos)
         } else  {
             return farPos
@@ -101,15 +108,26 @@ object PathingMap {
     // deserialization
     import Edge._
     import Trapezoid._
-    implicit def simplePathingMapFactory            = factory[SimplePathingMap]             ('fromJson)
+    implicit def simplePathingMapFactory = factory[SimplePathingMap]('fromJson)
 
 
     /**
-     * Try to apply from file (can fail with None)
+     * Try to load from a JSON string. (can fail with None)
      */
-    def apply(file: String): Option[PathingMap] = {
-        Try(Json.fromJson[SimplePathingMap](Json.parse(Source.fromFile(file).mkString.trim)).get) match {
+    def fromString(jsonMap: String): Option[PathingMap] = {
+        Try(Json.fromJson[SimplePathingMap](Json.parse(jsonMap)).get) match {
             case pmap: Success[_] => Some(PathingMap.sophisticate(pmap.get))
+            case pmap: Failure[_] => None
+        }
+    }
+
+
+    /**
+     * Try to load from a JSON file. (can fail with None)
+     */
+    def fromFile(file: String): Option[PathingMap] = {
+        Try(Source.fromFile(file).mkString.trim) match {
+            case pmap: Success[_] => fromString(pmap.get)
             case pmap: Failure[_] => None
         }
     }
@@ -125,7 +143,7 @@ object PathingMap {
             .toMap
         val conns: Set[HorizontalConnection] =
             (for (c <- simple.connections) yield 
-                HorizontalConnection(c.west, c.east, c.y, traps(c.north), traps(c.south)))
+                new HorizontalConnection(c.west, c.east, c.y, traps(c.north), traps(c.south)))
             .toSet
 
         // update the connections on the trapezoids

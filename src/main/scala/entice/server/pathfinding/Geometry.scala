@@ -49,8 +49,8 @@ object Geometry {
         def pointsWest        = coord.x < 0
         def pointsEast        = coord.x > 0
 
-        def unit              = {
-            require(coord != Coord2D(0, 0))
+        def unit: Coord2D     = {
+            if (coord == Coord2D(0, 0)) return coord.copy()
             coord / coord.len
         }
     }
@@ -60,6 +60,7 @@ object Geometry {
      * Infinite line
      */
     class Line2D(p1: Coord2D, p2: Coord2D) {
+        import Line2D._
         require(p1 != p2)
 
         val a = p1.y - p2.y;
@@ -108,7 +109,22 @@ object Geometry {
          *  - on the line:  result = 0
          *  - to the right: result > 0
          */
-        def location(pos: Coord2D) = (p2 - p1) o (pos - p2)
+        def location(pos: Coord2D): RelativeLocation = {
+            val v1 = (p2 - p1)
+            val v2 = (pos - p2)
+            (v1.x * v2.y - v1.y * v2.x) match {
+                case loc if loc <  0 => ToLeft
+                case loc if loc == 0 => OnLine
+                case loc if loc >  0 => ToRight
+            }
+        }
+    }
+
+    object Line2D {
+        sealed trait RelativeLocation
+        case object ToLeft  extends RelativeLocation
+        case object ToRight extends RelativeLocation
+        case object OnLine  extends RelativeLocation
     }
 
 

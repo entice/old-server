@@ -41,7 +41,7 @@ class MovementSystem extends System[Position :: Movement :: HNil] with Actor wit
                 val nextPos = (curPos + (curDir.unit * 288)) * timeDiff
 
                 // check out the next position and set it
-                world.pmap.nextValidPosition(curPos, curDir, nextPos) match {
+                world.pmap.nextValidPosition(curPos, nextPos) match {
                     case Some(pos) if (pos != curPos) => 
                         e.set[Position](e[Position].copy(pos = pos))
                     case _ => 

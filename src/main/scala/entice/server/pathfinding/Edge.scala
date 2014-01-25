@@ -48,8 +48,9 @@ sealed trait HorizontalEdge extends Edge {
     val p1 = Coord2D(west, y)
     val p2 = Coord2D(east, y)
 }
-case class HorizontalBorder    (west: Float, east: Float, y: Float) extends HorizontalEdge
-case class HorizontalConnection(west: Float, east: Float, y: Float, northern: Trapezoid, southern: Trapezoid) extends HorizontalEdge {
+
+class HorizontalBorder    (val west: Float, val east: Float, val y: Float)                                                   extends HorizontalEdge {}
+class HorizontalConnection(val west: Float, val east: Float, val y: Float, val northern: Trapezoid, val southern: Trapezoid) extends HorizontalEdge {
     def adjacentOf(that: Trapezoid) = if (northern == that) southern else northern
 }
 
@@ -67,4 +68,4 @@ sealed trait VerticalEdge extends Edge{
     val p1 = south
     val p2 = north
 }
-case class VerticalBorder(north: Coord2D, south: Coord2D) extends VerticalEdge
+class VerticalBorder(val north: Coord2D, val south: Coord2D) extends VerticalEdge
