@@ -5,6 +5,7 @@ Install SBT (Simple Build Tool) and MongoDB. MongoDB should be running with defa
 This can be done by:
 - `sudo apt-get install mongodb mongodb-server`
 - `sudo service mongodb start`
+
 Then issue:
 - `sbt` (Opens the Simple-Build-Tool console)
 - `compile`
