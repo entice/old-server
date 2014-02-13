@@ -56,7 +56,7 @@ class MovementSystem extends System[Position :: Movement :: HNil] with Actor wit
                                 e.set[Movement](e[Movement].copy(goal = pos, state = NotMoving.toString))
                         }
                     case _ => 
-                        e.set[Movement](e[Movement].copy(state = NotMoving.toString))
+                        e.set[Movement](e[Movement].copy(goal = curPos, state = NotMoving.toString))
                 }
                 
             }
