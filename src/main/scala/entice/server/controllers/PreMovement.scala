@@ -27,6 +27,7 @@ class PreMovement extends Actor with Subscriber with Clients {
                     // update the entity movement state
                     client.entity map { e =>
                         e.set[Movement](e[Movement].copy(
+                            goal  = e[Position].pos,
                             state = NotMoving.toString))
                     }
                     publish(Move(client.entity.get))
