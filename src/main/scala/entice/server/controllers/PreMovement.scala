@@ -7,7 +7,8 @@ package entice.server.controllers
 import entice.server._, Net._
 import entice.server.utils._
 import entice.server.world._
-import entice.protocol._
+import entice.server.pathfinding._, Geometry._
+import entice.protocol._, MoveState._
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 
 
@@ -18,12 +19,27 @@ class PreMovement extends Actor with Subscriber with Clients {
 
     def receive = {
 
-        case MessageEvent(session, MoveRequest(pos, move)) => 
+        case MessageEvent(session, MoveRequest(direction)) => 
             clients.get(session) match {
 
-                case Some(client) if client.state == Playing =>
-                    client.entity map {_.set(pos)}
-                    client.entity map {_.set(move)}
+                case Some(client) if client.state == Playing 
+                                  && direction    == Coord2D(0, 0) =>
+                    // update the entity movement state
+                    client.entity map { e =>
+                        e.set[Movement](e[Movement].copy(
+                            state = NotMoving.toString))
+                    }
+                    publish(Move(client.entity.get))
+                    publish(Flush())
+
+                case Some(client) if client.state == Playing 
+                                  && direction    != Coord2D(0, 0) =>
+                    // update the entity movement state
+                    client.entity map { e =>
+                        e.set[Movement](e[Movement].copy(
+                            goal  = e[Position].pos + direction,
+                            state = Moving.toString))
+                    }
                     publish(Move(client.entity.get))
                     publish(Flush())
 
