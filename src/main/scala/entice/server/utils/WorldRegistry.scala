@@ -33,7 +33,7 @@ class WorldRegistry(messageBus: MessageBus) extends Extension {
                 worlds = worlds + (map -> new World(
                     map, 
                     messageBus, 
-                    PathingMap.fromFile(defaultDir + Maps.withMapName(defaultMap).pmap).get))
+                    PathingMap.fromFile(defaultDir + Maps.withMapName(map).pmap).get))
                 worlds(map)
         }
     }

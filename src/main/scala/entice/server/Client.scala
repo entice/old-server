@@ -16,7 +16,6 @@ import scala.util._
 
 /**
  * Client data storage
- * TODO: add DAO stuff
  */
 case class Client(
     session: ActorRef,
