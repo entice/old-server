@@ -13,7 +13,7 @@ import akka.actor._
 import shapeless._
 
 
-class MovementSystem extends System[Position :: Movement :: HNil] with Actor with Subscriber with Worlds{
+class MovementSystem extends System[Position :: Movement :: HNil] with Actor with Subscriber with Worlds {
 
     val subscriptions = classOf[Tick] :: Nil
     override def preStart { register }
@@ -53,7 +53,7 @@ class MovementSystem extends System[Position :: Movement :: HNil] with Actor wit
                             case Some(goal) if (goal != pos) =>
                                 e.set[Movement](e[Movement].copy(goal = goal))
                             case _ =>
-                                e.set[Movement](e[Movement].copy(state = NotMoving.toString))
+                                e.set[Movement](e[Movement].copy(goal = pos, state = NotMoving.toString))
                         }
                     case _ => 
                         e.set[Movement](e[Movement].copy(state = NotMoving.toString))
