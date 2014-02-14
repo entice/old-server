@@ -32,7 +32,7 @@ class MovementSystem extends System[Position :: Movement :: HNil] with Actor wit
             .filter  { e => 
                 val curPos  = e[Position].pos
                 val curGoal = e[Movement].goal
-                (e[Movement].moveState != NotMoving &&
+                (e[Movement].moveState != NotMoving.toString &&
                  curGoal - curPos      != Coord2D(0, 0)) 
             }
             .foreach { e =>
