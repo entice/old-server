@@ -21,7 +21,9 @@ class MovementSystem extends System[Position :: Movement :: HNil] with Actor wit
     val stopWatch = StopWatch()
 
     def receive = {
-        case Tick => worlds.getAll foreach update
+        case Tick => 
+          log.debug("TICK RECEIVED")
+          worlds.getAll foreach update
     }
 
 
@@ -30,6 +32,7 @@ class MovementSystem extends System[Position :: Movement :: HNil] with Actor wit
 
         entities(world)
             .filter  { e => 
+                log.debug("TEST CALL 1")
                 val curPos  = e[Position].pos
                 val curGoal = e[Movement].goal
                 (e[Movement].moveState != NotMoving )//&&
@@ -40,7 +43,7 @@ class MovementSystem extends System[Position :: Movement :: HNil] with Actor wit
                 val curGoal = e[Movement].goal
                 val curDir  = curGoal - curPos
 
-                log.debug("TEST CALL 1");
+                log.debug("TEST CALL 2")
 
                 // TODO: add movementspeed here, add trapezoid
                 // the 0.288 is actually distance per milliseconds, so
