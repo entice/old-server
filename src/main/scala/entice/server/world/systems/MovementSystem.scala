@@ -13,7 +13,7 @@ import akka.actor._
 import shapeless._
 
 
-class MovementSystem extends System[Position :: Movement :: HNil] with Actor with Subscriber with Worlds {
+class MovementSystem extends System[Position :: Movement :: HNil] with Actor with Subscriber with Worlds with ActorLogging {
 
     val subscriptions = classOf[Tick] :: Nil
     override def preStart { register }
@@ -32,13 +32,15 @@ class MovementSystem extends System[Position :: Movement :: HNil] with Actor wit
             .filter  { e => 
                 val curPos  = e[Position].pos
                 val curGoal = e[Movement].goal
-                (e[Movement].moveState != NotMoving.toString &&
-                 curGoal - curPos      != Coord2D(0, 0)) 
+                (e[Movement].moveState != NotMoving )//&&
+                // curGoal - curPos      != Coord2D(0, 0)) 
             }
             .foreach { e =>
                 val curPos  = e[Position].pos
                 val curGoal = e[Movement].goal
                 val curDir  = curGoal - curPos
+
+                log.debug("TEST CALL 1");
 
                 // TODO: add movementspeed here, add trapezoid
                 // the 0.288 is actually distance per milliseconds, so
