@@ -41,7 +41,9 @@ class MovementSystem extends System[Position :: Movement :: HNil] with Actor wit
                 val curDir  = curGoal - curPos
 
                 // TODO: add movementspeed here, add trapezoid
-                val nextPos = curPos + ((curDir.unit * 288) * timeDiff)
+                // the 0.288 is actually distance per milliseconds, so
+                // it would be 288 terrain tiles per second
+                val nextPos = curPos + ((curDir.unit * 0.288F) * timeDiff)
 
                 // check out the next position and set it
                 world.pmap.nextValidPosition(curPos, nextPos) match {
