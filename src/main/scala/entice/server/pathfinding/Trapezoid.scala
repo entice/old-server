@@ -8,6 +8,9 @@ import entice.protocol.Coord2D
 import play.api.libs.json._
 import info.akshaal.json.jsonmacro._
 
+import Geometry._
+
+
 /**
  * Simplified non-associative version, for serialization purposes.
  * TODO:
@@ -43,8 +46,6 @@ case class Trapezoid(
     west: VerticalBorder, 
     east: VerticalBorder,
     var connections: List[HorizontalConnection] = Nil) {
-
-    import Geometry.Line2D._
 
 
     /**

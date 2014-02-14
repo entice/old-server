@@ -13,6 +13,42 @@ import scala.util._
  */
 object Geometry {
 
+    /**
+     * Any class that allows comparis to certain geometric objects
+     */
+    trait Locateable {
+        /**
+         * Returns the intersection point if any
+         */
+        def intersect(other: Line2D): Option[Coord2D]
+
+        /**
+         * Do i cross the line when i walk from a point in a direction?
+         * Does fail when i'm standing on the line (use intersect for that)
+         */
+        def walkOver(pos: Coord2D, dir: Coord2D): Option[Coord2D]
+
+        /** 
+         * Returns the relative location of a point to this segment
+         *
+         * Note that a line is regarded as with direction:
+         *  p1 --> p2
+         *
+         * For point-point relationships, this is always 'OnLine'
+         */
+        def location(pos: Coord2D): RelativeLocation
+
+        /**
+         * Distance to a point
+         */
+        def distance(pos: Coord2D): Float
+    }
+
+    sealed trait RelativeLocation
+    case object ToLeft  extends RelativeLocation
+    case object ToRight extends RelativeLocation
+    case object OnLine  extends RelativeLocation
+
 
     /**
      * Extends floats :3
@@ -25,11 +61,31 @@ object Geometry {
     /**
      * Extends Coord2D with some point functionality
      */
-    implicit class RichCoord2D(coord: Coord2D) {
+    implicit class RichCoord2D(coord: Coord2D) extends Locateable {
         def toLine(other: Coord2D)  = new Line2D(coord, other)
         def alignWith(dir: Coord2D) = {
             require(dir != Coord2D(0, 0))
             new Line2D(coord, coord + dir)
+        }
+
+        def location(pos: Coord2D): RelativeLocation = OnLine
+        def distance(pos: Coord2D): Float = (coord - pos).len
+
+        def intersect(other: Line2D): Option[Coord2D] = {
+            if (other.location(coord) == OnLine) Some(coord) else None
+        }
+
+        def walkOver(pos: Coord2D, dir: Coord2D): Option[Coord2D] = {
+            require(dir != Coord2D(0, 0))
+
+            val line = pos.alignWith(dir)
+            intersect(line) match {
+                // if we walk a bit in the dir, do we get closer to the intersection point?
+                case Some(loc) if ((pos - loc).len >= ((pos + dir.unit) - loc).len) =>
+                    Some(loc)
+                case _ => 
+                    None
+            }
         }
     }
 
@@ -52,24 +108,20 @@ object Geometry {
         def unit: Coord2D     = {
             if (coord == Coord2D(0, 0)) return coord.copy()
             coord / coord.len
-        }
+        }    
     }
 
 
     /**
      * Infinite line
      */
-    class Line2D(p1: Coord2D, p2: Coord2D) {
-        import Line2D._
+    class Line2D(p1: Coord2D, p2: Coord2D) extends Locateable {
         require(p1 != p2)
 
         val a = p1.y - p2.y;
         val b = p2.x - p1.x;
         val c = -(p1.x - p2.x) * p1.y - (p2.y - p1.y) * p1.x;
 
-        /**
-         * Returns the intersection point if any
-         */
         def intersect(other: Line2D): Option[Coord2D] = {
             val det = a * other.b - b * other.a;
             // is parallel?
@@ -79,11 +131,6 @@ object Geometry {
                 (a * other.c - c * other.a) / det))
         }
 
-
-        /**
-         * Do i cross the line when i walk from a point in a direction?
-         * Does fail when i'm standing on the line (use intersect for that)
-         */
         def walkOver(pos: Coord2D, dir: Coord2D): Option[Coord2D] = {
             require(dir != Coord2D(0, 0))
 
@@ -97,18 +144,6 @@ object Geometry {
             }
         }
 
-
-        /** 
-         * Returns the relative loction of a point to this segment
-         *
-         * Note that the line is regarded as with direction:
-         *  p1 --> p2
-         *
-         * The result of this calculation determins if the point is
-         *  - to the left:  result < 0
-         *  - on the line:  result = 0
-         *  - to the right: result > 0
-         */
         def location(pos: Coord2D): RelativeLocation = {
             val v1 = (p2 - p1)
             val v2 = (pos - p2)
@@ -118,23 +153,20 @@ object Geometry {
                 case loc if loc >  0 => ToRight
             }
         }
-    }
 
-    object Line2D {
-        sealed trait RelativeLocation
-        case object ToLeft  extends RelativeLocation
-        case object ToRight extends RelativeLocation
-        case object OnLine  extends RelativeLocation
+        def distance(pos: Coord2D): Float = {
+            val v = p1 - p2
+            val w = pos - p2
+            val (c1, c2) = (w o v, v o v)
+            return (pos - (p2 + v * (c1 / c2))).len
+        }
     }
 
 
     /**
      * Line segment
      */
-    class Segment2D(p1: Coord2D, p2: Coord2D) extends Line2D(p1, p2){
-        /**
-         * Returns the intersection point if any
-         */
+    class Segment2D(p1: Coord2D, p2: Coord2D) extends Line2D(p1, p2) with Locateable {
         override def intersect(other: Line2D): Option[Coord2D] = {
             super.intersect(other) match {
                 case Some(loc) if (loc.x.within(p1.x, p2.x) && loc.y.within(p1.y, p2.y)) => 
@@ -144,11 +176,7 @@ object Geometry {
             }
         }
 
-
-        /**
-         * Distance to a point
-         */
-        def distance(pos: Coord2D): Float = {
+        override def distance(pos: Coord2D): Float = {
             val v = p1 - p2
             val w = pos - p2
             val (c1, c2) = (w o v, v o v)

@@ -18,7 +18,7 @@ import Geometry._
 sealed trait Edge {
     def p1: Coord2D
     def p2: Coord2D
-    lazy val segment = new Segment2D(p1, p2)
+    lazy val segment: Locateable = new Segment2D(p1, p2)
 
     def location(pos: Coord2D) = segment.location(pos)
     def distance(pos: Coord2D) = segment.distance(pos)
@@ -47,6 +47,8 @@ sealed trait HorizontalEdge extends Edge {
 
     val p1 = Coord2D(west, y)
     val p2 = Coord2D(east, y)
+
+    override lazy val segment: Locateable = if (p1 == p2) new RichCoord2D(p1) else new Segment2D(p1, p2)
 }
 
 class HorizontalBorder    (val west: Float, val east: Float, val y: Float)                                                   extends HorizontalEdge {}
