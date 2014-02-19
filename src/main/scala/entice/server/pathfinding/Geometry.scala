@@ -100,15 +100,11 @@ object Geometry {
         def /(value: Float)   = Coord2D(coord.x / value, coord.y / value)
         def o(other: Coord2D) = coord.x * other.x + coord.y * other.y
         def len               = Math.sqrt(coord.x * coord.x + coord.y * coord.y).toFloat
-        def pointsNorth       = coord.y < 0
-        def pointsSouth       = coord.y > 0
+        def pointsNorth       = coord.y > 0
+        def pointsSouth       = coord.y < 0
         def pointsWest        = coord.x < 0
         def pointsEast        = coord.x > 0
-
-        def unit: Coord2D     = {
-            if (coord == Coord2D(0, 0)) return coord.copy()
-            coord / coord.len
-        }    
+        def unit: Coord2D     = if (coord == Coord2D(0, 0)) coord.copy() else coord / coord.len  
     }
 
 
@@ -148,9 +144,9 @@ object Geometry {
             val v1 = (p2 - p1)
             val v2 = (pos - p2)
             (v1.x * v2.y - v1.y * v2.x) match {
-                case loc if loc <  0 => ToLeft
+                case loc if loc <  0 => ToRight
                 case loc if loc == 0 => OnLine
-                case loc if loc >  0 => ToRight
+                case loc if loc >  0 => ToLeft
             }
         }
 

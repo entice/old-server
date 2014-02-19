@@ -5,6 +5,7 @@
 package entice.server.pathfinding
 
 import entice.protocol.Coord2D
+import entice.server.test._
 import play.api.libs.json._
 import info.akshaal.json.jsonmacro._
 import scala.io._
@@ -26,14 +27,14 @@ case class SimplePathingMap(
  */
 class PathingMap(
     val trapezoids: List[Trapezoid],
-    val connections: Set[HorizontalConnection]) {
+    val connections: Set[HorizontalConnection]) extends SVGConversion{
 
 
     /**
      * Checks which trapezoid the position is in
      */
     def trapezoidFor(pos: Coord2D): Option[Trapezoid] = {
-        for (trap <- trapezoids) {
+        trapezoids.foreach { trap =>
             if (trap.contains(pos)) return Some(trap)
         }
         None
@@ -153,5 +154,82 @@ object PathingMap {
         }
 
         new PathingMap(traps.values.toList, conns)
+    }
+}
+
+trait SVGConversion {
+    this: PathingMap =>
+
+    def width     = maxX - minX
+    def height    = maxY - minY
+    val header    = "<svg xmlns:svg=\"http://www.w3.org/2000/svg\" xmlns=\"http://www.w3.org/2000/svg\" version=\"1.0\" width=\"" + width + "\" height=\"" + height + "\">"
+    val footer    = "</svg>"
+
+    // points need to be abc.def,klm.mnop and separated by space
+    val polyStart = "<polygon style=\"fill:none;stroke:#000000;stroke-width:1.5;stroke-miterlimit:10\" points=\""
+    val polyEnd   = "\"></polygon>"
+
+    lazy val minX = trapezoids.foldLeft(0F) { (i, t) => 
+        if (t.south.west < i) t.south.west else
+        if (t.north.west < i) t.north.west else
+        i
+    }
+
+    lazy val maxX = trapezoids.foldLeft(0F) { (i, t) => 
+        if (t.south.east > i) t.south.east else
+        if (t.north.east > i) t.north.east else
+        i
+    }
+
+    lazy val minY = trapezoids.foldLeft(0F) { (i, t) => 
+        if (t.north.y < i) t.north.y else i
+    }
+
+    lazy val maxY = trapezoids.foldLeft(0F) { (i, t) => 
+        if (t.south.y > i) t.south.y else i
+    }
+
+    def safeAs(svg: String) {
+        val result = new StringBuilder()
+
+        result.append(header)
+        trapezoids.foreach { t =>
+            // build header
+            result.append(polyStart)
+            // build graphics
+            result.append(t.south.west - minX).append(",").append(t.south.y - minY).append(" ")
+            result.append(t.north.west - minX).append(",").append(t.north.y - minY).append(" ")
+            result.append(t.north.east - minX).append(",").append(t.north.y - minY).append(" ")
+            result.append(t.south.east - minX).append(",").append(t.south.y - minY).append(" ")
+            result.append(t.south.west - minX).append(",").append(t.south.y - minY)
+            // finish
+            result.append(polyEnd)
+        }
+        result.append(footer)
+
+        File(svg).write(result.toString)
+    }
+
+    def safeWithSpawnAs(svg: String, pos: Coord2D) {
+        val result = new StringBuilder()
+
+        result.append(header)
+        trapezoids.foreach { t =>
+            result.append(polyStart)
+            result.append(t.south.west - minX).append(",").append(t.south.y - minY).append(" ")
+            result.append(t.north.west - minX).append(",").append(t.north.y - minY).append(" ")
+            result.append(t.north.east - minX).append(",").append(t.north.y - minY).append(" ")
+            result.append(t.south.east - minX).append(",").append(t.south.y - minY).append(" ")
+            result.append(t.south.west - minX).append(",").append(t.south.y - minY)
+            result.append(polyEnd)
+        }
+        // build spawn point
+        result.append("<circle cx=\"").append(pos.x - minX)
+        result.append(     "\" cy=\"").append(pos.y - minY)
+        result.append("\" r=\"100\" fill=\"red\" stroke=\"blue\" stroke-width=\"10\"/>")
+        // finish
+        result.append(footer)
+
+        File(svg).write(result.toString)
     }
 }
