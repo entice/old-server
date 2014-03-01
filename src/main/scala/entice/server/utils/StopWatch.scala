@@ -6,7 +6,7 @@ package entice.server.utils
 
 
 /**
- * Serves as a universial time mesurement utility
+ * Serves as a universial time measurement utility
  */
 case class StopWatch(/*TODO: include unit*/) {
 

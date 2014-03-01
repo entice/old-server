@@ -22,6 +22,7 @@ class PreMovement extends Actor with Subscriber with Clients {
         case MessageEvent(session, MoveRequest(direction)) => 
             clients.get(session) match {
 
+                // in case the entity wants to stop moving
                 case Some(client) if client.state == Playing 
                                   && direction    == Coord2D(0, 0) =>
                     // update the entity movement state
@@ -33,6 +34,7 @@ class PreMovement extends Actor with Subscriber with Clients {
                     publish(Move(client.entity.get))
                     publish(Flush())
 
+                // in case the entity wants to move in some direction
                 case Some(client) if client.state == Playing 
                                   && direction    != Coord2D(0, 0) =>
                     // update the entity movement state

@@ -85,7 +85,7 @@ class Play extends Actor with Subscriber with Clients with Worlds {
             .add(char _1)
             .add(char _2)
             .add(Position(Maps.withMapName(map).spawns(0)))
-            .add(Movement())
+            .add(Movement(goal = Maps.withMapName(map).spawns(0), state = MoveState.NotMoving.toString))
             .add(Animation())
             .add(GroupLeader())
     }

@@ -51,8 +51,8 @@ case class Trapezoid(
      * Returns true if this includes a specified point
      */
     def contains(pos: Coord2D) = {
-        ((north.location(pos) == ToRight)  || (north.location(pos) == OnLine)) && // W -> E
-        ((south.location(pos) == ToLeft) || (south.location(pos) == OnLine)) && // W -> E
+        ((north.location(pos) == ToRight) || (north.location(pos) == OnLine)) && // W -> E
+        ((south.location(pos) == ToLeft)  || (south.location(pos) == OnLine)) && // W -> E
         ((west.location(pos)  == ToRight) || (west.location(pos)  == OnLine)) && // S -> N
         ((east.location(pos)  == ToLeft)  || (east.location(pos)  == OnLine))    // S -> N
     }

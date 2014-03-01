@@ -19,11 +19,37 @@ class ChatSystem extends System[HNil] with Actor with Subscriber with Clients {
 
 
     def receive = {
-        case MessageEvent(_, Chat(entity, msg)) =>
+        // ALL chat message
+        case MessageEvent(_, Chat(entity, msg, ChatChannels.All)) =>
             clients.getAll
                 .filter  { _.state == Playing }
                 .filter  { _.world == entity.world }
-                .foreach { _.session ! ChatMessage(entity, msg) }
+                .foreach { _.session ! ChatMessage(entity, msg, ChatChannels.All.toString) }
+
+        // GROUP chat message (either from the perspective of a member or leader)
+        case MessageEvent(_, Chat(entity, msg, ChatChannels.Group)) =>
+            val leaderEntity : Entity = entity.get[GroupMember] match {
+                case Some(group) => group.leader
+                case _           => entity // unrich automatically
+            }
+            val leader : Option[GroupLeader] = entity.world.getRich(leaderEntity) match {
+                case Some(rich)  => rich.get[GroupLeader]
+                case _           => None
+            }
+
+            leader map { l : GroupLeader =>
+                // send it to the members
+                l.members.foreach { clients.get(_) map { 
+                    _.session ! ChatMessage(entity, msg, ChatChannels.Group.toString) }
+                }
+                // and send it to the sender (or not if it has no client)
+                l.members match {
+                    case Nil => clients.get(leaderEntity) map { 
+                        _.session ! ServerMessage("Nobody can hear you. QQ") }
+                    case _   => clients.get(leaderEntity) map { 
+                        _.session ! ChatMessage(entity, msg, ChatChannels.Group.toString) }
+                }
+            }
 
         case MessageEvent(_, Announcement(msg)) =>
             clients.getAll

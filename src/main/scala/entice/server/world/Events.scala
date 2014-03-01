@@ -31,6 +31,8 @@ case class GroupKick        (sender: RichEntity, recipient: RichEntity) extends 
 
 // entity actions:
 case class Move             (entity: RichEntity)                        extends Event
-case class Chat             (entity: RichEntity, text: String)          extends Event
+case class Chat             (entity: RichEntity, 
+                            text: String,
+                            channel: ChatChannels.Value)                extends Event
 case class Announcement     (text: String)                              extends Event
 case class Animate          (entity: RichEntity, anim: String)          extends Event
