@@ -33,17 +33,14 @@ class WorldDiffSpec extends TestKit(ActorSystem(
 
 
     // actor under test
-    val worldDiff = TestActorRef[WorldDiff]
+    val stopWatch = TestStopWatch()
+    val worldDiff = TestActorRef(new WorldDiff(stopWatch))
 
     // given
     val clients = ClientRegistryExtension(system)
     val worlds = WorldRegistryExtension(system)
 
-
-    override def beforeAll { 
-        // wait so we dont conflict with the min diff time
-        Thread.sleep(100)
-    }
+    override def beforeAll { stopWatch.set(Config.get.minTick + 1) }
 
     override def afterAll  { TestKit.shutdownActorSystem(system) }
 
@@ -60,9 +57,6 @@ class WorldDiffSpec extends TestKit(ActorSystem(
             client.entity = Some(entity)
             clients.add(client)
 
-            // wait so we dont conflict with the min diff time
-            Thread.sleep(100)
-
             // when changing and then ticking
             entity.set(Name("world-diff-spec2"))
             fakePub(worldDiff, self, Tick())
@@ -71,12 +65,9 @@ class WorldDiffSpec extends TestKit(ActorSystem(
                 case UpdateCommand(t, l1, l2, _)
                     if (l1.contains(EntityView(entity.entity, Nil, List(Name("world-diff-spec2")), Nil))
                     &&  l2.contains(entity.entity) 
-                    &&  t != 0) => true
+                    &&  t == Config.get.minTick + 1) => true
             }
             session.expectNoMsg
-
-            // wait so we dont conflict with the min diff time
-            Thread.sleep(100)
 
             // when changing and then flushing
             entity.set(Name("world-diff-spec3"))
@@ -85,7 +76,7 @@ class WorldDiffSpec extends TestKit(ActorSystem(
             session.expectMsgPF() {
                 case UpdateCommand(t, l1, _, _)
                      if (l1.contains(EntityView(entity.entity, List(Name("world-diff-spec3")), Nil, Nil))
-                     &&  t != 0) => true
+                     &&  t == Config.get.minTick + 1) => true
             }
         }
     }

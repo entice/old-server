@@ -13,12 +13,12 @@ import akka.actor._
 import shapeless._
 
 
-class MovementSystem extends System[Position :: Movement :: HNil] with Actor with Subscriber with Worlds with ActorLogging {
+class MovementSystem(
+    stopWatch : StopWatch) extends System[Position :: Movement :: HNil] with Actor with Subscriber with Worlds with ActorLogging {
 
     val subscriptions = classOf[Tick] :: Nil
     override def preStart { register }
 
-    val stopWatch = StopWatch()
 
     def receive = {
         case MessageEvent(_, Tick()) => worlds.getAll foreach update

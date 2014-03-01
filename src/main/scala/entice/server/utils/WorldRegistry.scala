@@ -26,6 +26,8 @@ class WorldRegistry(messageBus: MessageBus) extends Extension {
 
     def default = worlds(defaultMap)
 
+    def add(world: World) { worlds = worlds + (world.name -> world) }
+
     def get(map: String) = { 
         worlds.get(map) match {
             case Some(world) => world

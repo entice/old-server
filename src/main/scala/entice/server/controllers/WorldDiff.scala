@@ -18,13 +18,12 @@ import scala.language.postfixOps
  * TODO: This needs to be changed when multiple worlds are implemented,
  * so that a flush concerns only one specific world.
  */
-class WorldDiff extends Actor with Subscriber with Clients with Worlds {
+class WorldDiff(
+    stopWatch : StopWatch) extends Actor with Subscriber with Clients with Worlds {
 
     val subscriptions = classOf[Tick] :: classOf[Flush] :: Nil
     override def preStart { register }
 
-
-    private val stopWatch = StopWatch()
     private val minDiffTime = Config.get.minTick
 
 

@@ -44,15 +44,15 @@ trait ControllerSlice {
         Props[Play] ::
         Props[CharCreate] ::
         Props[CharDelete] ::
-        Props[WorldDiff] ::
+        Props(new WorldDiff(SystemStopWatch())) ::
         Props[Command] ::
         Props[Disconnect] ::
-        // systems              +   front controllers
-        Props[ChatSystem]       ::  Props[PreChat] :: 
-        Props[MovementSystem]   ::  Props[PreMovement] ::
-        Props[AnimationSystem]  ::  // scripted front controller
-        Props[GroupSystem]      ::  Props[PreGroup] ::
-        Props[SchedulingSystem] ::
+        // systems                                    +   front controllers
+        Props[ChatSystem]                             ::  Props[PreChat] :: 
+        Props(new MovementSystem(SystemStopWatch()))  ::  Props[PreMovement] ::
+        Props[AnimationSystem]                        ::  // scripted front controller
+        Props[GroupSystem]                            ::  Props[PreGroup] ::
+        Props[SchedulingSystem]                       ::
         Nil
 }
 
