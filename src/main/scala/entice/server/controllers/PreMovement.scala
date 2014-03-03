@@ -32,7 +32,7 @@ class PreMovement extends Actor with Subscriber with Clients {
                             state = NotMoving.toString))
                     }
                     publish(Move(client.entity.get))
-                    publish(Flush())
+                    publish(PushUpdate())
 
                 // in case the entity wants to move in some direction
                 case Some(client) if client.state == Playing 
@@ -44,7 +44,7 @@ class PreMovement extends Actor with Subscriber with Clients {
                             state = Moving.toString))
                     }
                     publish(Move(client.entity.get))
-                    publish(Flush())
+                    publish(PushUpdate())
 
                 case _ =>
                     session ! Failure("Not logged in, or not playing.")

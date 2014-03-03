@@ -40,7 +40,7 @@ class WorldDiffSpec extends TestKit(ActorSystem(
     val clients = ClientRegistryExtension(system)
     val worlds = WorldRegistryExtension(system)
 
-    override def beforeAll { stopWatch.set(Config.get.minTick + 1) }
+    override def beforeAll { stopWatch.set(Config.get.minUpdate + 1) }
 
     override def afterAll  { TestKit.shutdownActorSystem(system) }
 
@@ -57,26 +57,26 @@ class WorldDiffSpec extends TestKit(ActorSystem(
             client.entity = Some(entity)
             clients.add(client)
 
-            // when changing and then ticking
+            // when changing and then pushing
             entity.set(Name("world-diff-spec2"))
-            fakePub(worldDiff, self, Tick())
+            fakePub(worldDiff, self, PushUpdate())
 
             session.expectMsgPF() {
                 case UpdateCommand(t, l1, l2, _)
                     if (l1.contains(EntityView(entity.entity, Nil, List(Name("world-diff-spec2")), Nil))
                     &&  l2.contains(entity.entity) 
-                    &&  t == Config.get.minTick + 1) => true
+                    &&  t == Config.get.minUpdate + 1) => true
             }
             session.expectNoMsg
 
-            // when changing and then flushing
+            // when changing and then pushing again
             entity.set(Name("world-diff-spec3"))
-            fakePub(worldDiff, self, Flush())
+            fakePub(worldDiff, self, PushUpdate())
 
             session.expectMsgPF() {
                 case UpdateCommand(t, l1, _, _)
                      if (l1.contains(EntityView(entity.entity, List(Name("world-diff-spec3")), Nil, Nil))
-                     &&  t == Config.get.minTick + 1) => true
+                     &&  t == Config.get.minUpdate + 1) => true
             }
         }
     }

@@ -66,13 +66,20 @@ trait TickingSlice extends CoreSlice {
 
     import actorSystem.dispatcher
 
-    lazy val interval = Config.get.maxTick
+    lazy val tickInterval = Config.get.tick
+    lazy val updateInterval = Config.get.maxUpdate
 
-    // schedule tick a fixed rate
+    // schedule tick with a fixed rate
     actorSystem.scheduler.schedule(
         Duration.Zero,                       // initial delay duration
-        Duration(interval, MILLISECONDS))(   // delay for each invokation
+        Duration(tickInterval, MILLISECONDS))(   // delay for each invokation
             MessageBusExtension(actorSystem).publish(MessageEvent(serverActor, Tick()))
+        )
+    // schedule update with a fixed rate
+    actorSystem.scheduler.schedule(
+        Duration.Zero,                       // initial delay duration
+        Duration(updateInterval, MILLISECONDS))(   // delay for each invokation
+            MessageBusExtension(actorSystem).publish(MessageEvent(serverActor, PushUpdate()))
         )
 }
 

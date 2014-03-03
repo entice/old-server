@@ -22,7 +22,8 @@ object Config {
         8112, 
         "scripts/commands/",
         "maps/",
-        30, 
+        30,
+        50, 
         250)
 
     private def fromFile(file: String): Option[Config] = {
@@ -39,11 +40,20 @@ object Config {
 /**
  * Encapsulates the complete config file.
  * (I'd rather not depend on typesafe's config stuff...)
+ * 
+ * @param   host        The hostname or IP of this machine
+ * @param   port        The TCP port this should run on
+ * @param   commands    The directory of the IG command scripts
+ * @param   pmaps       The directory of the pathing maps we're using
+ * @param   tick        The event interval that invokes the general server systems
+ * @param   minUpdate   The minimum event interval that invokes a game-state push to client
+ * @param   minUpdate   The maximum event interval that invokes a game-state push to client
  */
 case class Config(
     host: String, 
     port: Int,
     commands: String,
     pmaps: String,
-    minTick: Int,
-    maxTick: Int) extends Extension
+    tick: Int,
+    minUpdate: Int,
+    maxUpdate: Int) extends Extension

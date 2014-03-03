@@ -21,14 +21,14 @@ import scala.language.postfixOps
 class WorldDiff(
     stopWatch : StopWatch) extends Actor with Subscriber with Clients with Worlds {
 
-    val subscriptions = classOf[Tick] :: classOf[Flush] :: Nil
+    val subscriptions = classOf[Tick] :: classOf[PushUpdate] :: Nil
     override def preStart { register }
 
-    private val minDiffTime = Config.get.minTick
+    private val minDiffTime = Config.get.minUpdate
 
 
     def receive = {
-        case MessageEvent(_, Tick()) | MessageEvent(_, Flush()) => update
+        case MessageEvent(_, PushUpdate()) => update
     }
 
 

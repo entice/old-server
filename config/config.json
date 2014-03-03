@@ -3,6 +3,7 @@
     "port":         8112,
     "commands":     "scripts/commands/",
     "pmaps":		"maps/",
-    "minTick":      30,
-    "maxTick":      250
+    "tick":         30,
+    "minUpdate":    50,
+    "maxUpdate":    250
 }

@@ -11,9 +11,10 @@ import scala.concurrent.duration._
 
 sealed trait Event extends Typeable
 
-// concerning scheduling: (tick is server internal, flush is done by single components)
+// concerning scheduling:
+// tick is server internal, push update is for the server-gamestate update
 case class Tick             ()                                          extends Event                                       
-case class Flush            ()                                          extends Event                                       
+case class PushUpdate       ()                                          extends Event                                       
 case class Schedule         (event: Event, after: FiniteDuration)       extends Event
 
 // by the world:
