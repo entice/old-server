@@ -81,7 +81,7 @@ object Geometry {
             val line = pos.alignWith(dir)
             intersect(line) match {
                 // if we walk a bit in the dir, do we get closer to the intersection point?
-                case Some(loc) if ((pos - loc).len >= ((pos + dir.unit) - loc).len) =>
+                case Some(loc) if (Math.abs(((loc - pos).unit - dir.unit).len) < 0.01) =>
                     Some(loc)
                 case _ => 
                     None
@@ -147,9 +147,9 @@ object Geometry {
             val v1 = (p2 - p1)
             val v2 = (pos - p2)
             (v1.x * v2.y - v1.y * v2.x) match {
-                case loc if loc <  0 => ToRight
-                case loc if loc == 0 => OnLine
-                case loc if loc >  0 => ToLeft
+                case loc if loc <  0             => ToRight
+                case loc if Math.abs(loc) < 0.01 => OnLine
+                case loc if loc >  0             => ToLeft
             }
         }
 
