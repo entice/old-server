@@ -9,7 +9,7 @@ import entice.server.test._
 import entice.server.utils._
 import entice.server.world._
 import entice.server.pathfinding._
-import entice.protocol._
+import entice.protocol._, MoveState._
 import akka.actor._
 import akka.testkit._
 import com.typesafe.config.ConfigFactory
@@ -56,7 +56,7 @@ class MovementSystemSpec extends TestKit(ActorSystem(
 
         "not move entities that do not move" in {
             // given
-            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0)) + Movement(Coord2D(0, 0), MoveState.NotMoving.toString))
+            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0)) + Movement(Coord2D(0, 0), NotMoving.toString))
 
             // when
             fakePub(moveSys, self, Tick())
@@ -66,17 +66,17 @@ class MovementSystemSpec extends TestKit(ActorSystem(
             within(3 seconds) {
                 r1[Position].pos must be(Coord2D(0, 0))
                 r1[Movement].goal must be(Coord2D(0, 0))
-                r1[Movement].moveState must be(MoveState.NotMoving)
+                r1[Movement].moveState must be(NotMoving)
             }
         }
 
 
         "move entities in +x (no collision)" in {
-            // reset the timer of the system
-            fakePub(moveSys, self, Tick())
-
-            // given
-            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0)) + Movement(Coord2D(500, 0), MoveState.Moving.toString))
+            // given (one normal, two edge cases, one invalid case)                                    v- remember, this is the GOAL! 
+            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0))       + Movement(Coord2D(500, 0), Moving.toString))
+            val r2 = world.create(new TypedSet[Component]() + Position(Coord2D(-1000, 0))   + Movement(Coord2D(-500, 0), Moving.toString))
+            val r3 = world.create(new TypedSet[Component]() + Position(Coord2D(1000, 0))    + Movement(Coord2D(1500, 0), Moving.toString))
+            val r4 = world.create(new TypedSet[Component]() + Position(Coord2D(1000.1F, 0)) + Movement(Coord2D(1500.1F, 0), Moving.toString))
 
             // when
             stopWatch.set(1000)
@@ -84,20 +84,36 @@ class MovementSystemSpec extends TestKit(ActorSystem(
             expectNoMsg
 
             // must
-            within(3 seconds) {
-                r1[Position].pos must be(Coord2D(288, 0))
+            within(1 seconds) {
+                // normal
+                r1[Position].pos must be(Coord2D(0 + 288, 0))
                 r1[Movement].goal must be(Coord2D(1000, 0))
-                r1[Movement].moveState must be(MoveState.Moving)
+                r1[Movement].moveState must be(Moving)
+
+                // edge case 1
+                r2[Position].pos must be(Coord2D(-1000 + 288, 0))
+                r2[Movement].goal must be(Coord2D(1000, 0))
+                r2[Movement].moveState must be(Moving)
+
+                // edge case 2
+                r3[Position].pos must be(Coord2D(1000, 0))
+                r3[Movement].goal must be(Coord2D(1000, 0))
+                r3[Movement].moveState must be(NotMoving)
+
+                // invalid
+                r4[Position].pos must be(Coord2D(1000.1F, 0))
+                r4[Movement].goal must be(Coord2D(1000.1F, 0))
+                r4[Movement].moveState must be(NotMoving)
             }
         }
 
 
         "move entities in -x (no collision)" in {
-            // reset the timer of the system
-            fakePub(moveSys, self, Tick())
-
-            // given
-            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0)) + Movement(Coord2D(-500, 0), MoveState.Moving.toString))
+            // given (one normal, two edge cases, one invalid case)                                    v- remember, this is the GOAL! 
+            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0))       + Movement(Coord2D(-500, 0), Moving.toString))
+            val r2 = world.create(new TypedSet[Component]() + Position(Coord2D(-1000, 0))   + Movement(Coord2D(-1500, 0), Moving.toString))
+            val r3 = world.create(new TypedSet[Component]() + Position(Coord2D(1000, 0))    + Movement(Coord2D(500, 0), Moving.toString))
+            val r4 = world.create(new TypedSet[Component]() + Position(Coord2D(1000.1F, 0)) + Movement(Coord2D(500.1F, 0), Moving.toString))
 
             // when
             stopWatch.set(1000)
@@ -105,20 +121,36 @@ class MovementSystemSpec extends TestKit(ActorSystem(
             expectNoMsg
 
             // must
-            within(3 seconds) {
-                r1[Position].pos must be(Coord2D(-288, 0))
+            within(1 seconds) {
+                // normal
+                r1[Position].pos must be(Coord2D(0 - 288, 0))
                 r1[Movement].goal must be(Coord2D(-1000, 0))
-                r1[Movement].moveState must be(MoveState.Moving)
+                r1[Movement].moveState must be(Moving)
+
+                // edge case 1
+                r2[Position].pos must be(Coord2D(-1000, 0))
+                r2[Movement].goal must be(Coord2D(-1000, 0))
+                r2[Movement].moveState must be(NotMoving)
+
+                // edge case 2
+                r3[Position].pos must be(Coord2D(1000 - 288, 0))
+                r3[Movement].goal must be(Coord2D(-1000, 0))
+                r3[Movement].moveState must be(Moving)
+
+                // invalid
+                r4[Position].pos must be(Coord2D(1000.1F, 0))
+                r4[Movement].goal must be(Coord2D(1000.1F, 0))
+                r4[Movement].moveState must be(NotMoving)
             }
         }
 
 
         "move entities in +y (no collision)" in {
-            // reset the timer of the system
-            fakePub(moveSys, self, Tick())
-
-            // given
-            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0)) + Movement(Coord2D(0, 500), MoveState.Moving.toString))
+            // given (one normal, two edge cases, one invalid case)                                    v- remember, this is the GOAL! 
+            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0))       + Movement(Coord2D(0, 500), Moving.toString))
+            val r2 = world.create(new TypedSet[Component]() + Position(Coord2D(0, -2000))   + Movement(Coord2D(0, -1500), Moving.toString))
+            val r3 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 1000))    + Movement(Coord2D(0, 1500), Moving.toString))
+            val r4 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 1000.1F)) + Movement(Coord2D(0, 1500.1F), Moving.toString))
 
             // when
             stopWatch.set(1000)
@@ -126,20 +158,36 @@ class MovementSystemSpec extends TestKit(ActorSystem(
             expectNoMsg
 
             // must
-            within(3 seconds) {
-                r1[Position].pos must be(Coord2D(0, 288))
+            within(1 seconds) {
+                // normal
+                r1[Position].pos must be(Coord2D(0, 0 + 288))
                 r1[Movement].goal must be(Coord2D(0, 1000))
-                r1[Movement].moveState must be(MoveState.Moving)
+                r1[Movement].moveState must be(Moving)
+
+                // edge case 1
+                r2[Position].pos must be(Coord2D(0, -2000 + 288))
+                r2[Movement].goal must be(Coord2D(0, 1000))
+                r2[Movement].moveState must be(Moving)
+
+                // edge case 2
+                r3[Position].pos must be(Coord2D(0, 1000))
+                r3[Movement].goal must be(Coord2D(0, 1000))
+                r3[Movement].moveState must be(NotMoving)
+
+                // invalid
+                r4[Position].pos must be(Coord2D(0, 1000.1F))
+                r4[Movement].goal must be(Coord2D(0, 1000.1F))
+                r4[Movement].moveState must be(NotMoving)
             }
         }
 
 
         "move entities in -y (no collision)" in {
-            // reset the timer of the system
-            fakePub(moveSys, self, Tick())
-
-            // given
-            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0)) + Movement(Coord2D(0, -500), MoveState.Moving.toString))
+            // given (one normal, two edge cases, one invalid case)                                    v- remember, this is the GOAL! 
+            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0))       + Movement(Coord2D(0, -500), Moving.toString))
+            val r2 = world.create(new TypedSet[Component]() + Position(Coord2D(0, -2000))   + Movement(Coord2D(0, -2500), Moving.toString))
+            val r3 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 1000))    + Movement(Coord2D(0, 500), Moving.toString))
+            val r4 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 1000.1F)) + Movement(Coord2D(0, 500.1F), Moving.toString))
 
             // when
             stopWatch.set(1000)
@@ -147,19 +195,35 @@ class MovementSystemSpec extends TestKit(ActorSystem(
             expectNoMsg
 
             // must
-            within(3 seconds) {
-                r1[Position].pos must be(Coord2D(0, -288))
+            within(1 seconds) {
+                // normal
+                r1[Position].pos must be(Coord2D(0, 0 - 288))
                 r1[Movement].goal must be(Coord2D(0, -2000))
-                r1[Movement].moveState must be(MoveState.Moving)
+                r1[Movement].moveState must be(Moving)
+
+                // edge case 1
+                r2[Position].pos must be(Coord2D(0, -2000))
+                r2[Movement].goal must be(Coord2D(0, -2000))
+                r2[Movement].moveState must be(NotMoving)
+
+                // edge case 2
+                r3[Position].pos must be(Coord2D(0, 1000 - 288))
+                r3[Movement].goal must be(Coord2D(0, -2000))
+                r3[Movement].moveState must be(Moving)
+
+                // invalid
+                r4[Position].pos must be(Coord2D(0, 1000.1F))
+                r4[Movement].goal must be(Coord2D(0, 1000.1F))
+                r4[Movement].moveState must be(NotMoving)
             }
         }
 
         "move entities in +x (with collision)" in {
-            // reset the timer of the system
-            fakePub(moveSys, self, Tick())
-
-            // given
-            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0)) + Movement(Coord2D(500, 0), MoveState.Moving.toString))
+            // given (one normal, two edge cases, one invalid case)                                    v- remember, this is the GOAL! 
+            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0))       + Movement(Coord2D(500, 0), Moving.toString))
+            val r2 = world.create(new TypedSet[Component]() + Position(Coord2D(-1000, 0))   + Movement(Coord2D(-500, 0), Moving.toString))
+            val r3 = world.create(new TypedSet[Component]() + Position(Coord2D(1000, 0))    + Movement(Coord2D(1500, 0), Moving.toString))
+            val r4 = world.create(new TypedSet[Component]() + Position(Coord2D(1000.1F, 0)) + Movement(Coord2D(1500.1F, 0), Moving.toString))
 
             // when
             stopWatch.set(10000)
@@ -167,20 +231,36 @@ class MovementSystemSpec extends TestKit(ActorSystem(
             expectNoMsg
 
             // must
-            within(3 seconds) {
+            within(1 seconds) {
+                // normal
                 r1[Position].pos must be(Coord2D(1000, 0))
                 r1[Movement].goal must be(Coord2D(1000, 0))
-                r1[Movement].moveState must be(MoveState.NotMoving)
+                r1[Movement].moveState must be(NotMoving)
+
+                // edge case 1
+                r2[Position].pos must be(Coord2D(1000, 0))
+                r2[Movement].goal must be(Coord2D(1000, 0))
+                r2[Movement].moveState must be(NotMoving)
+
+                // edge case 2
+                r3[Position].pos must be(Coord2D(1000, 0))
+                r3[Movement].goal must be(Coord2D(1000, 0))
+                r3[Movement].moveState must be(NotMoving)
+
+                // invalid
+                r4[Position].pos must be(Coord2D(1000.1F, 0))
+                r4[Movement].goal must be(Coord2D(1000.1F, 0))
+                r4[Movement].moveState must be(NotMoving)
             }
         }
 
 
         "move entities in -x (with collision)" in {
-            // reset the timer of the system
-            fakePub(moveSys, self, Tick())
-
-            // given
-            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0)) + Movement(Coord2D(-500, 0), MoveState.Moving.toString))
+            // given (one normal, two edge cases, one invalid case)                                    v- remember, this is the GOAL! 
+            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0))       + Movement(Coord2D(-500, 0), Moving.toString))
+            val r2 = world.create(new TypedSet[Component]() + Position(Coord2D(-1000, 0))   + Movement(Coord2D(-1500, 0), Moving.toString))
+            val r3 = world.create(new TypedSet[Component]() + Position(Coord2D(1000, 0))    + Movement(Coord2D(500, 0), Moving.toString))
+            val r4 = world.create(new TypedSet[Component]() + Position(Coord2D(1000.1F, 0)) + Movement(Coord2D(500.1F, 0), Moving.toString))
 
             // when
             stopWatch.set(10000)
@@ -188,52 +268,100 @@ class MovementSystemSpec extends TestKit(ActorSystem(
             expectNoMsg
 
             // must
-            within(3 seconds) {
+            within(1 seconds) {
+                // normal
                 r1[Position].pos must be(Coord2D(-1000, 0))
                 r1[Movement].goal must be(Coord2D(-1000, 0))
-                r1[Movement].moveState must be(MoveState.NotMoving)
+                r1[Movement].moveState must be(NotMoving)
+
+                // edge case 1
+                r2[Position].pos must be(Coord2D(-1000, 0))
+                r2[Movement].goal must be(Coord2D(-1000, 0))
+                r2[Movement].moveState must be(NotMoving)
+
+                // edge case 2
+                r3[Position].pos must be(Coord2D(-1000, 0))
+                r3[Movement].goal must be(Coord2D(-1000, 0))
+                r3[Movement].moveState must be(NotMoving)
+
+                // invalid
+                r4[Position].pos must be(Coord2D(1000.1F, 0))
+                r4[Movement].goal must be(Coord2D(1000.1F, 0))
+                r4[Movement].moveState must be(NotMoving)
             }
         }
 
 
         "move entities in +y (with collision)" in {
-            // reset the timer of the system
-            fakePub(moveSys, self, Tick())
-
-            // given
-            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0)) + Movement(Coord2D(0, 500), MoveState.Moving.toString))
+            // given (one normal, two edge cases, one invalid case)                                    v- remember, this is the GOAL! 
+            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0))       + Movement(Coord2D(0, 500), Moving.toString))
+            val r2 = world.create(new TypedSet[Component]() + Position(Coord2D(0, -2000))   + Movement(Coord2D(0, -1500), Moving.toString))
+            val r3 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 1000))    + Movement(Coord2D(0, 1500), Moving.toString))
+            val r4 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 1000.1F)) + Movement(Coord2D(0, 1500.1F), Moving.toString))
 
             // when
-            stopWatch.set(10000)
+            stopWatch.set(15000) // cannot be 10000 or otherwise r2 wouldnt collide
             fakePub(moveSys, self, Tick())
             expectNoMsg
 
             // must
-            within(3 seconds) {
+            within(1 seconds) {
+                // normal
                 r1[Position].pos must be(Coord2D(0, 1000))
                 r1[Movement].goal must be(Coord2D(0, 1000))
-                r1[Movement].moveState must be(MoveState.NotMoving)
+                r1[Movement].moveState must be(NotMoving)
+
+                // edge case 1
+                r2[Position].pos must be(Coord2D(0, 1000))
+                r2[Movement].goal must be(Coord2D(0, 1000))
+                r2[Movement].moveState must be(NotMoving)
+
+                // edge case 2
+                r3[Position].pos must be(Coord2D(0, 1000))
+                r3[Movement].goal must be(Coord2D(0, 1000))
+                r3[Movement].moveState must be(NotMoving)
+
+                // invalid
+                r4[Position].pos must be(Coord2D(0, 1000.1F))
+                r4[Movement].goal must be(Coord2D(0, 1000.1F))
+                r4[Movement].moveState must be(NotMoving)
             }
         }
 
 
         "move entities in -y (with collision)" in {
-            // reset the timer of the system
-            fakePub(moveSys, self, Tick())
-
-            // given
-            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0)) + Movement(Coord2D(0, -500), MoveState.Moving.toString))
+            // given (one normal, two edge cases, one invalid case)                                    v- remember, this is the GOAL! 
+            val r1 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 0))       + Movement(Coord2D(0, -500), Moving.toString))
+            val r2 = world.create(new TypedSet[Component]() + Position(Coord2D(0, -2000))   + Movement(Coord2D(0, -2500), Moving.toString))
+            val r3 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 1000))    + Movement(Coord2D(0, 500), Moving.toString))
+            val r4 = world.create(new TypedSet[Component]() + Position(Coord2D(0, 1000.1F)) + Movement(Coord2D(0, 500.1F), Moving.toString))
 
             // when
-            stopWatch.set(10000)
+            stopWatch.set(15000) // cannot be 10000 or otherwise r3 wouldnt collide
             fakePub(moveSys, self, Tick())
             expectNoMsg
 
             // must
-            within(3 seconds) {
+            within(1 seconds) {
+                // normal
                 r1[Position].pos must be(Coord2D(0, -2000))
                 r1[Movement].goal must be(Coord2D(0, -2000))
-                r1[Movement].moveState must be(MoveState.NotMoving)
+                r1[Movement].moveState must be(NotMoving)
+
+                // edge case 1
+                r2[Position].pos must be(Coord2D(0, -2000))
+                r2[Movement].goal must be(Coord2D(0, -2000))
+                r2[Movement].moveState must be(NotMoving)
+
+                // edge case 2
+                r3[Position].pos must be(Coord2D(0, -2000))
+                r3[Movement].goal must be(Coord2D(0, -2000))
+                r3[Movement].moveState must be(NotMoving)
+
+                // invalid
+                r4[Position].pos must be(Coord2D(0, 1000.1F))
+                r4[Movement].goal must be(Coord2D(0, 1000.1F))
+                r4[Movement].moveState must be(NotMoving)
             }
         }
     }

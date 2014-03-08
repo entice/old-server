@@ -63,10 +63,16 @@ case class Trapezoid(
      */
     def crossedBorder(pos: Coord2D, dir: Coord2D): Option[Coord2D] = {
         if (!contains(pos)) return None
-        north.crossed(pos, dir) orElse
-        south.crossed(pos, dir) orElse
-        west.crossed(pos, dir) orElse
-        east.crossed(pos, dir)
+        // first check all borders without the one i'm standing on
+        // then also check the ones that i'm standing on
+        north.crossedExclusive(pos, dir) orElse
+        south.crossedExclusive(pos, dir) orElse
+        west.crossedExclusive(pos, dir) orElse
+        east.crossedExclusive(pos, dir) orElse
+        north.crossedInclusive(pos, dir) orElse
+        south.crossedInclusive(pos, dir) orElse
+        west.crossedInclusive(pos, dir) orElse
+        east.crossedInclusive(pos, dir)
     }
 
 
@@ -77,7 +83,7 @@ case class Trapezoid(
     def crossedConnection(pos: Coord2D, dir: Coord2D): Option[(HorizontalConnection, Coord2D)] = {
         if (!contains(pos)) return None
         for (c <- connections) {
-            val loc = c.crossed(pos, dir)
+            val loc = c.crossedExclusive(pos, dir)
             if (loc.isDefined) return Some((c, loc.get))
         }
         None

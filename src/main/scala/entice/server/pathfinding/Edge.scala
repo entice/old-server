@@ -22,7 +22,13 @@ sealed trait Edge {
 
     def location(pos: Coord2D) = segment.location(pos)
     def distance(pos: Coord2D) = segment.distance(pos)
-    def crossed(pos: Coord2D, dir: Coord2D) = segment.walkOver(pos, dir)
+    def crossedInclusive(pos: Coord2D, dir: Coord2D) = segment.walkOver(pos, dir)
+    def crossedExclusive(pos: Coord2D, dir: Coord2D) = {
+        segment.walkOver(pos, dir) match {
+            case Some(loc) if (loc != pos) => Some(loc)
+            case _                         => None
+        }
+    }
 }
 
 

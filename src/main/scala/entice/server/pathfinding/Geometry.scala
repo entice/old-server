@@ -99,7 +99,7 @@ object Geometry {
         def *(value: Float)   = Coord2D(coord.x * value, coord.y * value)
         def /(value: Float)   = Coord2D(coord.x / value, coord.y / value)
         def o(other: Coord2D) = coord.x * other.x + coord.y * other.y
-        def len               = Math.sqrt(coord.x * coord.x + coord.y * coord.y).toFloat
+        def len               = Math.abs(Math.sqrt((coord.x * coord.x) + (coord.y * coord.y)).toFloat)
         def pointsNorth       = coord.y > 0
         def pointsSouth       = coord.y < 0
         def pointsWest        = coord.x < 0
@@ -130,10 +130,13 @@ object Geometry {
         def walkOver(pos: Coord2D, dir: Coord2D): Option[Coord2D] = {
             require(dir != Coord2D(0, 0))
 
+            // we do not need to walk, since we are there already
+            if (location(pos) == OnLine) { return Some(pos) }
+
             val line = pos.alignWith(dir)
             intersect(line) match {
-                // if we walk a bit in the dir, do we get closer to the intersection point?
-                case Some(loc) if ((pos - loc).len >= ((pos + dir.unit) - loc).len) =>
+                // if we walk in the dir, do we get closer to the intersection point? (remember that float is unprecise)
+                case Some(loc) if (Math.abs(((loc - pos).unit - dir.unit).len) < 0.01)  =>
                     Some(loc)
                 case _ => 
                     None
