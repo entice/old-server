@@ -27,6 +27,8 @@ class MovementSystem(
 
     override def update(world: World) {
         val timeDiff = stopWatch.current
+        // NOTE: yes, it IS curcial to reset the timer at this point :P
+        stopWatch.reset
 
         entities(world)
             .filter  { e => 
