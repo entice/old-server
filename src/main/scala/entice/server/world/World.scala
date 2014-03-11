@@ -4,7 +4,7 @@
 
 package entice.server.world
 
-import entice.server.pathfinding._
+import entice.server.physics._
 import entice.server.utils._
 import entice.protocol._
 import shapeless._
@@ -18,7 +18,7 @@ import scala.language.postfixOps
 class World(
     val name: String, 
     val messageBus: MessageBus,
-    val pmap: PathingMap) 
+    val collisionMesh: CollisionMesh) 
     extends WorldCore 
     with SystemsManagement 
     with DiffManagement

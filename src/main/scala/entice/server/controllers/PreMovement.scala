@@ -7,7 +7,7 @@ package entice.server.controllers
 import entice.server._, Net._
 import entice.server.utils._
 import entice.server.world._
-import entice.server.pathfinding._, Geometry._
+import entice.server.physics._, Geometry._
 import entice.protocol._, MoveState._
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 

@@ -2,7 +2,7 @@
  * For copyright information see the LICENSE document.
  */
  
-package entice.server.pathfinding
+package entice.server.physics
 
 import entice.server.test._
 import entice.server.utils._
@@ -50,10 +50,19 @@ class StandardMapsSpec
                     // newSpawn = Coord2D(-spawn.y, -spawn.x)
                     // map.get.safeWithSpawnAs(value.toString + "_8.svg", newSpawn)
                     // test spawn
-                    map.get.trapezoidFor(newSpawn) must not be(None)
+                    map.get.quadliteralFor(newSpawn) must not be(None)
                 }
                 info(value.toString + " seems to work.")
             }
         }
+
+        // "plot a map" in {
+        //     val mapData = Maps.withMapName("HeroesAscent")
+        //     val map = PathingMap.fromFile(defaultDir + mapData.pmap)
+
+        //     map must not be(None)
+        //     map.get.safeWithSpawnAs("HeroesAscent_test_1.svg", Coord2D(2372.9268F,-3225.669F))
+        //     map.get.safeWithSpawnAs("HeroesAscent_test_2.svg", Coord2D(2392.5117F,-3210.0413F))
+        // }
     }
 }

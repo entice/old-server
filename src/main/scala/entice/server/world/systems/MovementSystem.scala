@@ -7,7 +7,7 @@ package entice.server.world.systems
 import entice.server._
 import entice.server.utils._
 import entice.server.world._
-import entice.server.pathfinding._, Geometry._
+import entice.server.physics._, Geometry._
 import entice.protocol._, MoveState._
 import akka.actor._
 import shapeless._
@@ -61,7 +61,7 @@ class MovementSystem(
                 //         e.set[Movement](e[Movement].copy(goal = curPos, state = NotMoving.toString))
                 // }
 
-                world.pmap.farthestPosition(curPos, curDir) match {
+                world.collisionMesh.farthestPosition(curPos, curDir) match {
                     // we are already there
                     case Some(goal) if (curPos == goal) =>
                         e.set[Movement](e[Movement].copy(goal = curPos, state = NotMoving.toString))

@@ -6,7 +6,7 @@ package entice.server.utils
 
 import entice.server._
 import entice.server.world._
-import entice.server.pathfinding._
+import entice.server.physics._
 import entice.protocol._
 import akka.actor.{ ActorRef, Extension }
 

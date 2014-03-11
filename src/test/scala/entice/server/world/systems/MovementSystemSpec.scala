@@ -8,7 +8,7 @@ import entice.server._, Net._
 import entice.server.test._
 import entice.server.utils._
 import entice.server.world._
-import entice.server.pathfinding._
+import entice.server.physics._
 import entice.protocol._, MoveState._
 import akka.actor._
 import akka.testkit._
