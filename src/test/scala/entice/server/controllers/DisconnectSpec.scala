@@ -59,6 +59,8 @@ class DisconnectSpec extends TestKit(ActorSystem(
 
             clients.get(session.ref) must be(Some(client))
             clients.get(entity) must be(Some(client))
+            clients.getAll must be(List(client))
+            clients.getAll find {_.session == session.ref} must not be(None)
 
             // must
             fakePub(disc, self, LostSession(session.ref))
@@ -67,6 +69,7 @@ class DisconnectSpec extends TestKit(ActorSystem(
                 clients.get(session.ref) must be(None)
                 clients.get(entity) must be(None)
                 clients.getAll must be(Nil)
+                clients.getAll find {_.session == session.ref} must be(None)
                 client.world.getRich(entity.entity) must be (None)
             }
         }

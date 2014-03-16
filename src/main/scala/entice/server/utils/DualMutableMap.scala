@@ -4,13 +4,12 @@
 
 package entice.server.utils
 
-import scala.collection.mutable._
 import scala.reflect.runtime.universe._
 
 
-case class DualMutableMap[T, K] (
-        var tkMap: Map[T, K] = BlockingMutableMap[T, K](), 
-        var ktMap: Map[K, T] = BlockingMutableMap[K, T]()) {
+case class DualMutableMap[T, K]() {
+    var tkMap: Map[T, K] = Map()
+    var ktMap: Map[K, T] = Map()
 
     def >>(t: T) : Option[K] = tkMap.get(t)
     def <<(k: K) : Option[T] = ktMap.get(k)
@@ -18,17 +17,17 @@ case class DualMutableMap[T, K] (
     def valuesRight          = tkMap.values.toList
 
     def +=(n: (T, K)) {
-        tkMap += (n._1 -> n._2)
-        ktMap += (n._2 -> n._1)
+        tkMap = tkMap + (n._1 -> n._2)
+        ktMap = ktMap + (n._2 -> n._1)
     }
 
     def removeLeft(t: T) {
-        tkMap.get(t) map ktMap.remove
-        tkMap -= t
+        tkMap.get(t) map { k => ktMap = ktMap - k }         
+        tkMap = tkMap - t
     }
 
     def removeRight(k: K) {
-        ktMap.get(k) map tkMap.remove
-        ktMap -= k
+        ktMap.get(k) map { t => tkMap = tkMap - t }  
+        ktMap = ktMap - k
     }
 }
