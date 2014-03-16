@@ -21,3 +21,6 @@ If you want to optionally seed the database do:
 To start the server issue:
 - `test` (All tests should be running, if not, type `exit` then again `sbt` and `test`, if they are still not running, post an issue describing your problem)
 - `run` (Server status should be visible in ca. 5-10 lines of output, no exceptions should occur)
+
+**Configuration**
+The config of the whole server can be found in `config/config.json`. This should be self-explanatory.
