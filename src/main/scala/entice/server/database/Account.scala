@@ -4,6 +4,8 @@
 
 package entice.server.database
 
+import entice.server.utils._
+
 import com.novus.salat._
 import com.novus.salat.global._
 import com.novus.salat.dao._
@@ -14,7 +16,7 @@ import com.mongodb.casbah.MongoConnection
 import com.mongodb.WriteConcern
 
 
-object AccountDAO extends SalatDAO[Account, ObjectId](collection = MongoConnection()("gwlpr")("accounts"))
+object AccountDAO extends SalatDAO[Account, ObjectId](collection = MongoConnection()(Config.get.database)("accounts"))
 
 
 case class Account(

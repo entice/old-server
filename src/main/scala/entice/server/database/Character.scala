@@ -4,6 +4,8 @@
 
 package entice.server.database
 
+import entice.server.utils._
+
 import entice.protocol._
 import com.novus.salat._
 import com.novus.salat.global._
@@ -15,7 +17,7 @@ import com.mongodb.casbah.MongoConnection
 import com.mongodb.WriteConcern
 
 
-object CharacterDAO extends SalatDAO[Character, ObjectId](collection = MongoConnection()("gwlpr")("characters"))
+object CharacterDAO extends SalatDAO[Character, ObjectId](collection = MongoConnection()(Config.get.database)("characters"))
 
 
 case class Character(

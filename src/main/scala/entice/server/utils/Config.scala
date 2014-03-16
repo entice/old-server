@@ -22,6 +22,7 @@ object Config {
         8112, 
         "scripts/commands/",
         "maps/",
+        "entice",
         30,
         50, 
         250)
@@ -54,6 +55,7 @@ case class Config(
     port: Int,
     commands: String,
     pmaps: String,
+    database: String,
     tick: Int,
     minUpdate: Int,
     maxUpdate: Int) extends Extension
