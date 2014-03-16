@@ -2,16 +2,12 @@
  * For copyright information see the LICENSE document.
  */
 
-package entice.server
+package entice
 
 import entice.server._
 
 import akka.actor.{ ActorSystem, Props }
-import akka.pattern.ask
-import akka.util.Timeout
 import com.typesafe.config.ConfigFactory
-import scala.concurrent.Await
-import scala.concurrent.duration._
 
 
 object Main extends App {

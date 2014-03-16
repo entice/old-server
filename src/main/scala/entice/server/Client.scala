@@ -16,7 +16,6 @@ import scala.util._
 
 /**
  * Client data storage
- * TODO: add DAO stuff
  */
 case class Client(
     session: ActorRef,
@@ -31,5 +30,4 @@ trait PlayState
 case object IdleInLobby     extends PlayState
 case object LoadingMap      extends PlayState
 case object Playing         extends PlayState
-case object ChangingMaps    extends PlayState
 case object Disconnecting   extends PlayState

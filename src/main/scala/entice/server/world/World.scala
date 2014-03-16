@@ -4,6 +4,7 @@
 
 package entice.server.world
 
+import entice.server.physics._
 import entice.server.utils._
 import entice.protocol._
 import shapeless._
@@ -14,7 +15,10 @@ import scala.language.postfixOps
  * Manages all entities registered to it, all systems registered to it, and can
  * create diffs of its state transitions.
  */
-class World(val name: String, val messageBus: MessageBus) 
+class World(
+    val name: String, 
+    val messageBus: MessageBus,
+    val collisionMesh: CollisionMesh) 
     extends WorldCore 
     with SystemsManagement 
     with DiffManagement

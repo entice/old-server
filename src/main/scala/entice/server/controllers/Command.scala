@@ -9,12 +9,12 @@ import entice.server.world._
 import entice.server.utils._
 import entice.server.scripting._
 import entice.protocol._
-import com.twitter.util._
+import com.twitter.util.Eval
 import akka.actor.{ Actor, ActorRef, ActorLogging, ActorSystem, Props }
 import java.io._
 
 
-class Command extends Actor with ActorLogging with Subscriber with Clients with Configurable {
+class Command extends Actor with ActorLogging with Subscriber with Clients {
 
     val subscriptions = classOf[ChatCommand] :: Nil
     override def preStart { register }
@@ -76,7 +76,7 @@ class Command extends Actor with ActorLogging with Subscriber with Clients with 
 
 
     def retrieveScripts = {
-        val scriptFiles = new File(config.commands).listFiles()
+        val scriptFiles = new File(Config.get.commands).listFiles()
         var result = Map[String, scripting.Command]()
 
         for (scriptFile <- scriptFiles) {

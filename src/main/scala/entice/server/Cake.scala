@@ -44,15 +44,15 @@ trait ControllerSlice {
         Props[Play] ::
         Props[CharCreate] ::
         Props[CharDelete] ::
-        Props[WorldDiff] ::
+        Props(new WorldDiff(SystemStopWatch())) ::
         Props[Command] ::
         Props[Disconnect] ::
-        // systems              +   front controllers
-        Props[ChatSystem]       ::  Props[PreChat] :: 
-        Props[MovementSystem]   ::  Props[PreMovement] ::
-        Props[AnimationSystem]  ::  // scripted front controller
-        Props[GroupSystem]      ::  Props[PreGroup] ::
-        Props[SchedulingSystem] ::
+        // systems                                    +   front controllers
+        Props[ChatSystem]                             ::  Props[PreChat] :: 
+        Props(new MovementSystem(SystemStopWatch()))  ::  Props[PreMovement] ::
+        Props[AnimationSystem]                        ::  // scripted front controller
+        Props[GroupSystem]                            ::  Props[PreGroup] ::
+        Props[SchedulingSystem]                       ::
         Nil
 }
 
@@ -66,13 +66,20 @@ trait TickingSlice extends CoreSlice {
 
     import actorSystem.dispatcher
 
-    lazy val interval = ConfigExtension(actorSystem).maxTick
+    lazy val tickInterval = Config.get.tick
+    lazy val updateInterval = Config.get.maxUpdate
 
-    // schedule tick a fixed rate
+    // schedule tick with a fixed rate
     actorSystem.scheduler.schedule(
         Duration.Zero,                       // initial delay duration
-        Duration(interval, MILLISECONDS))(   // delay for each invokation
+        Duration(tickInterval, MILLISECONDS))(   // delay for each invokation
             MessageBusExtension(actorSystem).publish(MessageEvent(serverActor, Tick()))
+        )
+    // schedule update with a fixed rate
+    actorSystem.scheduler.schedule(
+        Duration.Zero,                       // initial delay duration
+        Duration(updateInterval, MILLISECONDS))(   // delay for each invokation
+            MessageBusExtension(actorSystem).publish(MessageEvent(serverActor, PushUpdate()))
         )
 }
 
@@ -84,7 +91,6 @@ trait TickingSlice extends CoreSlice {
 class ServerActorSlice 
     extends Actor 
     with CoreSlice with ControllerSlice with TickingSlice 
-    with Configurable 
     with Subscriber {
 
     import Net._
@@ -98,7 +104,7 @@ class ServerActorSlice
         // create the handlers
         props foreach { context.actorOf(_) }
         // and the listening socket
-        IO(Net) ! Start(new InetSocketAddress(config.port))
+        IO(Net) ! Start(new InetSocketAddress(Config.get.port))
     }
 
     def receive = {

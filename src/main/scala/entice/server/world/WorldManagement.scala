@@ -158,7 +158,7 @@ private[world] trait SystemsManagement extends WorldCore {
 
 
 /**
- * Adds the ability to use systems in this world.
+ * Adds the ability to create events when the world-state changes.
  */
 private[world] trait EventManagement extends WorldCore {
     self: World =>

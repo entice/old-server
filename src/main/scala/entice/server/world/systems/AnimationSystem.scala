@@ -22,11 +22,12 @@ class AnimationSystem extends System[Animation :: HNil] with Actor with Subscrib
 
     def receive = {
         case MessageEvent(_, Animate(entity, "none")) =>
-            entity.set(Animation("none"))
-            publish(Flush())
+            entity.set(Animation(Animations.None.toString))
+            publish(PushUpdate())
+            
         case MessageEvent(_, Animate(entity, ani)) =>
             entity.set(Animation(ani))
-            publish(Schedule(Animate(entity, "none"), 1 second))
-            publish(Flush())
+            publish(Schedule(Animate(entity, Animations.None.toString), 1 second))
+            publish(PushUpdate())
     }
 }

@@ -24,7 +24,7 @@ class Login extends Actor with Subscriber with Clients with Worlds {
 
         case MessageEvent(session, LoginRequest(email, pwd)) 
             if ((email matches emailPattern)
-            &&  (clients.getAll filter {_.account.email == email}) == Nil) =>
+            &&  (clients.getAll find {_.account.email == email}) == None) =>
             // check account and password
             Account.findByEmail(email) match {
                 case Some(acc) if (acc.password == pwd) =>

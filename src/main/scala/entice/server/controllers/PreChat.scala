@@ -10,6 +10,8 @@ import entice.server.utils._
 import entice.protocol._
 import akka.actor.{ Actor, ActorRef, ActorSystem, Props }
 
+import scala.util.{ Try }
+
 
 class PreChat extends Actor with Subscriber with Clients {
 
@@ -18,14 +20,17 @@ class PreChat extends Actor with Subscriber with Clients {
 
 
     def receive = {
-        case MessageEvent(session, ChatMessage(_, msg)) =>
+        case MessageEvent(session, ChatMessage(_, msg, chan)) =>
             clients.get(session)  match {
                 
-                case Some(client) if client.state == Playing =>
-                    publish(Chat(client.entity.get, msg))
+                case Some(client) 
+                    if client.state == Playing
+                    && Try(ChatChannels.withName(chan)).isSuccess =>
+
+                    publish(Chat(client.entity.get, msg, ChatChannels.withName(chan)))
                 
                 case _ =>
-                    session ! Failure("Not logged in, or not playing.")
+                    session ! Failure("Not logged in, or not playing, or unkown channel.")
                     session ! Kick
             }
     }

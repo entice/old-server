@@ -27,7 +27,7 @@ class Buddy extends Command {
 
 
     def run(args: List[String], ctx: CommandContext): Option[String] = {
-        if (args == Nil) return Some("No behaviour given.")
+        if (args == Nil) return Some("No behaviour argument given.")
         args(0) match {
             case "grouping" => 
                 buddies = ctx.actorSystem.actorOf(Props(new GroupingActor(ctx.sender.entity.get, buddies.length))) :: buddies

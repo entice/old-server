@@ -18,37 +18,26 @@ import scala.language.postfixOps
  * TODO: This needs to be changed when multiple worlds are implemented,
  * so that a flush concerns only one specific world.
  */
-class WorldDiff extends Actor with Subscriber with Configurable with Clients with Worlds {
+class WorldDiff(
+    stopWatch : StopWatch) extends Actor with Subscriber with Clients with Worlds {
 
-    val subscriptions = classOf[Tick] :: classOf[Flush] :: Nil
+    val subscriptions = classOf[Tick] :: classOf[PushUpdate] :: Nil
     override def preStart { register }
 
-
-    private var lastDiffTime = System.currentTimeMillis()
-    private val minDiffTime = config.minTick
-
-
-    private def peekTime = System.currentTimeMillis() - lastDiffTime
-
-    private def timeDelta = {
-        val diff = peekTime
-        lastDiffTime = System.currentTimeMillis()
-        diff
-    }
+    private val minDiffTime = Config.get.minUpdate
 
 
     def receive = {
-        case MessageEvent(_, Tick()) | MessageEvent(_, Flush()) => update
+        case MessageEvent(_, PushUpdate()) => update
     }
 
 
     def update() {
-        if (peekTime < minDiffTime) {
+        val timeDiff = stopWatch.current
+        if (timeDiff < minDiffTime) {
             // TODO: unstable? publish(Schedule(Flush(), Duration(minDiffTime - peekTime, MILLISECONDS)))
             return
         }
-
-        val timeDiff = timeDelta
 
         worlds.getAll
             .foreach { w => 
@@ -59,5 +48,7 @@ class WorldDiff extends Actor with Subscriber with Configurable with Clients wit
                     .filter  { _.world == w }
                     .foreach { _.session ! UpdateCommand(timeDiff.toInt, changed, added, removed) }
             }
+
+        stopWatch.reset
     }
 }
