@@ -15,40 +15,42 @@ import akka.actor.{ ActorRef, Extension }
  * TODO: Cleanup, refactor.
  */
 class ClientRegistry extends Extension {
-    var entriesNet: Map[ActorRef, Client] = Map()
-    var entriesEntities: Map[Entity, Client] = Map()
+    var entriesNet:      DualMutableMap[ActorRef, Client] = DualMutableMap()
+    var entriesEntities: DualMutableMap[Entity, Client]   = DualMutableMap()
 
-    def add(entry: Client) { 
-        entriesNet = entriesNet + (entry.session -> entry) 
-        entry.entity map { rich =>
-            entriesEntities = entriesEntities + (rich.entity -> entry)
+    def add(client: Client) { 
+        entriesNet += (client.session -> client) 
+        client.entity map { rich =>
+            entriesEntities += (rich.entity -> client)
+        }
+    }
+
+    def update(client: Client) {
+        // update the net<->client dualmap, regardless of what is in it
+        entriesNet += (client.session -> client)
+        // update the entity<->client dualmap, depending on whether we have an entity or not
+        client.entity match {
+            case Some(rich) => entriesEntities += (rich.entity -> client)
+            case _          => entriesEntities removeRight (client)
         }
     }
 
     def remove(session: ActorRef) { 
-        entriesNet.get(session) map { client =>
-            entriesNet = entriesNet - session
-            client.entity map { rich =>
-                entriesEntities = entriesEntities - rich.entity
-            }
-        }
+        entriesNet >> (session) map remove
     }
 
     def remove(entity: Entity) { 
-        entriesEntities.get(entity) map { client =>
-            entriesNet = entriesNet - client.session
-            entriesEntities = entriesEntities - entity
-        }
+        entriesEntities >> (entity) map remove
     }
 
-    def remove(entry: Client) { 
-        remove(entry.session)
-        entry.entity map { rich => remove(rich.entity) }
+    def remove(client: Client) { 
+        entriesNet      removeRight (client)
+        entriesEntities removeRight (client)
     }
 
-    def get(session: ActorRef) = entriesNet.get(session)
+    def get(session: ActorRef) = entriesNet >> (session)
 
-    def get(entity: Entity) = entriesEntities.get(entity)
+    def get(entity: Entity) = entriesEntities >> (entity)
 
-    def getAll = entriesNet.values
+    def getAll = entriesNet.valuesRight
 }

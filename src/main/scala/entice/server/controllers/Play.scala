@@ -34,6 +34,7 @@ class Play extends Actor with Subscriber with Clients with Worlds {
 
                     client.entity = Some(world.use(entity, playerComps(chars(entity), world.name)))
                     session ! PlaySuccess(world.name, toEntityView(world.dump))
+                    clients.update(client) // update the entity reference of the client
                     client.state = Playing
 
                 case _ =>
@@ -54,6 +55,7 @@ class Play extends Actor with Subscriber with Clients with Worlds {
 
                     client.world = worlds.get(newMap)
                     client.entity = Some(client.world.use(entity, playerComps(chars(entity), client.world.name)))
+                    clients.update(client) // update the entity reference of the client
                     session ! PlaySuccess(client.world.name, toEntityView(client.world.dump))
 
                 case _ =>
@@ -71,6 +73,7 @@ class Play extends Actor with Subscriber with Clients with Worlds {
                     world.remove(entity.get)
 
                     client.entity = None
+                    clients.update(client) // update the entity reference of the client
                     client.state = IdleInLobby
 
                 case _ =>
