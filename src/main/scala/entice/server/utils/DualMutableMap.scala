@@ -14,8 +14,8 @@ case class DualMutableMap[T, K] (
 
     def >>(t: T) : Option[K] = tkMap.get(t)
     def <<(k: K) : Option[T] = ktMap.get(k)
-    def valuesLeft           = ktMap.values
-    def valuesRight          = tkMap.values
+    def valuesLeft           = ktMap.values.toList
+    def valuesRight          = tkMap.values.toList
 
     def +=(n: (T, K)) {
         tkMap += (n._1 -> n._2)
