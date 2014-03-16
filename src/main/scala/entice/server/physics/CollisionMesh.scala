@@ -25,9 +25,9 @@ case class CollisionMesh(
         var lastPos  = pos
 
         // special case: on a connection
-        if (curQuad.get.isOnConnection(pos)) {
-            // get the offending connection
-            val conn = curQuad.get.crossedConnection(pos, dir, true).get._1
+        val onConn = curQuad.get.isOnConnection(pos)
+        if (onConn.isDefined) {
+            val conn = onConn.get
             // try find a new connection that we are poking through
             conn.quad1.crossedConnection(pos, dir, false) orElse
             conn.quad2.crossedConnection(pos, dir, false) match {
@@ -102,8 +102,8 @@ case class Quadliteral(
         None
     }
 
-    def isOnConnection(pos: Coord2D) : Boolean = {
-        connections.find(_.location(pos) == OnLine).isDefined
+    def isOnConnection(pos: Coord2D) : Option[Connection] = {
+        connections.find(_.location(pos) == OnLine)
     }
 }
 
