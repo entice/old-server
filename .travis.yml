@@ -1,0 +1,14 @@
+language: scala
+scala:
+  - 2.11.0
+branches:
+  only:
+    - develop
+    - master
+notifications:
+  irc: "irc.rizon.net#gwlpr"
+jdk:
+  - openjdk7
+  - oraclejdk7
+services:
+  - mongodb
