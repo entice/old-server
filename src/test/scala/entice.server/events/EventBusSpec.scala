@@ -21,7 +21,8 @@ class EventBusSpec extends TestKit(ActorSystem(
     "evtbus-spec-sys", 
     config = ConfigFactory.parseString("""
       akka {
-        loglevel = WARNING
+        loglevel = WARNING,
+        test.single-expect-default = 0
       }""")))
     with WordSpecLike 
     with MustMatchers 
@@ -32,6 +33,8 @@ class EventBusSpec extends TestKit(ActorSystem(
   implicit val actorSystem = system
   override def afterAll { TestKit.shutdownActorSystem(system) }
 
+
+  import EventBusSpec._
 
   "An entice event bus" must {
     "subscribe and publish to the right actors" in {
@@ -75,6 +78,7 @@ class EventBusSpec extends TestKit(ActorSystem(
   }
 }
 
-
-case class TestMessage()
-case class GenericTestMessage[T]()
+object EventBusSpec {
+  case class TestMessage()
+  case class GenericTestMessage[T]()
+}

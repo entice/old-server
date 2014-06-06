@@ -7,9 +7,11 @@ package world
 
 import events.EventBus
 
+import akka.actor.ActorSystem
 
-trait World {
-  private val eventBus = new EventBus();
 
-  def subscribe() {}
+class World(
+    val actorSystem: ActorSystem, 
+    val eventBus: EventBus = new EventBus,
+    val tracker: Tracker = new Tracker) {
 }

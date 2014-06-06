@@ -8,12 +8,15 @@ package world
 import events._
 
 
-trait Trackable { self: Entity =>
-  def track(update: Update) = {
-  }
+/** Determins propagation of changes to a value */
+trait TrackingOptions {
+  /** Don't send it to anybody */
+  def notPropagated: Boolean = false
+  /** Don't send it to nearby (observing) entities */
+  def notVisible: Boolean = false
 }
 
 
-object Tracker {
-  def track(entity: Entity, update: Update) = {}
+class Tracker {
+  def trackMe(entity: Entity, update: Update) = {}
 }
