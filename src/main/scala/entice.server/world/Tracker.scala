@@ -13,7 +13,7 @@ trait TrackingOptions {
   /** Don't send it to anybody */
   def notPropagated: Boolean = false
   /** Don't send it to nearby (observing) entities */
-  def notVisible: Boolean = false
+  def notVisible: Boolean = false || notPropagated
 }
 
 

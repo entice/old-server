@@ -6,8 +6,16 @@ package entice.server
 package world
 
 import events.EventBus
+import behaviours._
 
 import akka.actor.ActorSystem
+
+
+trait BehavioursModule {
+  val behaviours =
+    TrackingFactory ::
+    Nil
+}
 
 
 class World(

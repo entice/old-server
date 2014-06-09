@@ -21,8 +21,7 @@ class TrackerSpec extends TestKit(ActorSystem(
     "tracker-spec-sys", 
     config = ConfigFactory.parseString("""
       akka {
-        loglevel = DEBUG,
-        
+        loglevel = WARNING
       }""")))//test.single-expect-default = 0
     with WordSpecLike 
     with MustMatchers 

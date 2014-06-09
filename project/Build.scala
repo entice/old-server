@@ -49,7 +49,10 @@ object ProjectBuild extends Build {
     settings = prjSettings ++ Seq(
       name := "Entice Server"
     )
-  ) dependsOn(macros)
+  ) 
+    .dependsOn(macros)
+    .dependsOn(protocol)
+    .aggregate(protocol)
 
 
   lazy val macros = Project(
@@ -57,4 +60,7 @@ object ProjectBuild extends Build {
     base = file("macros"),
     settings = prjSettings
   )
+
+
+  lazy val protocol = RootProject(uri("https://github.com/entice/protocol.git#milestone5"))
 }
