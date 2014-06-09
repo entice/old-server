@@ -17,6 +17,6 @@ trait TrackingOptions {
 }
 
 
-class Tracker {
+trait Tracker {
   def trackMe(entity: Entity, update: Update) = {}
 }

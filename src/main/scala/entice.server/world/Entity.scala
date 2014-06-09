@@ -42,9 +42,10 @@ class Entity(val world: World)  {
 }
 
 
+/** Add automagical tracking to an entities 'state changes'. Needs Tracking behviour */
 trait EntityTracker extends Entity { self: Entity =>
 
-  def track(update: Update) = { 
+  def track[T <: Update : Named](update: T) = { 
     implicit val actor: ActorRef = null 
     world.eventBus.pub(update) 
   }

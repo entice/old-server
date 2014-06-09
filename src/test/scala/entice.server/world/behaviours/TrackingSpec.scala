@@ -21,13 +21,16 @@ class TrackerSpec extends TestKit(ActorSystem(
     "tracker-spec-sys", 
     config = ConfigFactory.parseString("""
       akka {
-        loglevel = WARNING,
-        test.single-expect-default = 0
-      }""")))
+        loglevel = DEBUG,
+        
+      }""")))//test.single-expect-default = 0
     with WordSpecLike 
     with MustMatchers 
     with BeforeAndAfterAll
-    with OneInstancePerTest {
+    with OneInstancePerTest
+    with ImplicitSender 
+
+    with entice.server.world.Tracker {
   
   import scala.concurrent.ExecutionContext.Implicits.global
   implicit val actorSystem = system
@@ -36,23 +39,29 @@ class TrackerSpec extends TestKit(ActorSystem(
 
   import TrackerSpec._
 
+  case class Track(entity: Entity, upd: Update)
+  override def trackMe(entity: Entity, upd: Update) = self ! Track(entity, upd)
+
   "A tracking behaviour for entities" must {
     
-    "receive component changes" in {
-      val tracker = TestTracker()
-      val w = new World(system, tracker = tracker)
+    "receive attribute changes" in {
+      val w = new World(system, tracker = this)
       val s1 = SomeComp1("Test")
       val s2 = SomeComp2(1337)
       val s3 = SomeComp3(false)
-      val e = (new Entity(w) with EntityTracker) + Vision() + s1 + s2
-      TrackingFactory.createFor(e) must be(Some(Tracking(e)))
+      val e = (new Entity(w) with EntityTracker) + Vision() + s1 + s2 // no s3.
+      
+      val t = TrackingFactory.createFor(e)
+      t must be(Some(Tracking(e)))
 
-      within(10000 millis) {
-        tracker.expect(e, AttributeRemove(e, s1))
-        e.remove[SomeComp1]
-        tracker.called must be(true)
-        tracker.success must be(true)
-      }
+      e.remove[SomeComp1]
+      expectMsg(Track(e, AttributeRemove(e, s1)))
+
+      e.set(SomeComp2(42))
+      expectMsg(Track(e, AttributeChange(e, s2, SomeComp2(42))))
+
+      e.add(s3)
+      expectMsg(Track(e, AttributeAdd(e, s3)))
     }
   }
 }
@@ -61,25 +70,4 @@ object TrackerSpec {
   case class SomeComp1(s: String)  extends Attribute
   case class SomeComp2(i: Int)     extends Attribute
   case class SomeComp3(b: Boolean) extends Attribute
-
-  case class TestTracker() extends entice.server.world.Tracker {
-    var entity: Entity = _
-    var update: Update = _
-    var called = false
-    var success = false
-
-    def expect(entity: Entity, upd: Update) {
-      this.entity = entity
-      this.update = upd
-      called = false
-      success = false
-    }
-
-    override def trackMe(entity: Entity, upd: Update) {
-      called = true
-      if (entity == this.entity && upd == this.update) {
-        success = true
-      }
-    }
-  }
 }

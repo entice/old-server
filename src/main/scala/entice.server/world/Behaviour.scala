@@ -6,27 +6,41 @@ package entice.server
 package world
 
 import Named._
-import events.EventBus
+import events.{ EventBus, Update }
 
-import akka.actor.{ ActorRef, ActorSystem }
+import akka.actor.{ ActorRef, ActorSystem, Props }
 import scala.reflect.ClassTag
 
 
 /** Base trait for behaviours - assumes that each one is an actor */
 abstract class Behaviour(val entity: Entity) {
   def actorSystem = entity.world.actorSystem
-  def eventBus = entity.world.eventBus
+  def eventBus    = entity.world.eventBus
+
+  def init() { handles.foreach { _.subscribe(eventBus) } }
+
+  /** Defines events that the behaviour wants to receive */
+  protected def handles: List[Handler[_]] = List()
+  protected def incoming[T : Named](implicit actor: ActorRef) = Handler[T]()
+  protected case class Handler[T: Named]()(implicit actor: ActorRef) {
+    def subscribe(bus: EventBus) { bus.sub[T] }
+  }
 }
 
 
 trait BehaviourFactory[T <: Behaviour] {
   /** Checks whether the given entity is usable by the behaviour */
-  def createFor(e: Entity): Option[Behaviour] = {
+  def createFor(e: Entity): Option[T] = {
     if (!(requires forall { _.check(e) })) None
-    else                                   Some(createInternal(e))
+    else {
+      val behav = creates(e)
+      behav.init()
+      Some(behav)
+    }
   }
 
-  protected def createInternal: ((Entity) => Behaviour)
+  /** Defines the constructor for the behaviour */
+  protected def creates: ((Entity) => T)
 
   /** Defines necessary / unwanted attributes of the entities */ 
   protected def requires: List[Requirement] 

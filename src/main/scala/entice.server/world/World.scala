@@ -13,5 +13,5 @@ import akka.actor.ActorSystem
 class World(
     val actorSystem: ActorSystem, 
     val eventBus: EventBus = new EventBus,
-    val tracker: Tracker = new Tracker) {
+    val tracker: Tracker = new Tracker {}) {
 }
