@@ -15,53 +15,89 @@ import scala.collection._
 trait Attribute extends mutable.Cloneable[Attribute] with TrackingOptions
 
 
-case class Name() extends Attribute {
-  val name = Agent("Hansus Wurstus")
+trait NoPropagation extends TrackingOptions { override def notPropagated = true }
+trait NoVisibility  extends TrackingOptions { override def notVisible = true }
+
+
+case class Name(
+    val initialName: String = "Hansus Wurstus") 
+    extends Attribute {
+
+  val name = Agent(initialName)
 }
 
 
-case class Position() extends Attribute {
-  val pos = Agent(Coord2D(0, 0))
+case class Position(
+    val initialPos: Coord2D = Coord2D(0, 0)) 
+    extends Attribute {
+
+  val pos = Agent(initialPos)
 }
 
 
-case class Vision() extends Attribute {
-  val sees = Agent(Map[Entity, Float]()) // entity + distance :)
+case class Vision(
+    val initialSees: Map[Entity, Float] = Map()) 
+    extends Attribute with NoPropagation{
 
-  override def notPropagated = true
+  val sees = Agent(initialSees) // entity + distance :)
 }
 
 
-case class Movement() extends Attribute {
-  val goal = Agent(Coord2D(1, 1))
-  val state = Agent(MoveState.NotMoving)
+case class Movement(
+    val initialGoal: Coord2D = Coord2D(1, 1),
+    val initialState: MoveState.Value = MoveState.NotMoving) 
+    extends Attribute {
+
+  val goal = Agent(initialGoal)
+  val state = Agent(initialState)
 }
 
 
-case class Appearance() extends Attribute {
-  val profession = Agent(1)
-  val campaign = Agent(0)
-  val sex = Agent(1)
-  val height = Agent(0)
-  val skinColor = Agent(3)
-  val hairColor = Agent(0)
-  val hairstyle = Agent(7)
-  val face = Agent(31)
+case class Appearance(
+    val initialProfession: Int = 1,
+    val initialCampaign: Int = 0,
+    val initialSex: Int = 1,
+    val initialHeight: Int = 0,
+    val initialSkinColor: Int = 3,
+    val initialHairColor: Int = 0,
+    val initialHairstyle: Int = 7,
+    val initialFace: Int = 31) 
+    extends Attribute {
+
+  val profession = Agent(initialProfession)
+  val campaign = Agent(initialCampaign)
+  val sex = Agent(initialSex)
+  val height = Agent(initialHeight)
+  val skinColor = Agent(initialSkinColor)
+  val hairColor = Agent(initialHairColor)
+  val hairstyle = Agent(initialHairstyle)
+  val face = Agent(initialFace)
 }                    
 
 
-case class Animation() extends Attribute {
-  val id = Agent(Animations.None)
+case class Animation(
+    val initialId: Animations.AniVal = Animations.None)
+    extends Attribute {
+
+  val id = Agent(initialId)
 }
 
 
-case class GroupLeader() extends Attribute {
-  val members = Agent(List[Entity]())
-  val invited = Agent(List[Entity]())
-  val joinRequests = Agent(List[Entity]())
+case class GroupLeader(
+    val initialMembers: List[Entity] = Nil,
+    val initialInvited: List[Entity] = Nil,
+    val initialJoinRequests: List[Entity] = Nil) 
+    extends Attribute {
+
+  val members = Agent(initialMembers)
+  val invited = Agent(initialInvited)
+  val joinRequests = Agent(initialJoinRequests)
 }
 
 
-case class GroupMember() extends Attribute {
-  val leader = Agent(None: Option[Entity])
+case class GroupMember(
+    val initialLeader: Option[Entity] = None) 
+    extends Attribute {
+
+  val leader = Agent(initialLeader)
 }

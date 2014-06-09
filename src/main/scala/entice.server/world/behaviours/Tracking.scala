@@ -24,7 +24,7 @@ case object TrackingFactory extends BehaviourFactory[Tracking] {
 
 /** Actor based tracking */
 case class Tracking(override val entity: Entity) extends Behaviour(entity) {
-  implicit val actor   = actorSystem.actorOf(Props(new TrackableActor()))
+  implicit val actor   = actorSystem.actorOf(Props(new TrackingActor()))
   override val handles = 
     incoming[EntityAdd] ::
     incoming[EntityRemove] ::
@@ -40,7 +40,7 @@ case class Tracking(override val entity: Entity) extends Behaviour(entity) {
     case _       => false 
   }
 
-  class TrackableActor extends Actor with ActorLogging {
+  class TrackingActor extends Actor with ActorLogging {
     def receive = {
       case Evt(u: Update) if (u.entity == entity) => track(u)
       case Evt(u: Update) if (canSee(u.entity))   => track(u)
