@@ -36,7 +36,6 @@ object ProjectBuild extends Build {
       "org.scala-lang"         %  "scala-library" % scala,
       "org.scala-lang"         %  "scala-reflect" % scala,
       "com.typesafe.akka"      %% "akka-actor"    % akka,
-      "com.typesafe.akka"      %% "akka-agent"    % akka,
       "org.scalatest"          %% "scalatest"     % "2.1.3" % "test",
       "com.typesafe.akka"      %% "akka-testkit"  % akka    % "test"
     )

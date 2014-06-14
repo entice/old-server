@@ -7,7 +7,6 @@ package world
 
 import entice.protocol._
 
-import akka.agent.Agent
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection._
 
@@ -19,85 +18,39 @@ trait NoPropagation extends TrackingOptions { override def notPropagated = true 
 trait NoVisibility  extends TrackingOptions { override def notVisible = true }
 
 
-case class Name(
-    val initialName: String = "Hansus Wurstus") 
-    extends Attribute {
+/** Displayed name, if any */
+case class Name(name: String = "John Wayne") extends Attribute
 
-  val name = Agent(initialName)
-}
+/** Physical position in map coordinates */
+case class Position(pos: Coord2D = Coord2D(0, 0)) extends Attribute
 
+/** List of entities that this entity can see if any */
+case class Vision(sees: Map[Entity, Float] = Map()) extends Attribute with NoPropagation
 
-case class Position(
-    val initialPos: Coord2D = Coord2D(0, 0)) 
-    extends Attribute {
+/** Present if this entity can perform animations */
+case class Animation(id: Animations.AniVal = Animations.None) extends Attribute
 
-  val pos = Agent(initialPos)
-}
+/** Present if this entity can be part of a group */
+case class Group(group: Entity) extends Attribute with NoPropagation
 
-
-case class Vision(
-    val initialSees: Map[Entity, Float] = Map()) 
-    extends Attribute with NoPropagation{
-
-  val sees = Agent(initialSees) // entity + distance :)
-}
-
-
+/** A direction of movement and a state for if the entity is moving or not */
 case class Movement(
-    val initialGoal: Coord2D = Coord2D(1, 1),
-    val initialState: MoveState.Value = MoveState.NotMoving) 
-    extends Attribute {
+    goal: Coord2D = Coord2D(1, 1),
+    state: MoveState.Value = MoveState.NotMoving) extends Attribute
 
-  val goal = Agent(initialGoal)
-  val state = Agent(initialState)
-}
+/** The state of a group entity */
+case class GroupState(
+    members: List[Entity] = Nil,
+    invited: List[Entity] = Nil,
+    joinRequests: List[Entity] = Nil) extends Attribute
 
-
+/** The appearance of a player */
 case class Appearance(
-    val initialProfession: Int = 1,
-    val initialCampaign: Int = 0,
-    val initialSex: Int = 1,
-    val initialHeight: Int = 0,
-    val initialSkinColor: Int = 3,
-    val initialHairColor: Int = 0,
-    val initialHairstyle: Int = 7,
-    val initialFace: Int = 31) 
-    extends Attribute {
-
-  val profession = Agent(initialProfession)
-  val campaign = Agent(initialCampaign)
-  val sex = Agent(initialSex)
-  val height = Agent(initialHeight)
-  val skinColor = Agent(initialSkinColor)
-  val hairColor = Agent(initialHairColor)
-  val hairstyle = Agent(initialHairstyle)
-  val face = Agent(initialFace)
-}                    
-
-
-case class Animation(
-    val initialId: Animations.AniVal = Animations.None)
-    extends Attribute {
-
-  val id = Agent(initialId)
-}
-
-
-case class GroupLeader(
-    val initialMembers: List[Entity] = Nil,
-    val initialInvited: List[Entity] = Nil,
-    val initialJoinRequests: List[Entity] = Nil) 
-    extends Attribute {
-
-  val members = Agent(initialMembers)
-  val invited = Agent(initialInvited)
-  val joinRequests = Agent(initialJoinRequests)
-}
-
-
-case class GroupMember(
-    val initialLeader: Option[Entity] = None) 
-    extends Attribute {
-
-  val leader = Agent(initialLeader)
-}
+    profession: Int = 1,
+    campaign: Int = 0,
+    sex: Int = 1,
+    height: Int = 0,
+    skinColor: Int = 3,
+    hairColor: Int = 0,
+    hairstyle: Int = 7,
+    face: Int = 31) extends Attribute

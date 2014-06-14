@@ -35,15 +35,18 @@ case class Tracking(override val entity: Entity) extends Behaviour(entity) {
 
   def track(upd: Update) = entity.world.tracker.trackMe(entity, upd)
 
-  def canSee(e: Entity) = entity.get[Vision] match {
-    case Some(v) => v.sees().contains(e)
-    case _       => false 
-  }
-
+  /** Watches for tracking events of this entity, or of entities that this can see */
   class TrackingActor extends Actor with ActorLogging {
+    import context.dispatcher
+
     def receive = {
       case Evt(u: Update) if (u.entity == entity) => track(u)
-      case Evt(u: Update) if (canSee(u.entity))   => track(u)
+      case Evt(u: Update) => canSee(u.entity) onSuccess { case c => if (c) track(u) }
+    }
+
+    def canSee(e: Entity): Future[Boolean] = entity.get[Vision] match {
+      case Some(vision) => vision.map { v => v.sees.contains(e) }
+      case _            => Future.successful(false) 
     }
   }
 }

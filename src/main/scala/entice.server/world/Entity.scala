@@ -6,11 +6,11 @@ package entice.server
 package world
 
 import Named._
-import util.NamedTypeMap
+import util.{ Agent, ReactiveTypeMap }
 import events._
 
 import akka.actor.{ ActorRef, ActorSystem }
-import akka.agent.Agent
+import scala.concurrent.{ Future, ExecutionContext }
 
 
 trait EntityHandle {
@@ -18,32 +18,32 @@ trait EntityHandle {
 }
 
 class Entity(val world: World)  {
-  import scala.concurrent.ExecutionContext.Implicits.global
+  import world.actorSystem.dispatcher
 
-  var comps = new NamedTypeMap[Attribute]()
+  var comps = new ReactiveTypeMap[Attribute]()
 
-  def get  [T <: Attribute : Named] = comps.get[T]
-  def apply[T <: Attribute : Named] = comps[T]
-  def has  [T <: Attribute : Named] = comps.contains[T]
+  def has[T <: Attribute : Named] = comps.contains[T]
 
+  /** Unsafe get. Returns the future value if possible. */
+  def apply[T <: Attribute : Named]: Future[T] = comps.get[T].get
 
-  /** Add or change a component, track accordingly */
-  def +[T <: Attribute : Named](c: T) = add(c)
-  def add[T <: Attribute : Named](c: T) = { comps = comps + c; this }
+  /** Optional get. Returns an option of the future value. Always. */
+  def get[T <: Attribute : Named]: Option[Future[T]] = comps.get[T]
   
+  /** Remove an attribute from the set. */
+  def -     [T <: Attribute : Named] = remove[T]
+  def remove[T <: Attribute : Named] = { comps.remove[T]; this }
 
-  /** Remove a component, track accordingly */
-  def -[T <: Attribute : Named] = remove[T]
-  def remove[T <: Attribute : Named] = { comps = comps.remove[T]; this }
-  
-
-  /** Same as add, since map doesn't care - but different tracking event */
-  def set[T <: Attribute : Named](c: T) = add(c)
+  /** Add or set an attribute. */
+  def set   [T <: Attribute : Named](c: T) = add(c)
+  def +     [T <: Attribute : Named](c: T) = add(c)
+  def add   [T <: Attribute : Named](c: T) =  { comps.set(c); this }
 }
 
 
 /** Add automagical tracking to an entities 'state changes'. Needs Tracking behviour */
 trait EntityTracker extends Entity { self: Entity =>
+  import world.actorSystem.dispatcher
 
   def track[T <: Update : Named](update: T) = { 
     implicit val actor: ActorRef = null 
@@ -51,18 +51,18 @@ trait EntityTracker extends Entity { self: Entity =>
   }
   
   abstract override def add[T <: Attribute : Named](c: T) = {
-    comps.get[T] match {
-      case Some(comp) if (c != comp) => track(AttributeChange(self, comp, c))
-      case None                      => track(AttributeAdd(self, c))
-      case _                         => // do nothing if component the same
+    super.get[T] match {
+      case Some(attr) => attr onSuccess { case a => track(AttributeChange(self, a, c)) }
+      case None       => track(AttributeAdd(self, c))
+      case _          => // do nothing if component the same
     }
     super.add(c)
   }
 
   abstract override def remove[T <: Attribute : Named] = {
-    comps.get[T] match {
-      case Some(c) => track(AttributeRemove(self, c))
-      case _       => // do nothing if component doesnt exist
+    super.get[T] match {
+      case Some(attr) => attr onSuccess { case a => track(AttributeRemove(self, a)) }
+      case _          => // do nothing if component doesnt exist
     }
     super.remove[T]
   }
