@@ -62,6 +62,36 @@ class TrackerSpec extends TestKit(ActorSystem(
       e.add(s3)
       expectMsg(Track(e, AttributeAdd(e, s3)))
     }
+
+
+    "receive entity changes" in {
+      val w1 = new World(system, tracker = this)
+      val w2 = new World(system, tracker = this)
+      val e1 = w1.createEntity()
+      val e2 = w1.createEntity()
+      val e3 = w2.createEntity()
+      val tester1 = w1.createEntity() + Vision(Set(e1)) // doesnt see e2
+      val tester2 = w2.createEntity() + Vision(Set(e3)) // doesnt see e2
+      
+      val t1 = TrackingFactory.createFor(tester1)
+      t1 must be(Some(Tracking(tester1)))
+
+      val t2 = TrackingFactory.createFor(tester2)
+      t2 must be(Some(Tracking(tester2)))
+
+      w1.remove(e1)
+      expectMsg(Track(tester1, EntityRemove(e1)))
+
+      w1.remove(e2)
+      expectNoMsg
+
+      val e4 = w1.transfer(e3)
+      expectMsgAnyOf(Track(tester1, EntityAdd(e4)), Track(tester2, EntityRemove(e3)))
+      expectMsgAnyOf(Track(tester1, EntityAdd(e4)), Track(tester2, EntityRemove(e3)))
+
+      val e5 = w1.createEntity()
+      expectMsg(Track(tester1, EntityAdd(e5)))
+    }
   }
 }
 

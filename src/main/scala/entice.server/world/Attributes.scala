@@ -25,7 +25,7 @@ case class Name(name: String = "John Wayne") extends Attribute
 case class Position(pos: Coord2D = Coord2D(0, 0)) extends Attribute
 
 /** List of entities that this entity can see if any */
-case class Vision(sees: Map[Entity, Float] = Map()) extends Attribute with NoPropagation
+case class Vision(sees: Set[Entity] = Set()) extends Attribute with NoPropagation
 
 /** Present if this entity can perform animations */
 case class Animation(id: Animations.AniVal = Animations.None) extends Attribute
