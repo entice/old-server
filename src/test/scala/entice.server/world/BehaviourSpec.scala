@@ -38,9 +38,9 @@ class BehaviourSpec extends TestKit(ActorSystem(
 
     "only accept entities with specific components" in {
       val w = new World(system)
-      val e1 = new Entity(w) + SomeAttr1()
-      val e2 = new Entity(w) + SomeAttr1() + SomeAttr2()
-      val e3 = new Entity(w) + SomeAttr1() + SomeAttr3()
+      val e1 = w.createEntity() + SomeAttr1()
+      val e2 = w.createEntity() + SomeAttr1() + SomeAttr2()
+      val e3 = w.createEntity() + SomeAttr1() + SomeAttr3()
       val s1 = SomeBehaviourFactory1
       val s2 = SomeBehaviourFactory2
       val s3 = SomeBehaviourFactory3
@@ -63,7 +63,7 @@ class BehaviourSpec extends TestKit(ActorSystem(
 
     "get initialized by its factory" in {
       val w = new World(system)
-      val e = new Entity(w)
+      val e = w.createEntity()
       val bf = ExampleBehaviourFactory(system)
 
       // create will initialize the behaviour

@@ -7,8 +7,9 @@ package behaviours
 
 import entice.server.Named
 import entice.server.events._
+import entice.server.util._
 
-import akka.actor.ActorSystem
+import akka.actor.{ Actor, ActorSystem, Props }
 import akka.testkit.{ TestKit, ImplicitSender }
 import com.typesafe.config.ConfigFactory
 
@@ -17,39 +18,39 @@ import scala.concurrent.duration._
 import org.scalatest._
 
 
-class TrackerSpec extends TestKit(ActorSystem(
-    "tracker-spec-sys", 
+class TrackingSpec extends TestKit(ActorSystem(
+    "tracker-spec-sys",
     config = ConfigFactory.parseString("""
       akka {
         loglevel = WARNING
       }""")))//test.single-expect-default = 0
-    with WordSpecLike 
-    with MustMatchers 
+    with WordSpecLike
+    with MustMatchers
     with BeforeAndAfterAll
     with OneInstancePerTest
-    with ImplicitSender 
+    with ImplicitSender
 
     with entice.server.world.Tracker {
-  
+
   import scala.concurrent.ExecutionContext.Implicits.global
   implicit val actorSystem = system
   override def afterAll { TestKit.shutdownActorSystem(system) }
 
 
-  import TrackerSpec._
+  import TrackingSpec._
 
   case class Track(entity: Entity, upd: Update)
   override def trackMe(entity: Entity, upd: Update) = self ! Track(entity, upd)
 
   "A tracking behaviour for entities" must {
-    
+
     "receive attribute changes" in {
       val w = new World(system, tracker = this)
       val s1 = SomeComp1("Test")
       val s2 = SomeComp2(1337)
       val s3 = SomeComp3(false)
-      val e = (new Entity(w) with EntityTracker) + Vision() + s1 + s2 // no s3.
-      
+      val e = w.createEntity() + Vision() + s1 + s2 // no s3.
+
       val t = TrackingFactory.createFor(e)
       t must be(Some(Tracking(e)))
 
@@ -70,32 +71,37 @@ class TrackerSpec extends TestKit(ActorSystem(
       val e1 = w1.createEntity()
       val e2 = w1.createEntity()
       val e3 = w2.createEntity()
-      val tester1 = w1.createEntity() + Vision(Set(e1)) // doesnt see e2
-      val tester2 = w2.createEntity() + Vision(Set(e3)) // doesnt see e2
-      
-      val t1 = TrackingFactory.createFor(tester1)
-      t1 must be(Some(Tracking(tester1)))
+      val witness1 = w1.createEntity() + Vision(Set(e1)) // doesnt see e2
+      val witness2 = w2.createEntity() + Vision(Set(e3))
 
-      val t2 = TrackingFactory.createFor(tester2)
-      t2 must be(Some(Tracking(tester2)))
+      // add behaviour artificaily
+      val t1 = TrackingFactory.createFor(witness1)
+      t1 must be(Some(Tracking(witness1)))
 
+      val t2 = TrackingFactory.createFor(witness2)
+      t2 must be(Some(Tracking(witness2)))
+
+      // always witness removals
       w1.remove(e1)
-      expectMsg(Track(tester1, EntityRemove(e1)))
-
-      w1.remove(e2)
+      expectMsg(Track(witness1, EntityRemove(e1)))
+      w1.remove(e2) // even if you don't see it
       expectNoMsg
 
-      val e4 = w1.transfer(e3)
-      expectMsgAnyOf(Track(tester1, EntityAdd(e4)), Track(tester2, EntityRemove(e3)))
-      expectMsgAnyOf(Track(tester1, EntityAdd(e4)), Track(tester2, EntityRemove(e3)))
+      // always witness additions, no matter what components it has
+      val e4 = w1.createEntity()
+      expectMsg(Track(witness1, EntityAdd(e4)))
+      val e5 = w1.createEntity(Some((new ReactiveTypeMap()).set(Vision(Set(e1)))))
+      expectMsg(Track(witness1, EntityAdd(e5)))
 
-      val e5 = w1.createEntity()
-      expectMsg(Track(tester1, EntityAdd(e5)))
+      // witness both add and remove on transferral
+      val e6 = w1.transfer(e3)
+      expectMsgAnyOf(Track(witness1, EntityAdd(e6)), Track(witness2, EntityRemove(e3)))
+      expectMsgAnyOf(Track(witness1, EntityAdd(e6)), Track(witness2, EntityRemove(e3)))
     }
   }
 }
 
-object TrackerSpec {
+object TrackingSpec {
   case class SomeComp1(s: String)  extends Attribute
   case class SomeComp2(i: Int)     extends Attribute
   case class SomeComp3(b: Boolean) extends Attribute

@@ -12,10 +12,13 @@ import behaviours._
 import akka.actor.{ ActorRef, ActorSystem }
 
 
+/**
+ * Provides actorsystem, eventbus and tracker for its entities.
+ */
 class World(
-    val actorSystem: ActorSystem, 
+    val actorSystem: ActorSystem,
     val eventBus: EventBus = new EventBus,
-    val tracker: Tracker = new Tracker {}) {
+    val tracker: Tracker = new Tracker{}) {
 
   private var entities: Set[Entity] = Set()
   private val behaviours =
@@ -23,17 +26,17 @@ class World(
     Nil
 
 
-  private def track[T <: Update : Named](update: T) = { 
-    implicit val actor: ActorRef = null 
-    eventBus.pub(update) 
+  private def track[T <: Update : Named](update: T) = {
+    implicit val actor: ActorRef = null
+    eventBus.pub(update)
   }
 
 
   def contains(entity: Entity) = entities.contains(entity)
 
 
-  def createEntity(attr: Option[ReactiveTypeMap[Attribute]] = None): Entity = { 
-    val newEntity = new Entity(this, attr) with EntityTracker
+  def createEntity(attr: Option[ReactiveTypeMap[Attribute]] = None): Entity = {
+    val newEntity = EntityImpl(this, attr)
     entities = entities + newEntity
     track(EntityAdd(newEntity))
     newEntity
@@ -42,20 +45,14 @@ class World(
 
   def transfer(entity: Entity): Entity = {
     if (!entities.contains(entity)) {
-      // remove us from the old world
       entity.world.remove(entity)
-      // inject this world
-      val newEntity = entity.copy(world = this)
-      // add the new entity
-      entities = entities + newEntity
-      track(EntityAdd(newEntity))
-      newEntity
+      createEntity(Some(entity.attr))
     }
     else entity
   }
 
 
-  def remove(entity: Entity) { 
+  def remove(entity: Entity) {
     if (entities.contains(entity)) {
       entities = entities - entity
       track(EntityRemove(entity))

@@ -7,6 +7,8 @@ package world
 
 import events._
 
+import scala.collection.immutable.Queue
+
 
 /** Determins propagation of changes to a value */
 trait TrackingOptions {
@@ -17,6 +19,15 @@ trait TrackingOptions {
 }
 
 
+/** This keeps track of the updates that certain entities can observe */
 trait Tracker {
-  def trackMe(entity: Entity, update: Update) = {}
+  var events = Map[Entity, Queue[Update]]()
+
+  def trackMe(entity: Entity, update: Update) {
+    // update needs to be propagateable and visible to be stored
+    if (!update.notPropagated && !(entity != update.entity && update.notVisible)) {
+      val queue = events.get(entity).getOrElse(Queue())
+      events = events + (entity -> (queue.enqueue(update)))
+    }
+  }
 }
