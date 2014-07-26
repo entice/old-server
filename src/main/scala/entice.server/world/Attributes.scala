@@ -5,9 +5,11 @@
 package entice.server
 package world
 
+import util.ReactiveTypeMap
+
 import entice.protocol._
 
-import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.Future
 import scala.collection._
 
 
@@ -18,39 +20,23 @@ trait NoPropagation extends TrackingOptions { override def notPropagated = true 
 trait NoVisibility  extends TrackingOptions { override def notVisible = true }
 
 
-/** Displayed name, if any */
-case class Name(name: String = "John Wayne") extends Attribute
+trait HasAttributes {
+  def attr: ReactiveTypeMap[Attribute]
 
-/** Physical position in map coordinates */
-case class Position(pos: Coord2D = Coord2D(0, 0)) extends Attribute
+  def has[T <: Attribute : Named]: Boolean = attr.contains[T]
 
-/** List of entities that this entity can see if any */
-case class Vision(sees: Set[Entity] = Set()) extends Attribute with NoPropagation
+  /** Unsafe get. Returns the future value if possible. */
+  def apply[T <: Attribute : Named]: Future[T] = attr.get[T].get
 
-/** Present if this entity can perform animations */
-case class Animation(id: Animations.AniVal = Animations.None) extends Attribute
+  /** Optional get. Returns an option of the future value. Always. */
+  def get[T <: Attribute : Named]: Option[Future[T]] = attr.get[T]
+  
+  /** Remove an attribute from the set. */
+  def -     [T <: Attribute : Named]: this.type = remove[T]
+  def remove[T <: Attribute : Named]: this.type = { attr.remove[T]; this }
 
-/** Present if this entity can be part of a group */
-case class Group(group: Entity) extends Attribute with NoPropagation
-
-/** A direction of movement and a state for if the entity is moving or not */
-case class Movement(
-    goal: Coord2D = Coord2D(1, 1),
-    state: MoveState.Value = MoveState.NotMoving) extends Attribute
-
-/** The state of a group entity */
-case class GroupState(
-    members: List[Entity] = Nil,
-    invited: List[Entity] = Nil,
-    joinRequests: List[Entity] = Nil) extends Attribute
-
-/** The appearance of a player */
-case class Appearance(
-    profession: Int = 1,
-    campaign: Int = 0,
-    sex: Int = 1,
-    height: Int = 0,
-    skinColor: Int = 3,
-    hairColor: Int = 0,
-    hairstyle: Int = 7,
-    face: Int = 31) extends Attribute
+  /** Add or set an attribute. */
+  def set   [T <: Attribute : Named](c: T): this.type = add(c)
+  def +     [T <: Attribute : Named](c: T): this.type = add(c)
+  def add   [T <: Attribute : Named](c: T): this.type = { attr.set(c); this }
+}

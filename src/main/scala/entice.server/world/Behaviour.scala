@@ -6,9 +6,12 @@ package entice.server
 package world
 
 import Named._
+import util.ReactiveTypeMap
 import events.{ EventBus, Update }
 
 import akka.actor.{ ActorRef, ActorSystem, Props }
+
+import scala.concurrent.Future
 import scala.reflect.ClassTag
 
 
@@ -28,16 +31,25 @@ abstract class Behaviour(val entity: Entity) {
 }
 
 
-trait BehaviourFactory[T <: Behaviour] {
-  /** Checks whether the given entity is usable by the behaviour */
-  def createFor(e: Entity): Option[T] = {
-    if (!(requires forall { _.check(e) })) None
+abstract class BehaviourFactory[T <: Behaviour : Named] {
+
+  //type T <: Behaviour
+  //implicit val named: Named[T]
+
+  /** Adds the behaviour if applicable */
+  def applyTo(e: Entity): Option[T] = {
+    // apply only if not yet present and all requirements met
+    if (e.hasBehaviour[T] || !(requires forall { _.check(e) })) None
     else {
       val behav = creates(e)
       behav.init()
+      e.addBehaviour(behav)
       Some(behav)
     }
   }
+
+  /** Removes the behaviour if not applicable anymore */
+  def removeFrom(e: Entity) { e.removeBehaviour[T] }
 
   /** Defines the constructor for the behaviour */
   protected def creates: ((Entity) => T)
@@ -58,4 +70,13 @@ trait BehaviourFactory[T <: Behaviour] {
   protected case class HasNot[T <: Attribute : Named]() extends Requirement { 
     def check(e: Entity): Boolean = (!e.has[T])
   }
+}
+
+
+trait HasBehaviours {
+  def behav: ReactiveTypeMap[Behaviour]
+
+  def hasBehaviour   [T <: Behaviour : Named]: Boolean = behav.contains[T]
+  def removeBehaviour[T <: Behaviour : Named]: this.type = { behav.remove[T]; this }
+  def addBehaviour   [T <: Behaviour : Named](c: T): this.type = { behav.set(c); this }
 }

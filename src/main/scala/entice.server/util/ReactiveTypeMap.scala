@@ -24,6 +24,7 @@ class ReactiveTypeMap[E] private (var map: Map[String, Agent[E]] = Map())(implic
       .map { _.asInstanceOf[Future[T]] }
   }
 
+  def add[T <: E : Named](v: T): this.type = set(v)
   def set[T <: E : Named](v: T): this.type = {
     map.get(implicitly[Named[T]].name) match {
       case Some(agent) => agent.asInstanceOf[Agent[T]].alter { x => v }

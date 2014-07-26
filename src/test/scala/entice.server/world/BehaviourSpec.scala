@@ -45,21 +45,21 @@ class BehaviourSpec extends TestKit(ActorSystem(
       val s2 = SomeBehaviourFactory2
       val s3 = SomeBehaviourFactory3
 
-      s1.createFor(e1) must be(Some(SomeBehaviour1(e1)))
-      s1.createFor(e2) must be(Some(SomeBehaviour1(e2)))
-      s1.createFor(e3) must be(Some(SomeBehaviour1(e3)))
+      s1.applyTo(e1) must be(Some(SomeBehaviour1(e1)))
+      s1.applyTo(e2) must be(Some(SomeBehaviour1(e2)))
+      s1.applyTo(e3) must be(Some(SomeBehaviour1(e3)))
 
-      s2.createFor(e1) must be(Some(SomeBehaviour2(e1)))
-      s2.createFor(e2) must be(None)
-      s2.createFor(e3) must be(Some(SomeBehaviour2(e3)))
+      s2.applyTo(e1) must be(Some(SomeBehaviour2(e1)))
+      s2.applyTo(e2) must be(None)
+      s2.applyTo(e3) must be(Some(SomeBehaviour2(e3)))
 
-      s3.createFor(e1) must be(None)
-      s3.createFor(e2) must be(None)
-      s3.createFor(e3) must be(Some(SomeBehaviour3(e3)))
+      s3.applyTo(e1) must be(None)
+      s3.applyTo(e2) must be(None)
+      s3.applyTo(e3) must be(Some(SomeBehaviour3(e3)))
     }
   }
 
-  "Some behaviour" must {
+  "Any behaviour" must {
 
     "get initialized by its factory" in {
       val w = new World(system)
@@ -67,7 +67,7 @@ class BehaviourSpec extends TestKit(ActorSystem(
       val bf = ExampleBehaviourFactory(system)
 
       // create will initialize the behaviour
-      val b = bf.createFor(e)
+      val b = bf.applyTo(e)
       b must be(Some(ExampleBehaviour(e)(system)))
 
       // after that it must be able to receive messages

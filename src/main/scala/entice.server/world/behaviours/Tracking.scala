@@ -5,7 +5,9 @@
 package entice.server.world
 package behaviours
 
-import entice.server.Named
+import attributes._
+
+import entice.server.Named, Named._
 import entice.server.events._
 
 import akka.actor.{ Actor, ActorLogging, ActorRef, ActorSystem, Props }
@@ -17,7 +19,8 @@ import scala.concurrent.duration._
 import scala.concurrent.Future
 
 
-case object TrackingFactory extends BehaviourFactory[Tracking] {
+/** TODO: why do i need to (ex)implicitly import Named here?! */
+object TrackingFactory extends BehaviourFactory[Tracking]()(implicitly[Named[Tracking]]) {
   val requires = has[Vision] :: Nil
   val creates  = Tracking
 }
