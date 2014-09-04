@@ -19,6 +19,13 @@ trait Core {
   def actorSystem: ActorSystem
   def eventBus: EventBus
 
+  object core {
+    def shutdown() {
+      Logging.getLogger(actorSystem, this).info("Attempting graceful shutdown of the server core.")
+      actorSystem.shutdown
+    }
+  }
+
   protected lazy val defaultAkkaConfig: Config = {
     Logging.getLogger(actorSystem, this).warning("Falling back to default akka config!")
     ConfigFactory.parseString("""
