@@ -4,17 +4,12 @@
 
 package entice.server
 
-import scala.language.experimental.macros
-import scala.reflect.macros.blackbox.Context
 
+package object macros {
+  import scala.language.experimental.{ macros => scalaMacros }
+  import scala.reflect.macros.blackbox.Context
 
-trait Named[T] { 
-  val name: String
-}
-
-/** Macro implementation for getting the type-name of any type. */
-object Named {
-
+  /** Macro implementation for getting the type-name of any type. */
   implicit def materializeNamed[T]: Named[T] = macro materializeNamedImpl[T]
 
   def materializeNamedImpl[T: c.WeakTypeTag](c: Context): c.Expr[Named[T]] = {

@@ -3,14 +3,14 @@
  * Adapted from: https://gist.github.com/DeLongey/3757237
  */
 
-package entice.server
-package events
+package entice.server.implementation.events
 
-import Named._
+import entice.server.macros._
+
 import akka.event.ActorEventBus
 import akka.event.LookupClassification
 import akka.actor.{ ActorRef, Extension }
- 
+
 
 /**
  * Encapsulates a single event.
@@ -28,8 +28,8 @@ case class Evt[T: Named](message: T)(implicit implSender: ActorRef) {
  *
  * Details:
  * When subscribing to an event, you actually subscribe to the classname of it.
- * This is because we can get the name at compile time easily, and then work 
- * with it as an identifier at runtime. 
+ * This is because we can get the name at compile time easily, and then work
+ * with it as an identifier at runtime.
  *
  * Usage:
  * This might be used with appropriate message handler actors. The message event carries

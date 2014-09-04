@@ -2,8 +2,9 @@
  * For copyright information see the LICENSE document.
  */
 
-package entice.server
-package events
+package entice.server.implementation.events
+
+import entice.server.macros._
 
 import akka.actor.ActorSystem
 import akka.testkit.{ TestKit, TestProbe, ImplicitSender }
@@ -12,23 +13,22 @@ import com.typesafe.config.ConfigFactory
 import scala.language.postfixOps
 import scala.concurrent.duration._
 import scala.concurrent.Future
-import scala.concurrent.Await
 
 import org.scalatest._
 
 
 class EventBusSpec extends TestKit(ActorSystem(
-    "evtbus-spec-sys", 
+    "evtbus-spec-sys",
     config = ConfigFactory.parseString("""
       akka {
         loglevel = WARNING,
         test.single-expect-default = 0
       }""")))
-    with WordSpecLike 
-    with MustMatchers 
+    with WordSpecLike
+    with Matchers
     with BeforeAndAfterAll
     with OneInstancePerTest {
-  
+
   import scala.concurrent.ExecutionContext.Implicits.global
   implicit val actorSystem = system
   override def afterAll { TestKit.shutdownActorSystem(system) }
@@ -36,7 +36,7 @@ class EventBusSpec extends TestKit(ActorSystem(
 
   import EventBusSpec._
 
-  "An entice event bus" must {
+  "An entice event bus" should {
     "subscribe and publish to the right actors" in {
       val bus = new EventBus()
 
@@ -49,7 +49,7 @@ class EventBusSpec extends TestKit(ActorSystem(
       { implicit val actor = a2.ref; bus.sub[GenericTestMessage[Boolean]] }
       { implicit val actor = a3.ref; bus.sub[GenericTestMessage[Boolean]] }
 
-      { 
+      {
         implicit val actor = testActor
         bus.pub(TestMessage())
         a1.expectMsg(Evt(TestMessage()))
@@ -58,7 +58,7 @@ class EventBusSpec extends TestKit(ActorSystem(
       }
 
 
-      { 
+      {
         implicit val actor = testActor
         bus.pub(GenericTestMessage[String]())
         a1.expectNoMsg
@@ -67,7 +67,7 @@ class EventBusSpec extends TestKit(ActorSystem(
       }
 
 
-      { 
+      {
         implicit val actor = testActor
         bus.pub(GenericTestMessage[Boolean]())
         a1.expectNoMsg
