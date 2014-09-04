@@ -23,17 +23,18 @@ class DefaultCoreSpec
   trait FakeFileDefaultCore
       extends DefaultCore {
 
-    override lazy val akkaConfigFile = "tmp/default-core-test.conf"
+    override lazy val akkaConfigFile = "tmp-test/default-core-test.conf"
 
     def createFile() {
-      new File("tmp").mkdir
-      val p = new PrintWriter("tmp/default-core-test.conf")
+      new File("tmp-test").mkdir
+      val p = new PrintWriter("tmp-test/default-core-test.conf")
       p.write("akka { testValue = 1337 }")
       p.close()
     }
 
     def deleteFile() {
-      new File("tmp/default-core-test.conf").delete()
+      new File("tmp-test/default-core-test.conf").delete()
+      new File("tmp-test").delete()
     }
   }
 
