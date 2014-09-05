@@ -1,15 +1,23 @@
 language: scala
 scala:
-  - 2.11.2
+- 2.11.2
 branches:
   only:
-    - milestone5
-    - develop
-    - master
+  - milestone5
+  - develop
+  - master
 notifications:
-  irc: "irc.rizon.net#gwlpr"
+  irc: irc.rizon.net#gwlpr
 jdk:
-  - openjdk7
-  - oraclejdk7
+- openjdk7
+- oraclejdk7
 services:
-  - mongodb
+- mongodb
+deploy:
+  provider: heroku
+  api_key:
+    secure: Qqz3ycFrVinxvDoGALZCQJ239xGuwMRUVp8eI7mas1pY2NrT9tcbUZLu7ej60s/6Js6G74iE8/etvU6gtgyAgqkCeE5fwj38bPwqBilOK4uNUi1wOGIHE7Ncte9HgZUD2YRYXsO7mbJK9HpZyvThyqafH+DM5iHkHoG+CMLBpbE=
+  app: entice-server
+  on:
+    repo: entice/server
+    branch: milestone5

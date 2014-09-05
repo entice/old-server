@@ -4,17 +4,18 @@
 
 import sbt._
 import sbt.Keys._
+import com.typesafe.sbt.SbtNativePackager._
+import NativePackagerKeys._
 
 
 object ProjectBuild extends Build {
-
 
   val project  = "0.1.0"
   val scala    = "2.11.2"
   val akka     = "2.3.3"
 
 
-  val prjSettings = Project.defaultSettings ++ Seq(
+  val prjSettings = Project.defaultSettings ++ packageArchetype.java_application ++ Seq(
     version      := project,
     scalaVersion := scala,
 
