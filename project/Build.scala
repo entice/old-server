@@ -37,6 +37,7 @@ object ProjectBuild extends Build {
       "org.scala-lang"         %  "scala-library"  % scala,
       "org.scala-lang"         %  "scala-reflect"  % scala,
       "com.typesafe.akka"      %% "akka-actor"     % akka,
+      "org.scala-lang"         %% "scala-pickling" % "0.9.0-SNAPSHOT",
       "org.scalatest"          %% "scalatest"      % "2.2.1" % "test",
       "com.typesafe.akka"      %% "akka-testkit"   % akka    % "test"
     )
@@ -50,8 +51,8 @@ object ProjectBuild extends Build {
       name := "Entice Server"
     )
   ) .dependsOn(macros)
-    .dependsOn(protocol)
-    .aggregate(protocol)
+    //.dependsOn(protocol)
+    //.aggregate(protocol)
 
 
   lazy val macros = Project(
@@ -61,5 +62,5 @@ object ProjectBuild extends Build {
   )
 
 
-  lazy val protocol = RootProject(uri("https://github.com/entice/protocol.git#milestone5"))
+  //lazy val protocol = RootProject(uri("https://github.com/entice/protocol.git#milestone5"))
 }
