@@ -17,7 +17,7 @@ object Main
     extends App
     with DefaultServer {
 
-  logger.info("Starting " + System.getProperty("app.env") + " - server on port:" + System.getProperty("server.port"))
+  logger.info(s"Starting a ${environment.toString.toLowerCase} server on: ${serverHost}:${serverPort}")
 
   core.init()
 
@@ -30,4 +30,16 @@ object Main
 /** A default server cake with default components */
 trait DefaultServer
     extends DefaultLogger
-    with DefaultCore
+    with Environment
+    with DefaultCore {
+
+  lazy val serverHost = Option(System.getProperty("server.host"))
+    .getOrElse(throw new NullPointerException("Property server.host has not been set."))
+
+  lazy val serverPort = Option(System.getProperty("server.port"))
+    .getOrElse(throw new NullPointerException("Property server.port has not been set.")).toInt
+
+  lazy val environment = environmentFromProperty(Option(System.getProperty("app.env"))
+    .getOrElse(throw new NullPointerException("Property app.env has not been set."))
+  )
+}

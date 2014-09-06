@@ -8,7 +8,7 @@ import entice.server._
 import entice.server.implementation.events.EventBus
 
 import akka.actor.ActorSystem
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{ Config => TSConfig, ConfigFactory }
 
 import java.util.Scanner
 import java.io.File
@@ -25,7 +25,7 @@ trait DefaultCore extends Core { self: Logger =>
   lazy val actorSystem = ActorSystem("entice-server", parseAkkaConfig(akkaConfigFile) getOrElse defaultAkkaConfig)
   lazy val eventBus = new EventBus()
 
-  private def parseAkkaConfig(file: String): Option[Config] = {
+  private def parseAkkaConfig(file: String): Option[TSConfig] = {
     (for {
       src <- Try(Source.fromFile(file).mkString.trim)
       res <- Try(ConfigFactory.parseString(src))

@@ -8,7 +8,7 @@ import entice.server.implementation.events.EventBus
 
 import akka.actor.ActorSystem
 
-import com.typesafe.config.{ Config, ConfigFactory }
+import com.typesafe.config.{ Config => TSConfig, ConfigFactory }
 
 
 /**
@@ -33,7 +33,7 @@ trait Core { self: Logger =>
     }
   }
 
-  protected lazy val defaultAkkaConfig: Config = {
+  protected lazy val defaultAkkaConfig: TSConfig = {
     self.logger.warn("Falling back to default akka config!")
     ConfigFactory.parseString("""
       akka {
@@ -41,6 +41,7 @@ trait Core { self: Logger =>
         loglevel = DEBUG
         log-dead-letters-during-shutdown = off
         logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"
+        logger-startup-timeout = 30000
       }
     """)
   }

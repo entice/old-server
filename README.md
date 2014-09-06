@@ -41,5 +41,6 @@ The akka configuration is in `conf/akka.conf`, any server specific configuration
 
 The following java system properties can be set to configure the server:
 
+- `-Dserver.host=` the hostname that can be used to access the server
 - `-Dserver.port=` with some port the server should bind to as int
-- `-Dapp.env=` with either `DEV` or `PROD` to set the application's environment
+- `-Dapp.env=` with either `DEV` / `TEST` (SBT sets these) or `PROD` (on heroku) to set the application's environment
