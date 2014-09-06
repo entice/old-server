@@ -4,9 +4,13 @@
 
 package entice.server.implementation.cores
 
+import entice.server._
+import entice.server.implementation.loggers.NullLogger
 import entice.server.implementation.events.EventBus
 
 import akka.actor.ActorSystem
+
+import com.typesafe.config._
 
 import org.scalatest._
 
@@ -21,7 +25,7 @@ class DefaultCoreSpec
 
   /** Component under test */
   trait FakeFileDefaultCore
-      extends DefaultCore {
+      extends DefaultCore { self: Logger =>
 
     override lazy val akkaConfigFile = "tmp-test/default-core-test.conf"
 
@@ -41,24 +45,23 @@ class DefaultCoreSpec
 
   "A default server core" should {
 
-    "load up an akka system" in new DefaultCore {
+    "load up an akka system" in new DefaultCore with NullLogger {
       actorSystem shouldBe an[ActorSystem]
     }
 
-    "load up a global event bus" in new DefaultCore {
+    "load up a global event bus" in new DefaultCore with NullLogger {
       eventBus shouldBe an[EventBus]
     }
 
-    "load up an akka system with changed config" in new FakeFileDefaultCore {
+    "load up an akka system with changed config" in new FakeFileDefaultCore with NullLogger {
       createFile()
       actorSystem.settings.config.getInt("akka.testValue") should be(1337)
       deleteFile()
     }
 
-    "not load up an akka system with nonexisting config" in new FakeFileDefaultCore {
-      // Note: FileInputStream here throws this instead of a FileNotFoundException
-      an [StackOverflowError] should be thrownBy {
-        actorSystem.settings.config.getInt("akka.testValue") should be(1337)
+    "load up an akka system with nonexisting config - by using defaults" in new FakeFileDefaultCore with NullLogger {
+      a [ConfigException.Missing] should be thrownBy {
+        actorSystem.settings.config.getInt("akka.testValue")
       }
     }
   }

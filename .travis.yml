@@ -13,11 +13,3 @@ jdk:
 - oraclejdk7
 services:
 - mongodb
-deploy:
-  provider: heroku
-  api_key:
-    secure: Qqz3ycFrVinxvDoGALZCQJ239xGuwMRUVp8eI7mas1pY2NrT9tcbUZLu7ej60s/6Js6G74iE8/etvU6gtgyAgqkCeE5fwj38bPwqBilOK4uNUi1wOGIHE7Ncte9HgZUD2YRYXsO7mbJK9HpZyvThyqafH+DM5iHkHoG+CMLBpbE=
-  app: entice-server
-  on:
-    repo: entice/server
-    branch: milestone5

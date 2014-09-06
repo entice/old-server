@@ -1,6 +1,7 @@
 # General files
 *.class
 *.log
+logs/
 
 # SBT specific
 dist/*
@@ -17,6 +18,3 @@ project/plugins/project/
 
 # OS specific
 .DS_Store
-
-# Server config files
-config/local-akka.conf

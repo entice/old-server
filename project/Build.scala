@@ -15,7 +15,7 @@ object ProjectBuild extends Build {
   val akka     = "2.3.3"
 
 
-  val prjSettings = Project.defaultSettings ++ packageArchetype.java_application ++ Seq(
+  val prjSettings = Project.defaultSettings ++ Seq(
     version      := project,
     scalaVersion := scala,
 
@@ -34,12 +34,15 @@ object ProjectBuild extends Build {
     ),
 
     libraryDependencies ++= Seq(
-      "org.scala-lang"         %  "scala-library"  % scala,
-      "org.scala-lang"         %  "scala-reflect"  % scala,
-      "com.typesafe.akka"      %% "akka-actor"     % akka,
-      "org.scala-lang"         %% "scala-pickling" % "0.9.0-SNAPSHOT",
-      "org.scalatest"          %% "scalatest"      % "2.2.1" % "test",
-      "com.typesafe.akka"      %% "akka-testkit"   % akka    % "test"
+      "org.scala-lang"             %  "scala-library"   % scala,
+      "org.scala-lang"             %  "scala-reflect"   % scala,
+      "org.codehaus.groovy"        %  "groovy-all"      % "2.3.6",
+      "ch.qos.logback"             %  "logback-classic" % "1.1.2",
+      "com.typesafe.akka"          %% "akka-actor"      % akka,
+      "com.typesafe.akka"          %% "akka-slf4j"      % akka,
+      "org.scala-lang"             %% "scala-pickling"  % "0.9.0-SNAPSHOT",
+      "org.scalatest"              %% "scalatest"       % "2.2.1" % "test",
+      "com.typesafe.akka"          %% "akka-testkit"    % akka    % "test"
     )
   )
 
@@ -47,12 +50,26 @@ object ProjectBuild extends Build {
   lazy val root = Project(
     id = "root",
     base = file("."),
-    settings = prjSettings ++ Seq(
-      name := "Entice Server"
+    settings = prjSettings ++ packageArchetype.java_application ++ Seq(
+      name := "Entice Server",
+
+      fork in run := true,
+      connectInput in run := true,
+      javaOptions in run ++= Seq(
+        "-Dserver.port=9112",
+        "-Dapp.env=DEV"
+      ),
+
+      fork in test := true,
+      javaOptions in test ++= Seq(
+        "-Dserver.port=9112",
+        "-Dapp.env=TEST"
+      )
     )
   ) .dependsOn(macros)
-    //.dependsOn(protocol)
-    //.aggregate(protocol)
+    .aggregate(macros)
+    .dependsOn(protocol)
+    .aggregate(protocol)
 
 
   lazy val macros = Project(
@@ -62,5 +79,9 @@ object ProjectBuild extends Build {
   )
 
 
-  //lazy val protocol = RootProject(uri("https://github.com/entice/protocol.git#milestone5"))
+  lazy val protocol = Project(
+    id = "protocol",
+    base = file("protocol"),
+    settings = prjSettings
+  )
 }
