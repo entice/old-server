@@ -4,8 +4,6 @@
 
 package entice.server
 
-import org.slf4j.{ Logger => SLF4JLogger }
-
 
 /**
  * Determins the environment the server runs in.

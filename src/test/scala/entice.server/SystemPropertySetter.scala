@@ -14,5 +14,6 @@ trait SystemPropertySetter extends BeforeAndAfterAll { self: Suite =>
     System.setProperty("server.host", "127.0.0.1")
     System.setProperty("server.port", "8112")
     System.setProperty("app.env", "TEST")
+    super.beforeAll()
   }
 }

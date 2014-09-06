@@ -28,19 +28,14 @@ def setupAppenders() {
       pattern = "%-35(%relative : %cyan(%-10.10thread)) [%highlight(%.-4level)] %logger{0} %X{akkaSource} %red(>>) %m%n%rEx"
     }
   }
-
-  appender('null', FileAppender) {
-    append = false
-    file = "/dev/null"
-    encoder(LayoutWrappingEncoder)
-  }
 }
 
 
 def setupLoggers() {
-  logger("entice.server.implementation.loggers.NullLogger", getLogLevel(), ['null'], false)
+  logger("entice.server.implementation.loggers.NullLogger", getLogLevel(), [], false)
   logger("entice.server.implementation.loggers.TestLogger", getLogLevel(), ['systemOut'], false)
-  root(getLogLevel(), (isTestEnv() ? [] : ['logfile', 'systemOut']))
+  logger("Cake", getLogLevel(), ['systemOut'])
+  root(getLogLevel(), (isTestEnv() ? [] : ['logfile']))
 }
 
 
