@@ -61,7 +61,7 @@ trait DefaultNetwork extends Network { selfRef: Core with Logger =>
 
       // Client management
       case Connected(netAddr, _) =>
-        selfRef.logger.debug(s"A new client connected: ${netAddr.toString}")
+        selfRef.logger.info(s"A new client connected: ${netAddr.toString}")
         val handler = context.actorOf(Props(SessionHandler(sender)))
         selfRef.eventBus.pub(NewSession(handler))
 
@@ -94,12 +94,12 @@ trait DefaultNetwork extends Network { selfRef: Core with Logger =>
     def receive = {
       // From network through pipeline
       case Event(data) =>
-        selfRef.logger.debug(s"Got: ${data.toString}")
+        selfRef.logger.info(s"Got: ${data.toString}")
         selfRef.eventBus.pub(data)
 
       // From internal, meant to be sent
       case msg: Message =>
-        selfRef.logger.debug(s"Put: ${msg.toString}")
+        selfRef.logger.info(s"Put: ${msg.toString}")
         pipeline ! Command(msg)
 
       case KickSession =>
