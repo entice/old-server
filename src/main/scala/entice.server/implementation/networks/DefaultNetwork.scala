@@ -62,7 +62,8 @@ trait DefaultNetwork extends Network { selfRef: Core with Logger =>
       // Client management
       case Connected(netAddr, _) =>
         selfRef.logger.info(s"A new client connected: ${netAddr.toString}")
-        val handler = context.actorOf(Props(SessionHandler(sender)))
+        val client = sender
+        val handler = context.actorOf(Props(SessionHandler(client)))
         selfRef.eventBus.pub(NewSession(handler))
 
       // Shutdown
