@@ -6,18 +6,19 @@ package entice.server.implementation.networks
 
 import entice.server._
 import entice.server.macros._
-import entice.server.implementation.cores.StaticCore
 import entice.server.implementation.loggers.NullLogger
 import entice.server.implementation.events._
 
 import entice.protocol._
 import entice.protocol.utils._
 
-import akka.actor._
-import akka.testkit._
+import akka.actor.{ Actor, ActorRef, Props, ActorSystem }
+import akka.testkit.{ TestKit, TestProbe, ImplicitSender }
 import akka.io.{ IO, Tcp, TcpPipelineHandler }
 import akka.io.TcpPipelineHandler._
-import akka.event._
+import akka.event.NoLogging
+
+import com.typesafe.config.ConfigFactory
 
 import org.scalatest._
 
@@ -25,17 +26,32 @@ import java.net.{ ServerSocket, InetSocketAddress }
 
 
 class DefaultNetworkSpec
-    extends WordSpec
+    extends TestKit(ActorSystem(
+      "net-spec-sys",
+      config = ConfigFactory.parseString("""
+        akka {
+          loggers = ["akka.event.slf4j.Slf4jLogger"]
+          loglevel = WARNING
+          log-dead-letters-during-shutdown = off
+          logging-filter = "akka.event.slf4j.Slf4jLoggingFilter"
+          logger-startup-timeout = 30000
+        }""")))
+    with WordSpecLike
     with Matchers
-    with OneInstancePerTest {
+    with BeforeAndAfterAll
+    with OneInstancePerTest
+    with ImplicitSender {
 
   import Tcp.{ Connect, Connected, ConnectionClosed, Register }
 
 
   /** Component under test */
   trait TestDefaultNetwork
-      extends StaticCore
+      extends Core
       with DefaultNetwork { self: Logger =>
+
+    lazy val actorSystem = DefaultNetworkSpec.this.system
+    lazy val eventBus = new EventBus()
 
     lazy val serverHost = "127.0.0.1"
     lazy val serverPort = {
@@ -50,8 +66,6 @@ class DefaultNetworkSpec
 
     /** Create a new already connected client */
     def getClientWithPipeline(): (TestProbe, ActorRef) = {
-      implicit val sys = actorSystem
-
       val clientProbe = TestProbe()
       // connect...
       clientProbe.send(IO(Tcp), Connect(new InetSocketAddress(serverHost, serverPort)))
@@ -73,49 +87,54 @@ class DefaultNetworkSpec
       core.init()
       network.init()
 
-      implicit val sys = actorSystem
       import pipeInit.{ Command, Event }
 
       // init receiving end
-      val serverProbe = TestProbe()
-      implicit val act = serverProbe.ref
       eventBus.sub[NewSession]
       eventBus.sub[LostSession]
-      eventBus.sub[LoginRequest]
+      eventBus.sub[LoginRequest] // not received...
       eventBus.sub[Message]
 
-      // init sending end
-      val (clientProbe, pipeline) = getClientWithPipeline()
-
+      // init session1
+      val (session1, pipeline) = getClientWithPipeline()
       // we got a connection
-      serverProbe.expectMsgPF() { case Evt(NewSession(_)) => }
+      var session1Actor: ActorRef = null
+      expectMsgPF() { case Evt(NewSession(sess)) => session1Actor = sess }
+
+      // init session2
+      val (session2, _) = getClientWithPipeline()
+      // we got another connection
+      var session2Actor: ActorRef = null
+      expectMsgPF() { case Evt(NewSession(sess)) => session2Actor = sess }
 
       // c -> s
-      clientProbe.send(pipeline, Command(LoginRequest("blubb", "blubb")))
-      serverProbe.expectMsgPF() {
-        case msg @ Evt(LoginRequest(_, _)) =>
-          // echo
-          serverProbe.send(msg.sender, msg.message)
-          // then kick
-          serverProbe.send(msg.sender, KickSession)
-      }
+      session1.send(pipeline, Command(LoginRequest("blubb", "blubb")))
+      expectMsgPF() { case msg @ Evt(LoginRequest("blubb", "blubb")) => }
+
+      session2.send(pipeline, Command(LoginRequest("blubb", "blubb")))
+      expectMsgPF() { case msg @ Evt(LoginRequest("blubb", "blubb")) => }
+
       // s -> c
-      clientProbe.expectMsg(Event(LoginRequest("blubb", "blubb")))
+      session1Actor ! LoginRequest("blubb", "blubb")
+      session1.expectMsg(Event(LoginRequest("blubb", "blubb")))
 
-      serverProbe.expectMsgPF() { case Evt(LostSession(_)) => }
-      clientProbe.expectMsgPF() { case c: ConnectionClosed => }
+      session2Actor ! LoginRequest("blubb", "blubb")
+      session2.expectMsg(Event(LoginRequest("blubb", "blubb")))
 
-      serverProbe.expectNoMsg
-      clientProbe.expectNoMsg
+      // normal kick
+      session1Actor ! KickSession
+      session1.expectMsgPF() { case c: ConnectionClosed => }
+      expectMsgPF() { case Evt(LostSession(_)) => } // lost is backwards reported
 
-      // now make sure that clients are kicked during shutdown
-      // connect again...
-      val (otherClientProbe, _) = getClientWithPipeline()
+      expectNoMsg
+      session1.expectNoMsg
+      session2.expectNoMsg
 
+      // make sure that clients are kicked during shutdown
       network.shutdown()
 
-      otherClientProbe.expectMsgPF() { case c: ConnectionClosed => }
-      otherClientProbe.expectNoMsg
+      session2.expectMsgPF() { case c: ConnectionClosed => }
+      session2.expectNoMsg
 
       core.shutdown()
     }
