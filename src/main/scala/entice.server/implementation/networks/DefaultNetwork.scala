@@ -105,14 +105,14 @@ trait DefaultNetwork extends Network { selfRef: Core with Logger =>
 
       case KickSession =>
         become(dead)
-        selfRef.logger.info("Kicking session. Terminating...")
         remote ! Close
+        selfRef.logger.info("Session Kicked.")
         selfRef.eventBus.pub(LostSession(self))
         context.stop(self)
 
       case c: ConnectionClosed =>
         become(dead)
-        selfRef.logger.info("Session disconnected. Terminating...")
+        selfRef.logger.info("Session disconnected.")
         selfRef.eventBus.pub(LostSession(self))
         context.stop(self)
     }

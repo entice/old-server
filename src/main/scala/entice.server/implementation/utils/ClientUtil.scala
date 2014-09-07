@@ -18,7 +18,11 @@ import java.net.InetSocketAddress
 
 /** Diagnostic utility to connect to and communicate with the server */
 case class ClientUtil(host: String, port: Int) {
-  private val actorSystem = ActorSystem("client-sys", config = ConfigFactory.parseString("""akka { loglevel = INFO }"""))
+  private val actorSystem = ActorSystem("client-sys", config = ConfigFactory.parseString("""
+    akka {
+      loglevel = INFO
+      log-dead-letters = off
+    }"""))
   private val clientActor = actorSystem.actorOf(Props(ClientActor(host, port)), "client-actor")
 
   def send(msg: Message) {
