@@ -1,11 +1,11 @@
 language: scala
 scala:
-- 2.11.2
+- 2.11.1
 branches:
   only:
-  - milestone5
-  - develop
   - master
+  - develop
+  - milestone5
 notifications:
   irc: irc.rizon.net#gwlpr
 jdk:
