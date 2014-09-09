@@ -37,14 +37,14 @@ class CharacterCollectionSpec extends Specification {
     val char3 = Character(accId2, "Test Char 3", Appearance())
 
     def init() {
-      characters.dropCollection() should beTrue.await
+      Await.ready(characters.dropCollection(), timeout)
       characters.create(char1) should be(char1).await
       characters.create(char2) should be(char2).await
       characters.create(char3) should be(char3).await
     }
   }
 
-  "An account collection" should {
+  "A character collection" should {
 
     "get characters by account" in new WithApplication(FakeApplication(withGlobal = Some(new GlobalSettings() {}))) with WithAccounts {
       init() // TODO manually due to some strange reason with WithApplication

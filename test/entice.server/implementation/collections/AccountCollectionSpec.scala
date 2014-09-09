@@ -31,7 +31,7 @@ class AccountCollectionSpec extends Specification {
     val acc2 = Account("test2@test.test", "passwd")
 
     def init() {
-      accounts.dropCollection()
+      Await.ready(accounts.dropCollection(), timeout)
       accounts.create(acc1) should be(acc1).await
       accounts.create(acc2) should be(acc2).await
     }
