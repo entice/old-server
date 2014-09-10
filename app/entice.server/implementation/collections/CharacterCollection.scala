@@ -6,7 +6,7 @@
 package entice.server.implementation.collections
 
 import entice.server._
-import entice.protocol._
+import entice.server.implementation.attributes._
 
 import play.api.libs.json._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext

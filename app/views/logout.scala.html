@@ -1,0 +1,10 @@
+@import helper._
+
+@main("... logout from entice ...") {
+  <div class="enticeLogout">
+    <a href="https://github.com/entice"><img src="@routes.Assets.at("images/entice.png")" alt="entice-logo" width="400" height="400"></a>
+    @form(action = routes.Auth.logoutPost(), args = 'class -> "authForm") {
+      <input type="submit" class="inputButton" name="" value="... log out ..." />
+    }
+  </div>
+}

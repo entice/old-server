@@ -1,12 +1,79 @@
+
 body {
   background-color:#241C1C;
+
+  font-family: 'Trebuchet MS';
+  color: #9e0400;
+  text-decoration: none;
+  word-spacing: normal;
+  text-align: left;
+  letter-spacing: 0;
 }
 
-.entice {
+a {
+  color: #FF6A60;
+}
+
+
+fieldset {
+  padding: 20px;
+  border-style: solid;
+  border-color: #9E0400;
+}
+
+
+.inputLabel {
+  width: 10em;
+  display: block;
+  float: left;
+}
+
+.inputField {
+  background-color: #241C1C;
+  border-style: solid;
+  border-color: #9E0400;
+  font-family: 'Trebuchet MS';
+  color: #FF6A60;
+}
+
+.inputButton {
+  background-color: #241C1C;
+  border-style: solid;
+  border-color: #9E0400;
+  font-family: 'Trebuchet MS';
+  color: #9e0400;
+  width: 100%;
+}
+
+.indexMessage {
+  text-align: center;
+  width: 100%;
+}
+
+.enticeIndex {
   width:400px;
-  height:400px;
+  height:450px;
   position:absolute;
   left:50%;
   top:50%;
-  margin:-200px 0 0 -200px;
+  margin:-225px 0 0 -200px;
 }
+
+.enticeLogin {
+  width:400px;
+  height:600px;
+  position:absolute;
+  left:50%;
+  top:50%;
+  margin:-300px 0 0 -200px;
+}
+
+.enticeLogout {
+  width:400px;
+  height:450px;
+  position:absolute;
+  left:50%;
+  top:50%;
+  margin:-225px 0 0 -200px;
+}
+
