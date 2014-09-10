@@ -9,7 +9,6 @@ branches:
 notifications:
   irc: irc.rizon.net#gwlpr
 jdk:
-- openjdk7
 - oraclejdk7
 services:
 - mongodb

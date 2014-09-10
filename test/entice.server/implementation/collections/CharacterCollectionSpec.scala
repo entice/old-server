@@ -5,7 +5,7 @@
 package entice.server.implementation.collections
 
 import entice.server._
-import entice.protocol._
+import entice.server.implementation.attributes._
 
 import play.api._
 import play.api.test._
