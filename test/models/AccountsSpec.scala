@@ -2,9 +2,7 @@
  * For copyright information see the LICENSE document.
  */
 
-package entice.server.implementation.collections
-
-import entice.server._
+package models
 
 import play.api._
 import play.api.test._
@@ -20,12 +18,12 @@ import org.junit.runner.RunWith
 
 
 @RunWith(classOf[JUnitRunner])
-class AccountCollectionSpec extends Specification {
+class AccountsSpec extends Specification {
   val timeout: FiniteDuration = DurationInt(10).seconds
+  def nullApp = FakeApplication(withGlobal = Some(new GlobalSettings() {}))
 
   trait WithAccounts
-      extends Core
-      with AccountCollection {
+      extends Accounts {
 
     val acc1 = Account("test1@test.test", "passwd")
     val acc2 = Account("test2@test.test", "passwd")
@@ -39,7 +37,7 @@ class AccountCollectionSpec extends Specification {
 
   "An account collection" should {
 
-    "get accounts by email" in new WithApplication(FakeApplication(withGlobal = Some(new GlobalSettings() {}))) with WithAccounts {
+    "get accounts by email" in new WithApplication(nullApp) with WithAccounts {
       init() // TODO manually due to some strange reason with WithApplication
       accounts.findByEmail("test1@test.test") should beSome(acc1).await
       accounts.findByEmail("test2@test.test") should beSome(acc2).await

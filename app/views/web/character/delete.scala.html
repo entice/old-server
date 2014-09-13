@@ -1,0 +1,11 @@
+@import helper._
+@(name: String)(implicit flash: Flash)
+
+@main("... delete a character ...") {
+  @form(action = routes.Character.apiCharPost("delete", name)) {
+    <input type="submit" class="inputButton" name="" value="... confirm deletion of @name ..." />
+  }
+  @form(action = routes.Lobby.webLobby()) {
+    <input type="submit" class="inputButton" name="" value="... or: take me back to the lobby ...">
+  }
+}

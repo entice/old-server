@@ -30,7 +30,7 @@ case class Appearance(
     skinColor: Int = 3,
     hairColor: Int = 0,
     hairstyle: Int = 7,
-    face: Int = 31) extends Attribute with NetAttribute
+    face: Int = 30) extends Attribute with NetAttribute
 
 /** Present if this entity can be part of a group */
 case class Group(group: Entity) extends Attribute with NoPropagation

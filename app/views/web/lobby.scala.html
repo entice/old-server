@@ -1,0 +1,20 @@
+@import helper._
+@import controllers.Lobby.CharacterView
+@(chars: List[CharacterView])(implicit flash: Flash)
+
+@main("... view your characters ...") {
+  @if(chars.isEmpty) {
+    <p>You have got no characters to display. <a href="@routes.Character.charGet("create")">...create a new one.</a><p/>
+  } else {
+    <table class="lobbyChars" border="1" cellpadding="0" cellspacing="0">
+      @for(char <- chars) {
+        <tr>
+          <td>@char.name</td>
+          <td><a href="@routes.Character.charGet("edit", char.name)">[edit]</a></td>
+          <td><a href="@routes.Character.charGet("delete", char.name)">[delete]</a></td>
+        </tr>
+      }
+    </table>
+    <a href="@routes.Character.charGet("create")">...create another one.</a>
+  }
+}

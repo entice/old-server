@@ -4,12 +4,12 @@
 
 package entice.server
 
+import models._
+
 import entice.server.macros._
-import entice.server.implementation.collections._
 import entice.server.implementation.attributes._
 import entice.server.implementation.utils._
 import entice.server.implementation.entities.Entity
-import entice.server.implementation.worlds.LobbyWorld
 
 import akka.actor.ActorRef
 
@@ -17,13 +17,11 @@ import scala.concurrent.Future
 
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
-import java.util.UUID
-
 
 /**
  * Associates a session with a client object.
  */
-trait ClientRegistry { self: AccountCollection with CharacterCollection with LobbyWorld =>
+trait ClientRegistry { self: Accounts with Characters =>
 
   // Convenience
   type Email = String
@@ -83,40 +81,23 @@ trait ClientRegistry { self: AccountCollection with CharacterCollection with Lob
 
     def getAll = entriesAuth.valuesRight
     def getbyEmail(email: Email) = getAll find {_.account.email == email}
-
-    def authenticate(email: Email, password: Password): Future[Option[Client]] = {
-      self.accounts.findByEmail(email).flatMap { _ match {
-        case Some(acc) if (acc.email == email && acc.password == password) =>
-          // accumulate the chars for this account
-          val emptyClient = Client(UUID.randomUUID().toString(), acc)
-          self.characters.findByAccount(acc.id).map { chars =>
-            Some(chars.foldLeft(emptyClient) { (cl, ch) =>
-              val name: Name = ch.getName
-              val appear: Appearance = ch.appearance
-              val attrMap = new ReactiveTypeMap[Attribute]().add(name).add(appear)
-              cl.copy(chars = cl.chars + (lobby.createEntity(Some(attrMap)) -> ((name, appear))))
-            }).map { client => add(client); client}
-          }
-        case _ => Future.successful(None)
-      }}
-    }
   }
 }
 
 
 /**
-   * Client data storage
-   */
-  case class Client(
-      authToken: String,
-      account: AccountCollection#Account,
-      chars: Map[Entity, (Name, Appearance)] = Map(),
-      session: Option[ActorRef] = None,
-      entity: Option[Entity] = None,
-      state: PlayState = Idle)
+ * Client data storage
+ */
+case class Client(
+    authToken: String,
+    account: Account,
+    chars: Map[String, Appearance] = Map(),
+    session: Option[ActorRef] = None,
+    entity: Option[Entity] = None,
+    state: PlayState = Idle)
 
 
-  trait PlayState
-  case object Idle       extends PlayState // TODO timeout after x? seconds
-  case object LoadingMap extends PlayState
-  case object Playing    extends PlayState
+trait PlayState
+case object Idle       extends PlayState // TODO timeout after x? seconds
+case object LoadingMap extends PlayState
+case object Playing    extends PlayState

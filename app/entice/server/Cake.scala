@@ -4,8 +4,9 @@
 
 package entice.server
 
+import models._
+
 import entice.server.implementation.attributes._
-import entice.server.implementation.collections._
 import entice.server.implementation.worlds._
 
 import play.api._
@@ -20,56 +21,39 @@ import duration._
  * This is the server. Period.
  */
 object Global
-    extends GlobalSettings {
+    extends GlobalSettings
+    with DefaultServer {
 
-  private var server: Option[DefaultServer] = None
+  lazy val app = Play.current
 
   override def onStart(app: Application) {
-    server = Some(DefaultServer(app))
-    Logger.info(s"Starting an entice ${server.get.environment.toString.toLowerCase}-server at ${server.get.config.frontendUrl}")
-    server.get.seed()
+    Logger.info(s"Starting an entice ${environment.toString.toLowerCase}-server at ${config.frontendUrl}")
+    if (environment == Development) { seedDevelopment() }
+    if (environment == Production)  { seedProduction() }
   }
 
   override def onStop(app: Application) {
     Logger.info(s"Stopping the entice server.")
   }
-
-  def authenticate(email: String, password: String): Future[Option[Client]] = {
-    server match {
-      case Some(srv) => srv.clientRegistry.authenticate(email, password)
-      case None      => Future.successful(None)
-    }
-  }
-
-  def deauthenticate(authToken: String) {
-    server match {
-      case Some(srv) => srv.clientRegistry.remove(authToken) // TODO trigger in eventbus
-      case None      => Future.successful(None)
-    }
-  }
-
-  def authorize(authToken: String): Option[Client] = {
-    server.flatMap { _.clientRegistry.get(authToken) }
-  }
 }
 
 
 /** A default server cake with default components */
-case class DefaultServer(app: Application)
-    // basic stuff...
+trait DefaultServer
+    // core and DB
     extends Core
+    with Accounts
+    with Characters
+    // server level services
     with Config
-    with AccountCollection
-    with CharacterCollection
     with ClientRegistry
     with Tracker
     // Worlds... TODO maybe package them all in a trait
-    with LobbyWorld
     with HeroesAscent
     with RandomArenas
     with TeamArenas {
 
-  def seed() {
+  def seedDevelopment() {
     Logger.info("Seeding some server data...")
     val timeout: FiniteDuration = DurationInt(10).seconds
     val acc1 = Account("root@entice.ps", "root")
@@ -85,6 +69,19 @@ case class DefaultServer(app: Application)
     characters.create(Character(acc2.id, "Hello Again", Appearance()))
     characters.create(Character(acc2.id, "Hans Wurst", Appearance()))
 
+    Logger.info("Seeding done.")
+  }
+
+
+  def seedProduction() {
+    Logger.info("Seeding some server data...")
+    val timeout: FiniteDuration = DurationInt(10).seconds
+    val acc1 = Account("root@entice.ps", "root")
+
+    Await.ready(accounts.dropCollection(), timeout)
+    Await.ready(characters.dropCollection(), timeout)
+
+    accounts.create(acc1)
     Logger.info("Seeding done.")
   }
 }

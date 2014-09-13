@@ -1,25 +1,22 @@
 @import controllers.Auth.AuthForm
 @import helper._
-@(authForm: Form[AuthForm])
+@(authForm: Form[AuthForm])(implicit flash: Flash)
 
 @main("... login to entice ...") {
-  <div class="enticeLogin">
-    <a href="https://github.com/entice"><img src="@routes.Assets.at("images/entice.png")" alt="entice-logo" width="400" height="400"></a>
-    @form(action = routes.Auth.loginPost(), args = 'class -> "authForm") {
-      <fieldset><legend>Login</legend>
-        <p>
-          <label for="email" class="inputLabel">Email:</label>
-          <input type="text" class="inputField" id="email" name="email" value="" size="20" maxlength="50" />
-        </p>
-        <p>
-          <label for="password" class="inputLabel">Password:</label>
-          <input type="password" class="inputField" id="password" name="password" value="" size="20" maxlength="50" />
-        </p>
-      </fieldset>
-      <input type="submit" class="inputButton" name="" value="... do it ..." />
-    }
-    @if(!authForm.errors.isEmpty) {
-      <div>Errors: @for(error <- authForm.errors) {@error.message }</div>
-    }
-  </div>
+  @form(action = routes.Auth.loginPost()) {
+    <fieldset><legend>Login</legend>
+      <p>
+        <label for="email" class="inputLabel">Email:</label>
+        <input type="text" class="inputField" id="email" name="email" value="" size="20" maxlength="50" />
+      </p>
+      <p>
+        <label for="password" class="inputLabel">Password:</label>
+        <input type="password" class="inputField" id="password" name="password" value="" size="20" maxlength="32" />
+      </p>
+    </fieldset>
+    <input type="submit" class="inputButton" name="" value="... do it ..." />
+  }
+  @if(!authForm.errors.isEmpty) {
+    <div>Errors: @for(error <- authForm.errors) {@error.message }</div>
+  }
 }

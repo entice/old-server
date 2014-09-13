@@ -1,8 +1,4 @@
 @()(implicit flash: Flash)
 
 @main("... welcome to entice ...") {
-  <div class="enticeIndex">
-    <a href="https://github.com/entice"><img src="@routes.Assets.at("images/entice.png")" alt="entice-logo" width="400" height="400"></a>
-    <div class="indexMessage">@Html(flash.get("message").getOrElse("""Welcome! <a href="/login">...log in.</a>"""))</div>
-  </div>
 }

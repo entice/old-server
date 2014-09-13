@@ -166,3 +166,53 @@ object WorldMap extends Enumeration {
   import Coord2D._
   implicit def enumFormat: Format[WorldMap] = EnumUtils.enumFormat(WorldMap)
 }
+
+
+/**
+ * All official campaigns allowed in the character appearance field
+ */
+object CharacterCampaign extends Enumeration {
+
+  type CharacterCampaign = Value
+  // internal structure
+  class CampVal(name: String, val number: Int) extends Val(nextId, name)
+  protected final def Value(name: String, number: Int): CampVal = new CampVal(name, number)
+
+  // workaround for withName
+  final def withCampaignName(name: String): CampVal = super.withName(name).asInstanceOf[CampVal]
+
+  val Trial            = Value("Trial",            0)
+  val Prophecies       = Value("Prophecies",       1)
+  val Factions         = Value("Factions",         2)
+  val Nightfall        = Value("Nightfall",        3)
+  val EyeOfTheNorth    = Value("EyeOfTheNorth",    4)
+  val BonusMissionPack = Value("BonusMissionPack", 6)
+
+  implicit def enumFormat: Format[CharacterCampaign] = EnumUtils.enumFormat(CharacterCampaign)
+}
+
+
+object CharacterProfession extends Enumeration {
+
+  type CharacterProfession = Value
+  // internal structure
+  class ProfVal(name: String, val number: Int) extends Val(nextId, name)
+  protected final def Value(name: String, number: Int): ProfVal = new ProfVal(name, number)
+
+  // workaround for withName
+  final def withProfessionName(name: String): ProfVal = super.withName(name).asInstanceOf[ProfVal]
+
+  val None         = Value("None",         0)
+  val Warrior      = Value("Warrior",      1)
+  val Ranger       = Value("Ranger",       2)
+  val Monk         = Value("Monk",         3)
+  val Necromancer  = Value("Necromancer",  4)
+  val Mesmer       = Value("Mesmer",       5)
+  val Elementalist = Value("Elementalist", 6)
+  val Assassin     = Value("Assassin",     7)
+  val Ritualist    = Value("Ritualist",    8)
+  val Paragon      = Value("Paragon",      9)
+  val Dervish      = Value("Dervish",      10)
+
+  implicit def enumFormat: Format[CharacterProfession] = EnumUtils.enumFormat(CharacterProfession)
+}

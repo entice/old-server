@@ -27,16 +27,9 @@ object Auth extends EnticeController {
   )(AuthForm.apply)(AuthForm.unapply))
 
 
-  def loginGet = Action { implicit request =>
+  def authGet = Action { implicit request =>
     authorize match {
       case NotAuthorized => Ok(views.html.login(authForm))
-      case _             => Redirect(routes.Application.index()).flashing("message" -> """Already logged in. <a href="/logout">...log out.<a>""")
-    }
-  }
-
-  def logoutGet = Action { implicit request =>
-    authorize match {
-      case NotAuthorized => Redirect(routes.Application.index()).flashing("message" -> """Already logged out. <a href="/login">...log back in.<a>""")
       case _             => Ok(views.html.logout())
     }
   }
@@ -45,13 +38,13 @@ object Auth extends EnticeController {
     authForm.bindFromRequest.fold(
       formWithErrors => { Future.successful(BadRequest(views.html.login(formWithErrors))) },
       authData => {
-        Global.authenticate(authData.email, authData.password).map { optClient =>
+        authenticate(authData.email, authData.password).map { optClient =>
           optClient match {
             case None => replyUnauthorized
             case Some(client) =>
               Logger.info(s"User logged in: ${authData.email} - ${client.authToken}")
-              Redirect(routes.Application.index())
-                .flashing("message" -> """Successfully logged in. <a href="/logout">...log out.<a>""")
+              Redirect(routes.Lobby.webLobby())
+                .flashing("message" -> "Successfully logged in.")
                 .withSession {
                   request.session + ("authToken" -> client.authToken)
                 }
@@ -64,10 +57,10 @@ object Auth extends EnticeController {
     authorize match {
       case NotAuthorized             => Redirect(routes.Application.index()).withNewSession
       case ctx: AuthorizationContext =>
-        Global.deauthenticate(ctx.authToken)
+        deauthenticate(ctx.authToken)
         Logger.info(s"User logged out: ${ctx.authToken}")
         Redirect(routes.Application.index())
-          .flashing("message" -> """Successfully logged out. <a href="/login">...log in.<a>""")
+          .flashing("message" -> "Successfully logged out.")
           .withNewSession
     }
   }

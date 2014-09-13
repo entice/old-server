@@ -1,0 +1,41 @@
+@import controllers.Character.CharacterCreateForm
+@import helper._
+@(action: String, name: String, authForm: Form[CharacterCreateForm])(implicit flash: Flash)
+
+@main("... " + action + " a character ...") {
+  @form(action = routes.Character.apiCharPost(action, name)) {
+    <fieldset><legend>Character creation</legend>
+      <p>
+        <label for="charName" class="inputLabel">Name:</label>
+        <input type="text" class="inputField" id="charName" name="charName" value="@authForm("charName").value.getOrElse("")" size="20" maxlength="16" />
+      </p>
+      <p>
+        <label for="campaign" class="inputLabel">Campaign:</label>
+        <select class="inputField" id="campaign" name="campaign" value="@authForm("campaign").value.getOrElse("")">
+          <option value="Prophecies">Prophecies</option>
+          <option value="Factions">Factions</option>
+          <option value="Nightfall">Nightfall</option>
+        </select>
+      </p>
+      <p>
+        <label for="profession" class="inputLabel">Profession:</label>
+        <select class="inputField" id="profession" name="profession" value="@authForm("profession").value.getOrElse("")">
+          <option value="Warrior">Warrior</option>
+          <option value="Ranger">Ranger</option>
+          <option value="Monk">Monk</option>
+          <option value="Necromancer">Necromancer</option>
+          <option value="Mesmer">Mesmer</option>
+          <option value="Elementalist">Elementalist</option>
+          <option value="Assassin">Assassin</option>
+          <option value="Ritualist">Ritualist</option>
+          <option value="Paragon">Paragon</option>
+          <option value="Dervish">Dervish</option>
+        </select>
+      </p>
+    </fieldset>
+    <input type="submit" class="inputButton" name="" value="... @action it ..." />
+  }
+  @if(!authForm.errors.isEmpty) {
+    <div>Errors: @for(error <- authForm.errors) {@error.message }</div>
+  }
+}
