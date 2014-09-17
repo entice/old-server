@@ -12,14 +12,13 @@ import scala.collection._
 
 
 sealed trait Attribute extends mutable.Cloneable[Attribute] with TrackingOptions
-sealed trait NetAttribute extends Attribute
 
 
 // Attributes follow...
 
 
 /** Present if this entity can perform animations */
-case class Animation(id: CharacterAnimation.Value = CharacterAnimation.None) extends Attribute with NetAttribute
+case class Animation(id: CharacterAnimation.Value = CharacterAnimation.None) extends Attribute
 
 /** The appearance of a player */
 case class Appearance(
@@ -30,7 +29,7 @@ case class Appearance(
     skinColor: Int = 3,
     hairColor: Int = 0,
     hairstyle: Int = 7,
-    face: Int = 30) extends Attribute with NetAttribute
+    face: Int = 30) extends Attribute
 
 /** Present if this entity can be part of a group */
 case class Group(group: Entity) extends Attribute with NoPropagation
@@ -39,18 +38,18 @@ case class Group(group: Entity) extends Attribute with NoPropagation
 case class GroupState(
     members: List[Entity] = Nil,
     invited: List[Entity] = Nil,
-    joinRequests: List[Entity] = Nil) extends Attribute with NetAttribute
+    joinRequests: List[Entity] = Nil) extends Attribute
 
 /** A direction of movement and a state for if the entity is moving or not */
 case class Movement(
     goal: Coord2D = Coord2D(1, 1),
-    state: MoveState.Value = MoveState.NotMoving) extends Attribute with NetAttribute
+    state: MoveState.Value = MoveState.NotMoving) extends Attribute
 
 /** Displayed name, if any */
-case class Name(name: String = "John Wayne") extends Attribute with NetAttribute
+case class Name(name: String = "John Wayne") extends Attribute
 
 /** Physical position in map coordinates */
-case class Position(pos: Coord2D = Coord2D(0, 0)) extends Attribute with NetAttribute
+case class Position(pos: Coord2D = Coord2D(0, 0)) extends Attribute
 
 /** List of entities that this entity can see if any */
-case class Vision(sees: Set[Entity] = Set()) extends Attribute with NoPropagation
+case class Vision(sees: List[Entity] = Nil) extends Attribute with NoPropagation

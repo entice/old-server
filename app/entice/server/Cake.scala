@@ -28,8 +28,7 @@ object Global
 
   override def onStart(app: Application) {
     Logger.info(s"Starting an entice ${environment.toString.toLowerCase}-server at ${config.frontendUrl}")
-    if (environment == Development) { seedDevelopment() }
-    if (environment == Production)  { seedProduction() }
+    seeder.seed()
   }
 
   override def onStop(app: Application) {
@@ -46,42 +45,10 @@ trait DefaultServer
     with Characters
     // server level services
     with Config
+    with Seed
     with ClientRegistry
     with Tracker
     // Worlds... TODO maybe package them all in a trait
     with HeroesAscent
     with RandomArenas
-    with TeamArenas {
-
-  def seedDevelopment() {
-    Logger.info("Seeding some server data...")
-    val timeout: FiniteDuration = DurationInt(10).seconds
-    val acc1 = Account("root@entice.ps", "root")
-    val acc2 = Account("test@entice.ps", "test")
-
-    Await.ready(accounts.dropCollection(), timeout)
-    Await.ready(characters.dropCollection(), timeout)
-
-    accounts.create(acc1)
-    accounts.create(acc2)
-    characters.create(Character(acc1.id, "Test Char", Appearance()))
-    characters.create(Character(acc1.id, "Abc Def", Appearance()))
-    characters.create(Character(acc2.id, "Hello Again", Appearance()))
-    characters.create(Character(acc2.id, "Hans Wurst", Appearance()))
-
-    Logger.info("Seeding done.")
-  }
-
-
-  def seedProduction() {
-    Logger.info("Seeding some server data...")
-    val timeout: FiniteDuration = DurationInt(10).seconds
-    val acc1 = Account("root@entice.ps", "root")
-
-    Await.ready(accounts.dropCollection(), timeout)
-    Await.ready(characters.dropCollection(), timeout)
-
-    accounts.create(acc1)
-    Logger.info("Seeding done.")
-  }
-}
+    with TeamArenas

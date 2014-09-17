@@ -1,3 +1,7 @@
+/**
+ * For copyright information see the LICENSE document.
+ */
+
 package controllers
 
 import entice.server._
@@ -29,14 +33,14 @@ object Auth extends EnticeController {
 
   def authGet = Action { implicit request =>
     authorize match {
-      case NotAuthorized => Ok(views.html.login(authForm))
-      case _             => Ok(views.html.logout())
+      case NotAuthorized => Ok(views.html.web.login(authForm))
+      case _             => Ok(views.html.web.logout())
     }
   }
 
   def loginPost = Action.async { implicit request =>
     authForm.bindFromRequest.fold(
-      formWithErrors => { Future.successful(BadRequest(views.html.login(formWithErrors))) },
+      formWithErrors => { Future.successful(BadRequest(views.html.web.login(formWithErrors))) },
       authData => {
         authenticate(authData.email, authData.password).map { optClient =>
           optClient match {

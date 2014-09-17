@@ -1,3 +1,7 @@
+/**
+ * For copyright information see the LICENSE document.
+ */
+
 package controllers
 
 import entice.server.implementation.attributes._
@@ -22,7 +26,7 @@ object Lobby extends EnticeController {
     authorize match {
       case NotAuthorized            => replyUnauthorized
       case PlayerContext(_, client) => Ok(views.html.web.lobby((client.chars.map { case (n, a) => CharacterView(n, a)}).toList))
-      case _                        => Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unkown authorization status")
+      case _                        => Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unknown authorization status")
     }
   }
 
@@ -30,7 +34,7 @@ object Lobby extends EnticeController {
     authorize match {
       case NotAuthorized            => replyUnauthorized
       case PlayerContext(_, client) => Ok(Json.toJson(ApiCharacterViews((client.chars.map { case (n, a) => CharacterView(n, a)}).toList)))
-      case _                        => Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unkown authorization status")
+      case _                        => Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unknown authorization status")
     }
   }
 }

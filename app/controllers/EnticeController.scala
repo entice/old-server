@@ -1,3 +1,7 @@
+/**
+ * For copyright information see the LICENSE document.
+ */
+
 package controllers
 
 import models._
@@ -71,6 +75,8 @@ trait EnticeController
 
 
   def updateClient(client: Client) = server.clientRegistry.update(client)
+
+  def getWorld(name: String): Option[World#WorldLike] = server.worlds.byName(name)
 
   private val server = entice.server.Global
 }

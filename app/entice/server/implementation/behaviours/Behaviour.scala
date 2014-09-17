@@ -72,12 +72,3 @@ abstract class BehaviourFactory[T <: Behaviour : Named] {
     def check(e: Entity): Boolean = (!e.has[T])
   }
 }
-
-
-trait HasBehaviours {
-  def behav: ReactiveTypeMap[Behaviour]
-
-  def hasBehaviour   [T <: Behaviour : Named]: Boolean = behav.contains[T]
-  def removeBehaviour[T <: Behaviour : Named]: this.type = { behav.remove[T]; this }
-  def addBehaviour   [T <: Behaviour : Named](c: T): this.type = { behav.set(c); this }
-}

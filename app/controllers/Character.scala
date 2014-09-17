@@ -1,3 +1,7 @@
+/**
+ * For copyright information see the LICENSE document.
+ */
+
 package controllers
 
 import models.{ Character => DBCharacter }
@@ -75,7 +79,7 @@ object Character extends EnticeController {
             Ok(views.html.web.character.update(action, name, charCreateForm.bind(jsonChar)))
           case _ => Redirect(routes.Lobby.webLobby()).flashing("message" -> "Action or character name unkown.")
         }
-      case _ => Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unkown authorization status")
+      case _ => Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unknown authorization status")
     }
   }
 
@@ -100,12 +104,12 @@ object Character extends EnticeController {
               val dbCharacter = DBCharacter(client.account.id, charData.charName, charData.getAppearance)
               characters.createOrUpdateByName(if (name == "") charData.charName else name, dbCharacter).map { x =>
                 updateClient(client.copy(chars = (client.chars - name) + (charData.charName -> charData.getAppearance)))
-                Redirect(routes.Lobby.webLobby()).flashing("message" -> s"Character ${action}ed")
+                Redirect(routes.Lobby.webLobby()).flashing("message" -> s"""Character ${action.stripSuffix("e")}ed""")
               }
             })
         case _ => Future.successful(Redirect(routes.Lobby.webLobby()).flashing("message" -> "Error: Action or character name unkown."))
       }
-      case _ => Future.successful(Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unkown authorization status"))
+      case _ => Future.successful(Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unknown authorization status"))
     }
   }
 }

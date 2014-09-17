@@ -12,6 +12,8 @@ trait Config { self: Core =>
   lazy val config = {
     Config(
       self.app.configuration.getString("mongodb.uri").getOrElse("mongodb://localhost:27017/entice"),
+      self.app.configuration.getBoolean("startup.db.clean").getOrElse(true),
+      self.app.configuration.getBoolean("startup.db.seed").getOrElse(true),
       self.app.configuration.getString("frontend.url").getOrElse("entice.kallis.to"),
       self.app.configuration.getInt("server.tick").getOrElse(30),
       self.app.configuration.getInt("server.update.min").getOrElse(50),
@@ -21,6 +23,8 @@ trait Config { self: Core =>
 
   case class Config(
     mongodbUri: String,
+    dbClean: Boolean,
+    dbSeed: Boolean,
     frontendUrl: String,
     tick: Int,
     minUpdate: Int,

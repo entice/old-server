@@ -34,11 +34,11 @@ object Entity {
     }
   }
 
-  implicit object entityWrites extends Writes[Entity] {
+  object entityWrites extends Writes[Entity] {
     def writes(entity: Entity) = Json.obj("id" -> entity.id)
   }
 
-  implicit object entityReads extends Reads[Entity] {
+  object entityReads extends Reads[Entity] {
     def reads(json: JsValue): JsResult[Entity] = {
       (for {
         id <- (json \ "id").asOpt[Int]
@@ -52,4 +52,5 @@ object Entity {
 
   implicit val entityFormat: Format[Entity] = Format[Entity](entityReads, entityWrites)
   implicit val entityListFormat: Format[List[Entity]] = implicitly[Format[List[Entity]]]
+  implicit val entitySetFormat: Format[Set[Entity]] = implicitly[Format[Set[Entity]]]
 }

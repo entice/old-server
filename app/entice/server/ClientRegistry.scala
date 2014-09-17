@@ -94,10 +94,10 @@ case class Client(
     chars: Map[String, Appearance] = Map(),
     session: Option[ActorRef] = None,
     entity: Option[Entity] = None,
-    state: PlayState = Idle)
+    state: PlayState = Idle())
 
 
 trait PlayState
-case object Idle       extends PlayState // TODO timeout after x? seconds
-case object LoadingMap extends PlayState
-case object Playing    extends PlayState
+case class Idle(entered: Long = System.currentTimeMillis()) extends PlayState // TODO timeout after x? seconds
+case class LoadingMap(world: World#WorldLike)               extends PlayState
+case class Playing(world: World#WorldLike)                  extends PlayState

@@ -6,15 +6,18 @@
 GET     /                           controllers.Application.index
 
 # Authentication
-GET     /auth                       controllers.Auth.authGet
-POST    /login                      controllers.Auth.loginPost
-POST    /logout                     controllers.Auth.logoutPost
+GET     /wep/auth                   controllers.Auth.authGet
+POST    /api/login                  controllers.Auth.loginPost
+POST    /api/logout                 controllers.Auth.logoutPost
 
 # Lobby (web: HTML-UI, api: JSON/HTTP-POST backend)
 GET     /web/lobby                  controllers.Lobby.webLobby
 GET     /api/lobby                  controllers.Lobby.apiLobby
 GET     /web/character              controllers.Character.charGet(action: String, name: String ?="")
 POST    /api/character              controllers.Character.apiCharPost(action: String, name: String ?="")
+
+# World
+#GET     /api/world                  controllers.World.world(chara: String, map: String?="HeroesAscent")
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public/assets", file)
