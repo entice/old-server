@@ -2,12 +2,12 @@
  * For copyright information see the LICENSE document.
  *@
 
-@import controllers.Character.CharacterCreateForm
+@import entice.server.controllers.CharacterCreateForm
 @import helper._
 @(action: String, name: String, authForm: Form[CharacterCreateForm])(implicit flash: Flash)
 
 @main("... " + action + " a character ...") {
-  @form(action = routes.Character.apiCharPost(action, name)) {
+  @form(action = entice.server.routes.Global.apiCharPost(action, name)) {
     <fieldset><legend>Character creation</legend>
       <p>
         <label for="charName" class="inputLabel">Name:</label>

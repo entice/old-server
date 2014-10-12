@@ -5,21 +5,23 @@
 package entice.server
 
 import models._
-
-import entice.server.implementation.attributes._
-
 import play.api._
-import play.api.libs.json._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
+import play.api.libs.json._
 
 import scala.concurrent._
-import duration._
+import scala.concurrent.duration._
 
 
 /**
  * Seeds the DB
  */
-trait Seed { self: Core with Config with Accounts with Characters =>
+trait Seed {
+  self: Core
+    with Config
+    with Accounts
+    with Characters
+    with Attributes =>
 
   object seeder {
 

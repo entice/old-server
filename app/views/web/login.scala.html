@@ -2,12 +2,12 @@
  * For copyright information see the LICENSE document.
  *@
 
-@import controllers.Auth.AuthForm
+@import entice.server.controllers.AuthForm
 @import helper._
 @(authForm: Form[AuthForm])(implicit flash: Flash)
 
 @main("... login to entice ...") {
-  @form(action = routes.Auth.loginPost()) {
+  @form(action = entice.server.routes.Global.loginPost()) {
     <fieldset><legend>Login</legend>
       <p>
         <label for="email" class="inputLabel">Email:</label>

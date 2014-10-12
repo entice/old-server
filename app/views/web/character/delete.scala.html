@@ -6,10 +6,10 @@
 @(name: String)(implicit flash: Flash)
 
 @main("... delete a character ...") {
-  @form(action = routes.Character.apiCharPost("delete", name)) {
+  @form(action = entice.server.routes.Global.apiCharPost("delete", name)) {
     <input type="submit" class="inputButton" name="" value="... confirm deletion of @name ..." />
   }
-  @form(action = routes.Lobby.webLobby()) {
+  @form(action = entice.server.routes.Global.webLobby()) {
     <input type="submit" class="inputButton" name="" value="... or: take me back to the lobby ...">
   }
 }

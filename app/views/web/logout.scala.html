@@ -6,7 +6,7 @@
 @()(implicit flash: Flash)
 
 @main("... logout from entice ...") {
-  @form(action = routes.Auth.logoutPost()) {
+  @form(action = entice.server.routes.Global.logoutPost()) {
     <input type="submit" class="inputButton" name="" value="... log out ..." />
   }
 }

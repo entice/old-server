@@ -4,17 +4,12 @@
 
 package entice.server
 
+import entice.server.behaviours.Tracking
+import entice.server.controllers._
+import entice.server.handles.{Clients, Entities}
+import entice.server.worlds.{WorldBase, WorldWatchers, WorldTracking, GuildWarsWorlds}
 import models._
-
-import entice.server.implementation.attributes._
-import entice.server.implementation.worlds._
-
 import play.api._
-import play.api.libs.json._
-import play.api.libs.concurrent.Execution.Implicits.defaultContext
-
-import scala.concurrent._
-import duration._
 
 
 /**
@@ -39,16 +34,24 @@ object Global
 
 /** A default server cake with default components */
 trait DefaultServer
-    // core and DB
+    // Core and DB
     extends Core
     with Accounts
     with Characters
-    // server level services
+    // Server level services ...
     with Config
     with Seed
-    with ClientRegistry
     with Tracker
-    // Worlds... TODO maybe package them all in a trait
-    with HeroesAscent
-    with RandomArenas
-    with TeamArenas
+    with Security
+    // World stuff...
+    with Clients
+    with Entities with Attributes with Behaviours
+    with Tracking // behaviours
+    with GuildWarsWorlds
+    with WorldEvents
+    // Controllers
+    with AuthController
+    with CharacterController
+    with ClientController
+    with LobbyController
+    with WorldController

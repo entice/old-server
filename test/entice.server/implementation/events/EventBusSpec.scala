@@ -2,7 +2,7 @@
  * For copyright information see the LICENSE document.
  */
 
-package entice.server.implementation.events
+package entice.server.events
 
 import entice.server.test._
 import entice.server.macros._

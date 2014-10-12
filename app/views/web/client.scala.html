@@ -1,0 +1,16 @@
+@**
+ * For copyright information see the LICENSE document.
+ *@
+
+@(chara: String, map: String)(implicit request: RequestHeader, flash: Flash)
+
+@main("... client for entice ...") {
+  <div class="outputTextbox" id="output"></div>
+  <script src="@routes.Assets.at("javascripts/client.js")" type="text/javascript"></script>
+  <script language="javascript" type="text/javascript">
+
+    var wsUrl = "@entice.server.routes.Global.world(chara, map).webSocketURL()";
+    window.addEventListener("load", init(wsUrl), false);
+
+  </script>
+}

@@ -4,6 +4,7 @@
 
 package models
 
+import entice.server.utils.{DataAccessType, ObjectID, Collection}
 import play.api._
 import play.api.libs.json._
 import play.api.test._

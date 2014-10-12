@@ -4,10 +4,9 @@
 
 package entice.server
 
-import entice.server.implementation.events.EventBus
+import entice.server.utils.EventBus
 
 import akka.actor.ActorSystem
-
 import play.api._
 import play.libs._
 

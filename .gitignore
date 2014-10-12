@@ -4,12 +4,14 @@ project/target
 target
 tmp
 .history
+.ensime
 dist
 /.idea
 /*.iml
 /out
 /.idea_modules
 /.classpath
+/.ensime_lucene
 /.project
 /RUNNING_PID
 /.settings

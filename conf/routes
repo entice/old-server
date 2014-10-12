@@ -6,18 +6,21 @@
 GET     /                           controllers.Application.index
 
 # Authentication
-GET     /wep/auth                   controllers.Auth.authGet
-POST    /api/login                  controllers.Auth.loginPost
-POST    /api/logout                 controllers.Auth.logoutPost
+GET     /web/auth                   entice.server.Global.authGet
+POST    /api/login                  entice.server.Global.loginPost
+POST    /api/logout                 entice.server.Global.logoutPost
 
 # Lobby (web: HTML-UI, api: JSON/HTTP-POST backend)
-GET     /web/lobby                  controllers.Lobby.webLobby
-GET     /api/lobby                  controllers.Lobby.apiLobby
-GET     /web/character              controllers.Character.charGet(action: String, name: String ?="")
-POST    /api/character              controllers.Character.apiCharPost(action: String, name: String ?="")
+GET     /web/lobby                  entice.server.Global.webLobby
+GET     /api/lobby                  entice.server.Global.apiLobby
+GET     /web/character              entice.server.Global.charGet(action: String, name: String ?="")
+POST    /api/character              entice.server.Global.apiCharPost(action: String, name: String ?="")
 
 # World
-#GET     /api/world                  controllers.World.world(chara: String, map: String?="HeroesAscent")
+GET     /api/world                  entice.server.Global.world(chara: String, map: String?="HeroesAscent")
+
+# Web Client
+GET     /web/client                 entice.server.Global.client(chara: String, map: String?="HeroesAscent")
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public/assets", file)

@@ -4,7 +4,8 @@
 
 package models
 
-import entice.server.implementation.attributes._
+import entice.server.attributes._
+import entice.server.utils.ObjectID
 
 import play.api._
 import play.api.test._
