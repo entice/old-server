@@ -5,6 +5,7 @@
 package entice.server.worlds
 
 import entice.server._
+import entice.server.attributes._
 import entice.server.handles.Entities
 import entice.server.utils.{EventBus, ReactiveTypeMap}
 
@@ -13,10 +14,7 @@ import entice.server.utils.{EventBus, ReactiveTypeMap}
  * A world implementation based on an entity set.
  * Automatically assigns and removes attributes on entity CRUD.
  */
-trait WorldBase extends Worlds {
-  self: Entities
-    with Attributes
-    with Behaviours =>
+trait WorldBase extends Worlds { self: Entities with Behaviours =>
 
   import entities.{Entity, EntityHandle}
 

@@ -46,11 +46,11 @@ class EventBus extends ActorEventBus with LookupClassification with Extension {
     super.subscribe(subscriber, named.name)
   }
 
-  def sub[T](event: T)(implicit named: Named[T], subscriber: Subscriber) {
-    super.publish(Evt(None, event))
+  def pub[T](event: T)(implicit named: Named[T], sender: Subscriber) {
+    super.publish(Evt(Some(sender), event))
   }
 
-  def pub[T: Named](event: T) {
+  def pubAnon[T: Named](event: T) {
     super.publish(Evt(None, event))
   }
 

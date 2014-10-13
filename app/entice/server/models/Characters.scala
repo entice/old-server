@@ -4,30 +4,30 @@
 
 package entice.server.models
 
-import entice.server.Attributes
+import entice.server.attributes._
+import entice.server.enums._
 import entice.server.utils.{Collection, DataAccessType, ObjectID}
+import entice.server.utils.ObjectID._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
 
 import scala.concurrent.Future
 
 
-trait Characters { self: Attributes =>
-  import entice.server.utils.ObjectID._
-  import self._
-
-  // Hint: this is just necessary because of some import bug
-  implicit val charactersAppearanceFormat: Format[Attributes#Appearance] = implicitly[Format[Attributes#Appearance]]
+trait Characters {
 
   case class Character(
       accountId: ObjectID,
       name: String,
-      appearance: Attributes#Appearance,
+      appearance: Appearance,
       id: ObjectID = ObjectID()) extends DataAccessType {
-    def getName() = Name(name)
+    def getName() = { Name(name) }
   }
-
-  implicit val characterFormat = Json.format[Character]
+  object Character {
+    implicit val appearFormat: Format[Appearance] = Json.format[Appearance]
+    implicit val characterFormat: Format[Character] = Json.format[Character]
+  }
+  import Character._
 
   object characters extends Collection[Character]("characters") {
     def findByAccount(accountId: ObjectID) = findByQuery(Json.obj("accountId" -> accountId))

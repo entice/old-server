@@ -5,8 +5,10 @@
 package entice.server.behaviours
 
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
-import entice.server._, macros._
+import entice.server._
+import entice.server.attributes._
 import entice.server.handles.Entities
+import entice.server.macros._
 import entice.server.utils.Evt
 
 import scala.concurrent.Future
@@ -19,7 +21,6 @@ trait Tracking extends Behaviours {
     with Tracker
     with Worlds
     with Entities
-    with Attributes
     with WorldEvents =>
 
   import entities.EntityHandle

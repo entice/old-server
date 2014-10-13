@@ -2,9 +2,8 @@
  * For copyright information see the LICENSE document.
  */
 
-package models
+package entice.server.utils
 
-import entice.server.utils.{DataAccessType, ObjectID, Collection}
 import play.api._
 import play.api.libs.json._
 import play.api.test._

@@ -16,7 +16,6 @@ trait WorldWatchers extends Worlds {
       with Tracker
       with Entities
       with Clients
-      with Attributes
       with Behaviours
       with WorldEvents =>
 

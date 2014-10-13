@@ -9,7 +9,7 @@
   <script src="@routes.Assets.at("javascripts/client.js")" type="text/javascript"></script>
   <script language="javascript" type="text/javascript">
 
-    var wsUrl = "@entice.server.routes.Global.world(chara, map).webSocketURL()";
+    var wsUrl = "@routes.Proxy.worldGet(chara, map).webSocketURL()";
     window.addEventListener("load", init(wsUrl), false);
 
   </script>

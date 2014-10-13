@@ -7,7 +7,7 @@
 @(authForm: Form[AuthForm])(implicit flash: Flash)
 
 @main("... login to entice ...") {
-  @form(action = entice.server.routes.Global.loginPost()) {
+  @form(action = routes.Proxy.loginPost()) {
     <fieldset><legend>Login</legend>
       <p>
         <label for="email" class="inputLabel">Email:</label>

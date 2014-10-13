@@ -4,12 +4,13 @@
 
 package entice.server
 
+import entice.server.attributes._
 import entice.server.handles.Entities
 import entice.server.utils._
 
 
 /** Manages entities + provides local eventbus. */
-trait Worlds { self: Entities with Attributes =>
+trait Worlds { self: Entities =>
 
   import entities.EntityHandle
 

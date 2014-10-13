@@ -4,35 +4,37 @@
 
 package entice.server.controllers
 
-import entice.server.{Security, Attributes}
+import entice.server.Security
+import entice.server.attributes._
 import play.api.libs.json._
 import play.api.mvc._
 
 
-case class CharacterView(name: String, appearance: Attributes#Appearance)
+case class CharacterView(name: String, appearance: Appearance)
 case class CharacterViews(chars: List[CharacterView])
 
 
 /** Controller for the static website crap */
-trait LobbyController extends Controller { self: Security with Attributes =>
+trait LobbyController extends Controller { self: Security =>
 
-  // Hint: this is just necessary because of some import bug
-  implicit val lobbyAppearanceFormat: Format[Attributes#Appearance] = implicitly[Format[Attributes#Appearance]]
+  object lobbyControl {
 
-  implicit val charViewFormat = Json.format[CharacterView]
-  implicit val charViewsFormat = Json.format[CharacterViews]
+    implicit val appearFormat = Json.format[Appearance]
+    implicit val charViewFormat = Json.format[CharacterView]
+    implicit val charViewsFormat = Json.format[CharacterViews]
 
-  def webLobby = Action { implicit request =>
-    authorize match {
-      case None => Forbidden
-      case Some(client) => Ok(views.html.web.lobby((client().chars.map { case (n, a) => CharacterView(n, a)}).toList))
+    def webLobbyGet = Action { implicit request =>
+      authorize match {
+        case None => Forbidden
+        case Some(client) => Ok(views.html.web.lobby((client().chars.map { case (n, a) => CharacterView(n, a)}).toList))
+      }
     }
-  }
 
-  def apiLobby = Action { implicit request =>
-    authorize match {
-      case None => Forbidden
-      case Some(client) => Ok(Json.toJson(CharacterViews((client().chars.map { case (n, a) => CharacterView(n, a)}).toList)))
+    def apiLobbyGet = Action { implicit request =>
+      authorize match {
+        case None => Forbidden
+        case Some(client) => Ok(Json.toJson(CharacterViews((client().chars.map { case (n, a) => CharacterView(n, a)}).toList)))
+      }
     }
   }
 }

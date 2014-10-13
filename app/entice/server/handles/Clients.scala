@@ -7,15 +7,16 @@ package entice.server.handles
 import java.util.UUID
 
 import akka.actor.ActorRef
+import entice.server.attributes._
 import entice.server.utils.MultiKeyMap
-import entice.server.{Worlds, Attributes, Handles}
+import entice.server.{Worlds, Handles}
 import entice.server.models.Accounts
 import play.api.libs.json._
 
 import scala.util.Try
 
 
-trait Clients extends Handles { self: Accounts with Worlds with Entities with Attributes =>
+trait Clients extends Handles { self: Accounts with Worlds with Entities =>
   import entities.EntityHandle
 
   object clients extends HandleModule {
@@ -40,7 +41,7 @@ trait Clients extends Handles { self: Accounts with Worlds with Entities with At
     case class Client(
       account: Account,
       entity: EntityHandle = lobby.createEntity(),
-      chars: Map[CharName, Attributes#Appearance] = Map(),
+      chars: Map[CharName, Appearance] = Map(),
       state: ClientState = Idle()) extends DataLike
 
 
@@ -62,7 +63,7 @@ trait Clients extends Handles { self: Accounts with Worlds with Entities with At
       override val chara: CharName) extends ClientState
 
 
-    // Serialization follows...
+    // Serialization...
 
     private def tryGetHandle(id: String): Option[ClientHandle] = {
       for {
@@ -88,7 +89,5 @@ trait Clients extends Handles { self: Accounts with Worlds with Entities with At
     }
 
     implicit val clientFormat: Format[ClientHandle] = Format[ClientHandle](clientReads, clientWrites)
-    implicit val clientListFormat: Format[List[ClientHandle]] = implicitly[Format[List[ClientHandle]]]
-    implicit val clientSetFormat: Format[Set[ClientHandle]] = implicitly[Format[Set[ClientHandle]]]
   }
 }

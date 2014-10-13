@@ -2,7 +2,7 @@
  * For copyright information see the LICENSE document.
  */
 
-package entice.server.events
+package entice.server.utils
 
 import entice.server.test._
 import entice.server.macros._
@@ -42,7 +42,7 @@ class EventBusSpec extends AbstractTestKit("EventBusSpec") with SpecificationLik
       {
         implicit val actor = testActor
         bus.pub(TestMessage())
-        a1.expectMsg(Evt(TestMessage()))
+        a1.expectMsg(Evt(Some(testActor), TestMessage()))
         a2.expectNoMsg
         a3.expectNoMsg
       }
@@ -52,17 +52,16 @@ class EventBusSpec extends AbstractTestKit("EventBusSpec") with SpecificationLik
         implicit val actor = testActor
         bus.pub(GenericTestMessage[String]())
         a1.expectNoMsg
-        a2.expectMsg(Evt(GenericTestMessage[String]()))
+        a2.expectMsg(Evt(Some(testActor), GenericTestMessage[String]()))
         a3.expectNoMsg
       }
 
 
       {
-        implicit val actor = testActor
-        bus.pub(GenericTestMessage[Boolean]())
+        bus.pubAnon(GenericTestMessage[Boolean]())
         a1.expectNoMsg
-        a2.expectMsg(Evt(GenericTestMessage[Boolean]()))
-        a3.expectMsg(Evt(GenericTestMessage[Boolean]()))
+        a2.expectMsg(Evt(None, GenericTestMessage[Boolean]()))
+        a3.expectMsg(Evt(None, GenericTestMessage[Boolean]()))
       }
 
       true

@@ -8,18 +8,18 @@
 
 @main("... view your characters ...") {
   @if(chars.isEmpty) {
-    <p>You have got no characters to display. <a href="@entice.server.routes.Global.charGet("create")">...create a new one.</a><p/>
+    <p>You have got no characters to display. <a href="@routes.Proxy.charGet("create")">...create a new one.</a><p/>
   } else {
     <table class="lobbyChars" border="1" cellpadding="0" cellspacing="0">
       @for(char <- chars) {
         <tr>
           <td>@char.name</td>
-          <td><a href="@entice.server.routes.Global.charGet("edit", char.name)">[edit]</a></td>
-          <td><a href="@entice.server.routes.Global.charGet("delete", char.name)">[delete]</a></td>
-          <td><a href="@entice.server.routes.Global.client(char.name, "HeroesAscent")">[play]</a></td>
+          <td><a href="@routes.Proxy.charGet("edit", char.name)">[edit]</a></td>
+          <td><a href="@routes.Proxy.charGet("delete", char.name)">[delete]</a></td>
+          <td><a href="@routes.Proxy.clientGet(char.name, "HeroesAscent")">[play]</a></td>
         </tr>
       }
     </table>
-    <a href="@entice.server.routes.Global.charGet("create")">...create another one.</a>
+    <a href="@routes.Proxy.charGet("create")">...create another one.</a>
   }
 }

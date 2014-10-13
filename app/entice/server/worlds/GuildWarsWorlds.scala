@@ -14,13 +14,12 @@ trait GuildWarsWorlds extends Worlds with WorldBase with WorldTracking with Worl
       with Tracker
       with Entities
       with Clients
-      with Attributes
       with Behaviours
       with WorldEvents =>
 
   def World(name: String, eventBus: EventBus = new EventBus()): World = new World(name, eventBus)
 
-  case class World(name: String, eventBus: EventBus = new EventBus())
+ class World(val name: String, val eventBus: EventBus = new EventBus())
     extends WorldLike
     with WorldImpl
     with WorldTracker

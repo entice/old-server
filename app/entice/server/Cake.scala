@@ -15,7 +15,7 @@ import play.api._
 /**
  * This is the server. Period.
  */
-object Global
+object Cake
     extends GlobalSettings
     with DefaultServer {
 
@@ -45,8 +45,7 @@ trait DefaultServer
     with Security
     // World stuff...
     with Clients
-    with Entities with Attributes with Behaviours
-    with Tracking // behaviours
+    with Entities with Tracking
     with GuildWarsWorlds
     with WorldEvents
     // Controllers

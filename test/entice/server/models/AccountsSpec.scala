@@ -2,14 +2,13 @@
  * For copyright information see the LICENSE document.
  */
 
-package models
+package entice.server.models
 
 import play.api._
 import play.api.test._
 import play.api.test.Helpers._
 
-import scala.concurrent._
-import duration._
+import scala.concurrent._, duration._
 
 import org.specs2.mutable._
 import org.specs2.execute._

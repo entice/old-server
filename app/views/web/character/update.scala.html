@@ -7,7 +7,7 @@
 @(action: String, name: String, authForm: Form[CharacterCreateForm])(implicit flash: Flash)
 
 @main("... " + action + " a character ...") {
-  @form(action = entice.server.routes.Global.apiCharPost(action, name)) {
+  @form(action = routes.Proxy.charPost(action, name)) {
     <fieldset><legend>Character creation</legend>
       <p>
         <label for="charName" class="inputLabel">Name:</label>

@@ -28,20 +28,23 @@ trait WorldController extends Controller {
 
   import clients.Idle
   import clients.ClientHandle
+
   import play.api.Play.current
 
+  object worldControl {
 
-  def world(chara: String, map: String) = WebSocket.tryAcceptWithActor[String, JsValue] { implicit request =>
-    Future.successful(authorize match {
-      case Some(client)
-          if (client().state.isInstanceOf[Idle] // client needs to be idle in lobby or elsewhere
-          &&  client().chars.contains(chara)    // client needs to own the character
-          &&  worlds.get(map).isDefined) =>     // world needs to exist TODO check if character can access it
-        Logger.info("Client is starting to load world: " + map)
-        Right(WorldSession.props(client, chara, worlds.get(map).get.eventBus))
+    def worldGet(chara: String, map: String) = WebSocket.tryAcceptWithActor[String, JsValue] { implicit request =>
+      Future.successful(authorize match {
+        case Some(client)
+            if (client().state.isInstanceOf[Idle] // client needs to be idle in lobby or elsewhere
+            &&  client().chars.contains(chara)    // client needs to own the character
+            &&  worlds.get(map).isDefined) =>     // world needs to exist TODO check if character can access it
+          Logger.info("Client is starting to load world: " + map)
+          Right(WorldSession.props(client, chara, worlds.get(map).get.eventBus))
 
-      case _ => Left(Forbidden)
-    })
+        case _ => Left(Forbidden)
+      })
+    }
   }
 
 
@@ -59,7 +62,6 @@ trait WorldController extends Controller {
       net: ActorRef) extends Actor with ActorLogging {
 
     import context._
-
 
     // Lifecycle hooks
     override def preStart() = { eventBus.pub(PlayerJoin(client, chara)) }

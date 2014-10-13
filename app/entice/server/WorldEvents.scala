@@ -4,6 +4,7 @@
 
 package entice.server
 
+import entice.server.attributes._
 import entice.server.enums.ChatChannel
 import entice.server.handles.{Clients, Entities}
 import entice.server.utils.Coord2D
@@ -11,7 +12,7 @@ import julienrf.variants.Variants
 import play.api.libs.json.Format
 
 
-trait WorldEvents { self: Tracker with Clients with Entities with Attributes =>
+trait WorldEvents { self: Clients with Entities =>
   import clients.ClientHandle
   import entities.EntityHandle
 
@@ -97,7 +98,7 @@ trait WorldEvents { self: Tracker with Clients with Entities with Attributes =>
   case object Pong extends WorldEvent // Bi-directional
 
 
-  // Serialization follows ...
+  // Serialization...
 
   implicit val worldEventFormat: Format[WorldEvent] = Variants.format[WorldEvent]("type")
 }

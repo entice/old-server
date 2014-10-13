@@ -5,6 +5,7 @@
 package entice.server.handles
 
 import entice.server._
+import entice.server.attributes._
 import entice.server.macros._
 import entice.server.utils._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -16,7 +17,6 @@ import scala.util.Random
 trait Entities extends Handles {
   self: Worlds
     with Clients
-    with Attributes
     with Behaviours
     with WorldEvents =>
 
@@ -56,7 +56,7 @@ trait Entities extends Handles {
     trait EntityTracker extends HasAttributes { self: Entity =>
 
       def track[T <: Update : Named](update: T) = {
-        world.eventBus.pub(update)
+        world.eventBus.pubAnon(update)
       }
 
       abstract override def add[T <: Attribute : Named](c: T) = {
@@ -78,7 +78,7 @@ trait Entities extends Handles {
     }
 
 
-    // Serialization follows...
+    // Serialization...
 
     private def tryGetHandle(id: Int): Option[EntityHandle] = registry.retrieve(id)
 

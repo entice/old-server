@@ -5,12 +5,13 @@
 package entice.server
 
 import akka.actor.ActorRef
+import entice.server.attributes._
 import entice.server.handles.Entities
 import entice.server.macros._
 import entice.server.utils._
 
 
-trait Behaviours { self: Core with Worlds with Entities with Attributes =>
+trait Behaviours { self: Core with Worlds with Entities =>
   import entities.EntityHandle
 
   /** Stack them in! */

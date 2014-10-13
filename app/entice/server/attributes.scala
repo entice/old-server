@@ -5,9 +5,9 @@
 package entice.server
 
 import entice.server.enums.{CharacterAnimation, MoveState}
-import entice.server.handles.Entities
 import entice.server.macros.Named
 import entice.server.utils._
+
 import julienrf.variants.Variants
 import play.api.libs.json.{Format, Json}
 
@@ -15,8 +15,9 @@ import scala.collection._
 import scala.concurrent.Future
 
 
-trait Attributes { self: Tracker with Entities =>
-  import entities.EntityHandle
+package object attributes {
+
+  type EntityId = Int
 
   /**
    * Attributes are logic-free dataholders that define the state of any entity.
@@ -66,13 +67,13 @@ trait Attributes { self: Tracker with Entities =>
       face: Int = 30) extends Attribute
 
   /** Present if this entity can be part of a group */
-  case class Group(group: EntityHandle) extends Attribute with NoPropagation
+  case class Group(group: EntityId) extends Attribute with NoPropagation
 
   /** The state of a group entity */
   case class GroupState(
-      members: List[EntityHandle] = Nil,
-      invited: List[EntityHandle] = Nil,
-      joinRequests: List[EntityHandle] = Nil) extends Attribute
+      members: List[EntityId] = Nil,
+      invited: List[EntityId] = Nil,
+      joinRequests: List[EntityId] = Nil) extends Attribute
 
   /** A direction of movement and a state for if the entity is moving or not */
   case class Movement(
@@ -86,24 +87,23 @@ trait Attributes { self: Tracker with Entities =>
   case class Position(pos: Coord2D = Coord2D(0, 0)) extends Attribute
 
   /** Self reference */
-  case class Self(entity: EntityHandle) extends Attribute with NoPropagation
+  case class Self(entity: EntityId) extends Attribute with NoPropagation
 
   /** List of entities that this entity can see if any */
-  case class Vision(sees: List[EntityHandle] = Nil) extends Attribute with NoPropagation
+  case class Vision(sees: List[EntityId] = Nil) extends Attribute with NoPropagation
 
 
-  // Serialization follows ...
+  // Serialization...
 
-  // Hint: This is not really necessary, just for ease of use for single use
-  implicit val animationFormat: Format[Animation] = Json.format[Animation]
-  implicit val appearanceFormat: Format[Appearance] = Json.format[Appearance]
-  implicit val groupFormat: Format[Group] = Json.format[Group]
-  implicit val groupStateFormat: Format[GroupState] = Json.format[GroupState]
-  implicit val movementFormat: Format[Movement] = Json.format[Movement]
-  implicit val nameFormat: Format[Name] = Json.format[Name]
-  implicit val positionFormat: Format[Position] = Json.format[Position]
-  implicit val selfFormat: Format[Self] = Json.format[Self]
-  implicit val visionFormat: Format[Vision] = Json.format[Vision]
+  // implicit val animationFormat: Format[Animation] = Json.format[Animation]
+  // implicit val appearanceFormat: Format[Appearance] = Json.format[Appearance]
+  // implicit val groupFormat: Format[Group] = Json.format[Group]
+  // implicit val groupStateFormat: Format[GroupState] = Json.format[GroupState]
+  // implicit val movementFormat: Format[Movement] = Json.format[Movement]
+  // implicit val nameFormat: Format[Name] = Json.format[Name]
+  // implicit val positionFormat: Format[Position] = Json.format[Position]
+  // implicit val selfFormat: Format[Self] = Json.format[Self]
+  // implicit val visionFormat: Format[Vision] = Json.format[Vision]
 
   implicit val attributeFormat: Format[Attribute] = Variants.format[Attribute]("type")
 }

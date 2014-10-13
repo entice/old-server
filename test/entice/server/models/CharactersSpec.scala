@@ -2,10 +2,13 @@
  * For copyright information see the LICENSE document.
  */
 
-package models
+package entice.server.models
 
+import entice.server._
 import entice.server.attributes._
+import entice.server.handles.{Entities, Clients}
 import entice.server.utils.ObjectID
+import entice.server.test.CakeMocks
 
 import play.api._
 import play.api.test._
@@ -21,7 +24,7 @@ import org.junit.runner.RunWith
 
 
 @RunWith(classOf[JUnitRunner])
-class CharacterCollectionSpec extends Specification {
+class CharactersSpec extends Specification with CakeMocks {
   sequential
   val timeout: FiniteDuration = DurationInt(10).seconds
   def nullApp = FakeApplication(withGlobal = Some(new GlobalSettings() {}))

@@ -4,7 +4,9 @@
 
 package entice.server
 
-import models._
+import entice.server.attributes._
+import entice.server.models._
+
 import play.api._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 import play.api.libs.json._
@@ -20,8 +22,7 @@ trait Seed {
   self: Core
     with Config
     with Accounts
-    with Characters
-    with Attributes =>
+    with Characters =>
 
   object seeder {
 
