@@ -5,8 +5,10 @@
 package entice.server.worlds
 
 import akka.actor.{Actor, ActorRef, Props}
-import entice.server._, macros._
-import entice.server.handles.{Clients, Entities}
+import entice.server._
+import entice.server.events._
+import entice.server.handles._
+import entice.server.macros._
 import entice.server.utils.{EventBus, Evt}
 import play.api._
 
@@ -14,20 +16,21 @@ import play.api._
 trait WorldWatchers extends Worlds {
     self: Core
       with Tracker
-      with Entities
       with Clients
-      with Behaviours
-      with WorldEvents =>
+      with Behaviours =>
 
-  import clients.{Idle, LoadingMap}
+  import clients._
 
-  trait WorldWatcher extends WorldLike { self: World =>
+  trait WorldWatcher extends WorldLike { world: World =>
 
-    private val entityWatcher: ActorRef = actorSystem.actorOf(Props(EntityWatcher(eventBus, behaviours)))
-    private val sessionWatcher: ActorRef = actorSystem.actorOf(Props(SessionWatcher(eventBus, self)))
+    override def onStart() {
+      super.onStart()
+      val entityWatcher: ActorRef = actorSystem.actorOf(Props(EntityWatcher()))
+      val sessionWatcher: ActorRef = actorSystem.actorOf(Props(SessionWatcher()))
+    }
 
     /** General purpose world-event watcher for the entities of this world */
-    case class EntityWatcher(eventBus: EventBus, behaviours: List[BehaviourFactory[_]]) extends Actor {
+    case class EntityWatcher() extends Actor {
       eventBus.sub[AttributeAdd]
       eventBus.sub[AttributeRemove]
 
@@ -38,9 +41,11 @@ trait WorldWatchers extends Worlds {
     }
 
     /** General purpose world-event watcher for the entities of this world */
-    case class SessionWatcher(eventBus: EventBus, world: Worlds#World) extends Actor {
+    case class SessionWatcher() extends Actor {
       eventBus.sub[PlayerJoin]
       eventBus.sub[PlayerQuit]
+
+      override def preStart() { Logger.info("#######TEST####### " + world.name) }
 
       def receive = {
         case Evt(sender, PlayerJoin(client, chara)) if (sender.isDefined) =>

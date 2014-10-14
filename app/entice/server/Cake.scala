@@ -24,10 +24,13 @@ object Cake
   override def onStart(app: Application) {
     Logger.info(s"Starting an entice ${environment.toString.toLowerCase}-server at ${config.frontendUrl}")
     seeder.seed()
+
+    lifecycle.serverStart()
   }
 
   override def onStop(app: Application) {
-    Logger.info(s"Stopping the entice server.")
+    lifecycle.serverStop()
+    Logger.info(s"Stopped the entice server.")
   }
 }
 
@@ -47,7 +50,6 @@ trait DefaultServer
     with Clients
     with Entities with Tracking
     with GuildWarsWorlds
-    with WorldEvents
     // Controllers
     with AuthController
     with CharacterController

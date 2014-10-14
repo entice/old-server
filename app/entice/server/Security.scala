@@ -2,7 +2,7 @@ package entice.server
 
 import java.util.UUID
 
-import entice.server.handles.Clients
+import entice.server.handles._
 import entice.server.models.{Characters, Accounts}
 import play.api.mvc.RequestHeader
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -12,8 +12,7 @@ import scala.util.Try
 
 
 trait Security { self: Accounts with Characters with Worlds with Clients =>
-  import clients.Client
-  import clients.ClientHandle
+  import clients._
 
   /** Authenticate with the server */
   def authenticate(email: String, password: String): Future[Option[ClientHandle]] = {

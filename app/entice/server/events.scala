@@ -6,15 +6,13 @@ package entice.server
 
 import entice.server.attributes._
 import entice.server.enums.ChatChannel
-import entice.server.handles.{Clients, Entities}
+import entice.server.handles._
 import entice.server.utils.Coord2D
 import julienrf.variants.Variants
 import play.api.libs.json.Format
 
 
-trait WorldEvents { self: Clients with Entities =>
-  import clients.ClientHandle
-  import entities.EntityHandle
+object events {
 
   /**
    * All these events are concerning world updates, general or from/to client.
@@ -100,5 +98,7 @@ trait WorldEvents { self: Clients with Entities =>
 
   // Serialization...
 
+  import ClientHandle._
+  import EntityHandle._
   implicit val worldEventFormat: Format[WorldEvent] = Variants.format[WorldEvent]("type")
 }

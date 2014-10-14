@@ -19,6 +19,7 @@
       </p>
     </fieldset>
     <input type="submit" class="inputButton" name="" value="... do it ..." />
+    <script> document.getElementById("email").focus(); </script>
   }
   @if(!authForm.errors.isEmpty) {
     <div>Errors: @for(error <- authForm.errors) {@error.message }</div>

@@ -5,6 +5,7 @@
 package entice.server
 
 import entice.server.enums.{CharacterAnimation, MoveState}
+import entice.server.handles._
 import entice.server.macros.Named
 import entice.server.utils._
 
@@ -16,9 +17,6 @@ import scala.concurrent.Future
 
 
 package object attributes {
-
-  type EntityId = Int
-
   /**
    * Attributes are logic-free dataholders that define the state of any entity.
    * The composition of these attributes defines the entity-type and behaviour of the entity.
@@ -67,13 +65,13 @@ package object attributes {
       face: Int = 30) extends Attribute
 
   /** Present if this entity can be part of a group */
-  case class Group(group: EntityId) extends Attribute with NoPropagation
+  case class Group(group: EntityHandle) extends Attribute with NoPropagation
 
   /** The state of a group entity */
   case class GroupState(
-      members: List[EntityId] = Nil,
-      invited: List[EntityId] = Nil,
-      joinRequests: List[EntityId] = Nil) extends Attribute
+      members: List[EntityHandle] = Nil,
+      invited: List[EntityHandle] = Nil,
+      joinRequests: List[EntityHandle] = Nil) extends Attribute
 
   /** A direction of movement and a state for if the entity is moving or not */
   case class Movement(
@@ -87,10 +85,10 @@ package object attributes {
   case class Position(pos: Coord2D = Coord2D(0, 0)) extends Attribute
 
   /** Self reference */
-  case class Self(entity: EntityId) extends Attribute with NoPropagation
+  case class Self(entity: EntityHandle) extends Attribute with NoPropagation
 
   /** List of entities that this entity can see if any */
-  case class Vision(sees: List[EntityId] = Nil) extends Attribute with NoPropagation
+  case class Vision(sees: List[EntityHandle] = Nil) extends Attribute with NoPropagation
 
 
   // Serialization...
@@ -105,5 +103,6 @@ package object attributes {
   // implicit val selfFormat: Format[Self] = Json.format[Self]
   // implicit val visionFormat: Format[Vision] = Json.format[Vision]
 
+  import EntityHandle._
   implicit val attributeFormat: Format[Attribute] = Variants.format[Attribute]("type")
 }

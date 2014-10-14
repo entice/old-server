@@ -5,21 +5,24 @@
 package entice.server.worlds
 
 import entice.server._
-import entice.server.handles.{Clients, Entities}
+import entice.server.handles._
 import entice.server.utils.EventBus
 
 
-trait GuildWarsWorlds extends Worlds with WorldBase with WorldTracking with WorldWatchers {
-    self: Core
-      with Tracker
-      with Entities
-      with Clients
-      with Behaviours
-      with WorldEvents =>
+trait GuildWarsWorlds extends Worlds
+    with WorldBase
+    with WorldTracking
+    with WorldWatchers {
+  self: Core
+    with Tracker
+    with Entities
+    with Clients
+    with Behaviours =>
 
-  def World(name: String, eventBus: EventBus = new EventBus()): World = new World(name, eventBus)
+  type World = GuildWarsWorld
+  def World(name: String): World = new GuildWarsWorld(name)
 
- class World(val name: String, val eventBus: EventBus = new EventBus())
+  class GuildWarsWorld(val name: String)
     extends WorldLike
     with WorldImpl
     with WorldTracker

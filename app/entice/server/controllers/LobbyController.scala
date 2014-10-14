@@ -6,6 +6,7 @@ package entice.server.controllers
 
 import entice.server.Security
 import entice.server.attributes._
+import entice.server.handles._
 import play.api.libs.json._
 import play.api.mvc._
 
@@ -15,7 +16,8 @@ case class CharacterViews(chars: List[CharacterView])
 
 
 /** Controller for the static website crap */
-trait LobbyController extends Controller { self: Security =>
+trait LobbyController extends Controller { self: Security with Clients =>
+  import clients._
 
   object lobbyControl {
 

@@ -5,20 +5,28 @@
 package entice.server
 
 import entice.server.attributes._
-import entice.server.handles.Entities
+import entice.server.handles._
 import entice.server.utils._
 
 
 /** Manages entities + provides local eventbus. */
-trait Worlds { self: Entities =>
-
-  import entities.EntityHandle
+trait Worlds extends Lifecycle {
 
   type World <: WorldLike
-  def World(name: String, eventBus: EventBus = new EventBus()): World
+  def World(name: String): World
 
   def lobby = World("Lobby")
   def allWorlds: List[World] = lobby :: Nil
+
+  override def onStart() {
+    super.onStart()
+    allWorlds.foreach(_.onStart())
+  }
+
+  override def onStop() {
+    allWorlds.foreach(_.onStop())
+    super.onStop()
+  }
 
   /** Convenience access to the worlds */
   object worlds {
@@ -26,9 +34,9 @@ trait Worlds { self: Entities =>
     def worldOf(entity: EntityHandle): Option[World] = allWorlds.find { w => w.contains(entity) }
   }
 
-  trait WorldLike { self: World =>
+  trait WorldLike extends Lifecycle { self: World =>
     def name: String
-    def eventBus: EventBus
+    val eventBus: EventBus = new EventBus()
 
     /** Checks if the given entity resides in this world */
     def contains(entity: EntityHandle) : Boolean

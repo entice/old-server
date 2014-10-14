@@ -6,7 +6,7 @@ package entice.server.worlds
 
 import entice.server._
 import entice.server.attributes._
-import entice.server.handles.Entities
+import entice.server.handles._
 import entice.server.utils.{EventBus, ReactiveTypeMap}
 
 
@@ -16,7 +16,7 @@ import entice.server.utils.{EventBus, ReactiveTypeMap}
  */
 trait WorldBase extends Worlds { self: Entities with Behaviours =>
 
-  import entities.{Entity, EntityHandle}
+  import entities._
 
   trait WorldImpl extends WorldLike { self: World =>
 

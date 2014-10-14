@@ -4,7 +4,8 @@
 
 package entice.server
 
-import entice.server.handles.{Clients, Entities}
+import entice.server.events._
+import entice.server.handles._
 import entice.server.utils._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
 
@@ -25,8 +26,7 @@ trait NoVisibility  extends TrackingOptions { self: TrackingOptions => override 
 /**
  * This keeps track of the updates that certain entities can observe
  */
-trait Tracker { self: Entities with Clients with WorldEvents =>
-  import entities.EntityHandle
+trait Tracker {
 
   /** This keeps track of the updates that certain entities can observe */
   object tracker {

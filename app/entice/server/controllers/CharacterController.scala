@@ -6,6 +6,7 @@ package entice.server.controllers
 
 import controllers.routes
 import entice.server.attributes._
+import entice.server.handles._
 import entice.server.models.Characters
 import entice.server.Security
 import entice.server.enums.{CharacterCampaign, CharacterProfession}
@@ -33,7 +34,8 @@ case class CharacterCreateForm(
 
 
 /** Controller for the static website crap */
-trait CharacterController extends Controller { self: Security with Characters =>
+trait CharacterController extends Controller { self: Security with Clients with Characters =>
+  import clients._
 
   object charControl {
 

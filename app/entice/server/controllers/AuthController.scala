@@ -6,6 +6,7 @@ package entice.server.controllers
 
 import controllers.routes
 import entice.server._
+import entice.server.handles._
 import play.Logger
 import play.api.data.Forms._
 import play.api.data._
@@ -20,7 +21,8 @@ case class AuthForm(email: String, password: String)
 
 
 /** Authentication controller. You need to be logged in for most other functionality. */
-trait AuthController extends Controller { self: Security =>
+trait AuthController extends Controller { self: Security with Clients =>
+  import clients._
 
   object authControl {
 

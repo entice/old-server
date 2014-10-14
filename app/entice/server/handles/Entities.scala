@@ -6,6 +6,7 @@ package entice.server.handles
 
 import entice.server._
 import entice.server.attributes._
+import entice.server.events._
 import entice.server.macros._
 import entice.server.utils._
 import play.api.libs.concurrent.Execution.Implicits.defaultContext
@@ -14,20 +15,32 @@ import play.api.libs.json._
 import scala.util.Random
 
 
+/** The 'dumb' handle class */
+case class EntityHandle(id: Int)
+object EntityHandle {
+  implicit val entityFormat: Format[EntityHandle] = Json.format[EntityHandle]
+}
+
+
+/** Import entities for great good! */
 trait Entities extends Handles {
   self: Worlds
     with Clients
-    with Behaviours
-    with WorldEvents =>
+    with Behaviours =>
 
   /** Defines a serializable handle for entity classes */
   object entities extends HandleModule {
     type Id = Int
     type Data = Entity
-    type Handle = EntityHandle
+    type Handle = EntityHandle with HandleLike
 
-    def Handle(id: Int): Handle = new EntityHandle(id)
-    case class EntityHandle(id: Int) extends HandleLike
+    def Handle(id: Int): Handle = new EntityHandle(id) with HandleLike
+    implicit def enrich(handle: EntityHandle): EntityHandle with HandleLike = {
+      registry.retrieve(handle.id) match {
+        case Some(h) => h
+        case None    => throw HandleInvalidException()
+      }
+    }
 
     def generateId() = ran.nextInt()
     private val ran = new Random()
@@ -76,28 +89,5 @@ trait Entities extends Handles {
         super.remove[T]
       }
     }
-
-
-    // Serialization...
-
-    private def tryGetHandle(id: Int): Option[EntityHandle] = registry.retrieve(id)
-
-    object entityWrites extends Writes[EntityHandle] {
-      def writes(entity: EntityHandle) = Json.obj("id" -> entity.id)
-    }
-
-    object entityReads extends Reads[EntityHandle] {
-      def reads(json: JsValue): JsResult[EntityHandle] = {
-        (for {
-          id <- (json \ "id").asOpt[Int]
-          eh <- tryGetHandle(id)
-        } yield eh) match {
-          case Some(eh) => JsSuccess[EntityHandle](eh)
-          case None     => JsError("Json to Entity: No id present or none registered")
-        }
-      }
-    }
-
-    implicit val entityFormat: Format[EntityHandle] = Format[EntityHandle](entityReads, entityWrites)
   }
 }

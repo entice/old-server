@@ -6,15 +6,14 @@ package entice.server.worlds
 
 import entice.server._
 import entice.server.attributes._
-import entice.server.handles.Entities
+import entice.server.events._
+import entice.server.handles._
 import entice.server.macros.Named
 import entice.server.utils.ReactiveTypeMap
 
 
 /** World activity tracking */
-trait WorldTracking extends Worlds { self: Tracker with Entities with WorldEvents =>
-
-  import entities.EntityHandle
+trait WorldTracking extends Worlds { self: Tracker =>
 
   trait WorldTracker extends WorldLike { self: World =>
 

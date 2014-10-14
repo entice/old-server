@@ -7,7 +7,8 @@ package entice.server.behaviours
 import akka.actor.{Actor, ActorLogging, ActorRef, Props}
 import entice.server._
 import entice.server.attributes._
-import entice.server.handles.Entities
+import entice.server.events._
+import entice.server.handles._
 import entice.server.macros._
 import entice.server.utils.Evt
 
@@ -20,10 +21,9 @@ trait Tracking extends Behaviours {
   self: Core
     with Tracker
     with Worlds
-    with Entities
-    with WorldEvents =>
+    with Entities =>
 
-  import entities.EntityHandle
+  import entities._
 
   abstract override def behaviours: List[BehaviourFactory[_]] =
     super.behaviours :::

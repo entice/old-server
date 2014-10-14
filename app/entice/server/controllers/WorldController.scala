@@ -5,10 +5,11 @@
 package entice.server.controllers
 
 import akka.actor._
+import entice.server.events._
+import entice.server.handles._
 import entice.server.macros._
-import entice.server.handles.Clients
 import entice.server.utils.EventBus
-import entice.server.{WorldEvents, Worlds, Security}
+import entice.server.{Worlds, Security}
 import play.api._
 import play.api.libs.json._
 import play.api.mvc._
@@ -23,12 +24,9 @@ import scala.{Left, Right}
 trait WorldController extends Controller {
   self: Security
     with Worlds
-    with Clients
-    with WorldEvents =>
+    with Clients =>
 
-  import clients.Idle
-  import clients.ClientHandle
-
+  import clients._
   import play.api.Play.current
 
   object worldControl {

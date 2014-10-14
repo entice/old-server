@@ -16,19 +16,31 @@ import play.api.libs.json._
 import scala.util.Try
 
 
-trait Clients extends Handles { self: Accounts with Worlds with Entities =>
-  import entities.EntityHandle
+/** The 'dumb' handle class */
+case class ClientHandle private[handles] (id: UUID)
+object ClientHandle {
+  implicit val clientFormat: Format[ClientHandle] = Json.format[ClientHandle]
+}
+
+
+/** Import clients for great good! */
+trait Clients extends Handles { self: Accounts with Worlds =>
 
   object clients extends HandleModule {
     type Id = UUID
     type Data = Client
-    type Handle = ClientHandle
+    type Handle = ClientHandle with HandleLike
 
     type Email = String
     type CharName = String
 
-    def Handle(id: UUID): Handle = new ClientHandle(id)
-    case class ClientHandle(id: UUID) extends HandleLike
+    def Handle(id: UUID): Handle = new ClientHandle(id) with HandleLike
+    implicit def enrich(handle: ClientHandle): ClientHandle with HandleLike = {
+      registry.retrieve(handle.id) match {
+        case Some(h) => h
+        case None    => throw HandleInvalidException()
+      }
+    }
 
     def generateId(): Id = UUID.randomUUID()
 
@@ -61,33 +73,5 @@ trait Clients extends Handles { self: Accounts with Worlds with Entities =>
       override val session: ActorRef,
       override val world: Worlds#World,
       override val chara: CharName) extends ClientState
-
-
-    // Serialization...
-
-    private def tryGetHandle(id: String): Option[ClientHandle] = {
-      for {
-        uuid <- Try(UUID.fromString(id)).toOption
-        client <- registry.retrieve(uuid)
-      } yield client
-    }
-
-    object clientWrites extends Writes[ClientHandle] {
-      def writes(client: ClientHandle) = Json.obj("client" -> client.id)
-    }
-
-    object clientReads extends Reads[ClientHandle] {
-      def reads(json: JsValue): JsResult[ClientHandle] = {
-        (for {
-          id <- (json \ "client").asOpt[String]
-          eh <- tryGetHandle(id)
-        } yield eh) match {
-          case Some(eh) => JsSuccess[ClientHandle](eh)
-          case None => JsError("Json to client: No uuid present or none registered")
-        }
-      }
-    }
-
-    implicit val clientFormat: Format[ClientHandle] = Format[ClientHandle](clientReads, clientWrites)
   }
 }
