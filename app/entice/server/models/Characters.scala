@@ -14,19 +14,21 @@ import play.api.libs.json._
 import scala.concurrent.Future
 
 
-trait Characters {
+case class Character(
+    accountId: ObjectID,
+    name: String,
+    appearance: Appearance,
+    id: ObjectID = ObjectID()) extends DataAccessType {
+  def getName() = { Name(name) }
+}
 
-  case class Character(
-      accountId: ObjectID,
-      name: String,
-      appearance: Appearance,
-      id: ObjectID = ObjectID()) extends DataAccessType {
-    def getName() = { Name(name) }
-  }
-  object Character {
-    implicit val appearFormat: Format[Appearance] = Json.format[Appearance]
-    implicit val characterFormat: Format[Character] = Json.format[Character]
-  }
+object Character {
+  implicit val appearFormat: Format[Appearance] = Json.format[Appearance]
+  implicit val characterFormat: Format[Character] = Json.format[Character]
+}
+
+
+trait Characters {
   import Character._
 
   object characters extends Collection[Character]("characters") {

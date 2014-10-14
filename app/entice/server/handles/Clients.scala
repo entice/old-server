@@ -10,7 +10,7 @@ import akka.actor.ActorRef
 import entice.server.attributes._
 import entice.server.utils.MultiKeyMap
 import entice.server.{Worlds, Handles}
-import entice.server.models.Accounts
+import entice.server.models._
 import play.api.libs.json._
 
 import scala.util.Try
@@ -24,7 +24,7 @@ object ClientHandle {
 
 
 /** Import clients for great good! */
-trait Clients extends Handles { self: Accounts with Worlds =>
+trait Clients extends Handles { self: Worlds =>
 
   object clients extends HandleModule {
     type Id = UUID

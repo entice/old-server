@@ -7,7 +7,7 @@ package entice.server.controllers
 import controllers.routes
 import entice.server.attributes._
 import entice.server.handles._
-import entice.server.models.Characters
+import entice.server.models._
 import entice.server.Security
 import entice.server.enums.{CharacterCampaign, CharacterProfession}
 import play.api.data.Forms._
@@ -70,6 +70,9 @@ trait CharacterController extends Controller { self: Security with Clients with 
     )(CharacterCreateForm.apply)(CharacterCreateForm.unapply) verifying("Failed form constraints!", fields => fields match {
       case c => validate(c.charName, c.campaign, c.profession, c.sex, c.height, c.skinColor, c.hairColor, c.hairstyle, c.face).isDefined
     }))
+
+
+    // TODO refactor!
 
 
     def charGet(action: String, name: String) = Action { implicit request =>
