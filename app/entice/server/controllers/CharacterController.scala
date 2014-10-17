@@ -38,6 +38,48 @@ trait CharacterController extends Controller { self: Security with Clients with 
   import clients._
 
   object charControl {
+    // TODO refactor!
+
+
+    def charGet(action: String, name: String) = Action { implicit request =>
+      authorize match {
+        case None => Forbidden
+        case Some(client) =>
+          action match {
+            case "create" => Ok(views.html.web.character.update(action, "", charCreateForm))
+            case "delete" if (client().chars.contains(name)) => Ok(views.html.web.character.delete(name))
+            case "edit"   if (client().chars.contains(name)) => Ok(views.html.web.character.update(action, name, charCreateForm.bind(charToJson(name, client().chars(name)))))
+            case _ => Redirect(routes.Proxy.webLobbyGet()).flashing("message" -> "Action or character name unkown.")
+          }
+        case _ => Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unknown authorization status")
+      }
+    }
+
+
+    def charPost(action: String, name: String) = Action.async { implicit request =>
+      authorize match {
+        case None => Future.successful(Forbidden)
+        case Some(client) =>
+          action match {
+            case "delete" if (client().chars.contains(name)) =>
+              tryDeleteChar(name, client)
+                .map { x => Redirect(routes.Proxy.webLobbyGet()).flashing("message" -> "Character deleted.") }
+
+            // for create or edit we need the form data
+            case a if (a == "create" ||
+                      (a == "edit" && client().chars.contains(name))) =>
+              charCreateForm.bindFromRequest.fold(
+                formWithErrors => { Future.successful(BadRequest(views.html.web.character.update(action, name, formWithErrors))) },
+                charData => {
+                  tryUpdateChar(name, charData.charName, getAppearance(charData), client)
+                    .map { x => Redirect(routes.Proxy.webLobbyGet()).flashing("message" -> s"""Character ${action.stripSuffix("e")}ed""") }
+                })
+            case _ => Future.successful(Redirect(routes.Proxy.webLobbyGet()).flashing("message" -> "Error: Action or character name unkown."))
+          }
+        case _ => Future.successful(Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unknown authorization status"))
+      }
+    }
+
 
     private def getAppearance(f: CharacterCreateForm): Appearance = {
       // TODO: why the fuck do we need to cast this crap?
@@ -57,6 +99,7 @@ trait CharacterController extends Controller { self: Security with Clients with 
       }).toOption
     }
 
+
     private val charCreateForm = Form(mapping(
       "charName" -> text(minLength = 4, maxLength = 16),
       "campaign" -> text,
@@ -72,56 +115,32 @@ trait CharacterController extends Controller { self: Security with Clients with 
     }))
 
 
-    // TODO refactor!
+    private def charToJson(name: String, appear: Appearance) = {
+      Json.toJson(appear).as[JsObject] - "campaign" - "profession" ++ Json.obj(
+        "campaign" -> CharacterCampaign(appear.campaign).toString,
+        "profession" -> CharacterProfession(appear.profession).toString,
+        "charName" -> name)
+    }
 
 
-    def charGet(action: String, name: String) = Action { implicit request =>
-      authorize match {
-        case None => Forbidden
-        case Some(client) =>
-          action match {
-            case "create" => Ok(views.html.web.character.update(action, "", charCreateForm))
-            case "delete" if (client().chars.contains(name)) => Ok(views.html.web.character.delete(name))
-            case "edit"   if (client().chars.contains(name)) =>
-              val char = client().chars(name)
-              val jsonChar = Json.toJson(char).as[JsObject] - "campaign" - "profession" ++ Json.obj(
-                "campaign" -> CharacterCampaign(char.campaign).toString,
-                "profession" -> CharacterProfession(char.profession).toString,
-                "charName" -> name)
-              Ok(views.html.web.character.update(action, name, charCreateForm.bind(jsonChar)))
-            case _ => Redirect(routes.Proxy.webLobbyGet()).flashing("message" -> "Action or character name unkown.")
-          }
-        case _ => Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unknown authorization status")
+    private def tryDeleteChar(name: String, client: ClientHandle): Future[Boolean] = {
+      characters.deleteByName(name).map { x =>
+        client.update(client().copy(chars = client().chars - name))
+        true
       }
     }
 
 
-    def charPost(action: String, name: String) = Action.async { implicit request =>
-      authorize match {
-        case None => Future.successful(Forbidden)
-        case Some(client) =>
-          action match {
-            case "delete" if (client().chars.contains(name)) =>
-              characters.deleteByName(name).map { x =>
-                client.update(client().copy(chars = client().chars - name))
-                Redirect(routes.Proxy.webLobbyGet()).flashing("message" -> "Character deleted.")
-              }
-
-            // for create or edit we need the form data
-            case a if (a == "create" ||
-                      (a == "edit" && client().chars.contains(name))) =>
-              charCreateForm.bindFromRequest.fold(
-                formWithErrors => { Future.successful(BadRequest(views.html.web.character.update(action, name, formWithErrors))) },
-                charData => {
-                  val dbCharacter = Character(client().account.id, charData.charName, getAppearance(charData))
-                  characters.createOrUpdateByName(if (name == "") charData.charName else name, dbCharacter).map { x =>
-                    client.update(client().copy(chars = (client().chars - name) + (charData.charName -> getAppearance(charData))))
-                    Redirect(routes.Proxy.webLobbyGet()).flashing("message" -> s"""Character ${action.stripSuffix("e")}ed""")
-                  }
-                })
-            case _ => Future.successful(Redirect(routes.Proxy.webLobbyGet()).flashing("message" -> "Error: Action or character name unkown."))
-          }
-        case _ => Future.successful(Ok(views.html.web.lobby(Nil)).flashing("message" -> "Unknown authorization status"))
+    private def tryUpdateChar(
+        currentName: String,
+        newName: String,
+        appear: Appearance,
+        client: ClientHandle): Future[Boolean] = {
+      val dbCharacter = Character(client().account.id, newName, appear)
+      val dbName = if (currentName == "") newName else currentName
+      characters.createOrUpdateByName(dbName, dbCharacter).map { x =>
+        client.update(client().copy(chars = (client().chars - dbName) + (newName -> appear)))
+        true
       }
     }
   }
