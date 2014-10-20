@@ -21,6 +21,7 @@ object WorldMap extends Enumeration {
   // workaround for withName
   final def withMapName(name: String): WorldMapVal = super.withName(name).asInstanceOf[WorldMapVal]
 
+  val Lobby                   = Value("Lobby",            "",                     0, Nil)
   val HeroesAscent            = Value("HeroesAscent",     "heroes_ascent.json",   8, List(Coord2D(2017, -3241)))
   val TeamArenas              = Value("TeamArenas",       "team_arenas.json",     4, List(Coord2D(-1873, 352)))
   val RandomArenas            = Value("RandomArenas",     "random_arenas.json",   1, List(Coord2D(3854, 3874)))

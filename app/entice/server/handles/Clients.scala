@@ -35,7 +35,7 @@ trait Clients extends Handles { self: Worlds =>
     type CharName = String
 
     def Handle(id: UUID): Handle = new ClientHandle(id) with HandleLike
-    implicit def enrich(handle: ClientHandle): ClientHandle with HandleLike = {
+    implicit def enrichClient(handle: ClientHandle): ClientHandle with HandleLike = {
       registry.retrieve(handle.id) match {
         case Some(h) => h
         case None    => throw HandleInvalidException()

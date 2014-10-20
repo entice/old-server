@@ -35,7 +35,7 @@ trait Entities extends Handles {
     type Handle = EntityHandle with HandleLike
 
     def Handle(id: Int): Handle = new EntityHandle(id) with HandleLike
-    implicit def enrich(handle: EntityHandle): EntityHandle with HandleLike = {
+    implicit def enrichEntity(handle: EntityHandle): EntityHandle with HandleLike = {
       registry.retrieve(handle.id) match {
         case Some(h) => h
         case None    => throw HandleInvalidException()

@@ -5,6 +5,7 @@
 package entice.server
 
 import entice.server.attributes._
+import entice.server.enums._
 import entice.server.handles._
 import entice.server.utils._
 
@@ -13,9 +14,9 @@ import entice.server.utils._
 trait Worlds extends Lifecycle {
 
   type World <: WorldLike
-  def World(name: String): World
+  def World(name: String, map: WorldMap.WorldMapVal): World
 
-  def lobby = World("Lobby")
+  def lobby = World("Lobby", WorldMap.Lobby)
   def allWorlds: List[World] = lobby :: Nil
 
   override def onStart() {
@@ -36,6 +37,7 @@ trait Worlds extends Lifecycle {
 
   trait WorldLike extends Lifecycle { self: World =>
     def name: String
+    def map: WorldMap.WorldMapVal
     val eventBus: EventBus = new EventBus()
 
     /** Checks if the given entity resides in this world */

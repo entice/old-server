@@ -50,6 +50,15 @@ package object attributes {
   }
 
 
+  /** Needs to be defined here, b/c of sealed trait */
+  object test {
+    case class NormalAttr(s: String = "") extends Attribute
+    case class NotVisibleAttr(i: Int = 1) extends Attribute with NoVisibility
+    case class NotPropagatedAttr(b: Boolean = true) extends Attribute with NoPropagation
+  }
+  import test._
+
+
   /** Present if this entity can perform animations */
   case class Animation(id: CharacterAnimation.Value = CharacterAnimation.None) extends Attribute
 

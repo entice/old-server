@@ -82,7 +82,6 @@ trait CharacterController extends Controller { self: Security with Clients with 
 
 
     private def getAppearance(f: CharacterCreateForm): Appearance = {
-      // TODO: why the fuck do we need to cast this crap?
       Appearance(
         CharacterProfession.withProfessionName(f.profession).number,
         CharacterCampaign.withCampaignName(f.campaign).number,
